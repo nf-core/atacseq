@@ -207,8 +207,7 @@ The full path to BED12 file can be specified for annotating peaks.
 ```
 
 ### `--macs_gsize`
-The full path to BED12 file can be specified for annotating peaks.
-[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided --genome is set as GRCh37, GRCm38, BDGP6 and WBcel235. For other genomes, if this parameter isnt specified then the MACS2 peak-calling step will be skipped.
+[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when --genome is set as GRCh37, GRCm38, BDGP6 and WBcel235. For other genomes, if this parameter isnt specified then the MACS2 peak-calling step will be skipped.
 ```bash
 --macs_gsize 2.7e9
 ```
@@ -223,7 +222,7 @@ Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to t
 Specifying this flag instructs the pipeline to use bundled ENCODE blacklist regions to filter out known blacklisted regions in the called ChIP-seq peaks. Please note that this is only supported when --genome is set to `GRCh37` or `GRCm38`.
 
 ### `--blacklist`
-If you prefer, you can specify the full path to the blacklist regions (should be in .BED format) which will be filtered out from the called ChIP-seq peaks. Please note that `--blacklist_filtering` is required for using this option.
+If you prefer, you can specify the full path to the blacklist regions (should be in .BED format) which will be filtered out from the called ATAC-seq peaks. Please note that `--blacklist_filtering` is required for using this option.
 ```bash
 --blacklist_filtering --blacklist '[path to blacklisted regions]'
 ```
@@ -304,7 +303,7 @@ Use to set a top-limit for the default CPU requirement for each process.
 Should be a string in the format integer-unit. eg. `--max_cpus 1`
 
 ### `--plaintext_email`
-Set to receive plain-text e-mails instead of HTML formatted.  
+Set to receive plain-text e-mails instead of HTML formatted.
 
-### `--multiqc_config`
+### `--multiqc_config`
 Specify a path to a custom MultiQC configuration file.
