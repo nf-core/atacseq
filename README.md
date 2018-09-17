@@ -66,7 +66,7 @@ The pipeline was originally written by the [The Bioinformatics & Biostatistics G
 
 The pipeline was developed by [Harshil Patel](mailto:harshil.patel@crick.ac.uk), [Philip East](mailto:philip.east@crick.ac.uk) and [Nourdine Bah](mailto:nourdine.bah@crick.ac.uk).
 
-The [ngi-core/rnaseq](https://github.com/nf-core/rnaseq) pipeline developed by Phil Ewels was used a template for this pipeline. Many thanks to Phil and the team at SciLifeLab.
+The [nf-core/rnaseq](https://github.com/nf-core/rnaseq) pipeline developed by Phil Ewels was used a template for this pipeline. Many thanks to Phil and the team at SciLifeLab.
 
 Many thanks to other who have helped out along the way too, including (but not limited to):
 [@pditommaso](https://github.com/pditommaso),
