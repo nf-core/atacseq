@@ -10,13 +10,27 @@
     * [`-profile`](#-profile-single-dash)
         * [`docker`](#docker)
         * [`awsbatch`](#awsbatch)
+        * [`singularity`](#singularity)
+        * [`conda`](#conda)
+        * [`crick-modules`](#crick-modules)
         * [`standard`](#standard)
         * [`none`](#none)
-    * [`--reads`](#--reads)
-    * [`--singleEnd`](#--singleend)
+    * [`--design`](#--design)
 * [Reference Genomes](#reference-genomes)
     * [`--genome`](#--genome)
+    * [`--bwa_index`](#--bwa_index)
     * [`--fasta`](#--fasta)
+    * [`--gtf`](#--gtf)
+    * [`--bed12`](#--bed12)
+    * [`--macs_gsize`](#--macs_gsize)
+    * [`--mito_name`](#--mito_name)
+    * [`--blacklist_filtering`](#--blacklist_filtering)
+    * [`--blacklist`](#--blacklist)
+    * [`--saveReference`](#--saveReference)
+* [Adapter trimming & alignment](#adapter-trimming)
+    * [`--adapter`](#--adapter)
+    * [`--notrim`](#--notrim)
+    * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
 * [Job Resources](#job-resources)
 * [Automatic resubmission](#automatic-resubmission)
 * [Custom resource requests](#custom-resource-requests)
@@ -34,7 +48,6 @@
     * [`--max_time`](#--max_time)
     * [`--max_cpus`](#--max_cpus)
     * [`--plaintext_emails`](#--plaintext_emails)
-    * [`--sampleLevel`](#--sampleLevel)
     * [`--multiqc_config`](#--multiqc_config)
 
 
@@ -50,7 +63,7 @@ NXF_OPTS='-Xms1g -Xmx4g'
 ## Running the pipeline
 The typical command for running the pipeline is as follows:
 ```bash
-nextflow run nf-core/atacseq --reads '*_R{1,2}.fastq.gz' -profile standard,docker
+nextflow run nf-core/atacseq --design design.csv --genome GRCh37 -profile standard,docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
@@ -78,7 +91,6 @@ First, go to the [nf-core/atacseq releases page](https://github.com/nf-core/atac
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future.
 
-
 ## Main Arguments
 
 ### `-profile`
@@ -98,36 +110,41 @@ Use this parameter to choose a configuration profile. Profiles can give configur
     * Pulls most software from [Bioconda](https://bioconda.github.io/)
 * `awsbatch`
     * A generic configuration profile to be used with AWS Batch.
+* `crick-modules`
+    * Designed to use environment modules on the CAMP HPC system at [The Francis Crick Institute](https://www.crick.ac.uk/)
+    * See [`docs/configuration/crick.md`](configuration/crick.md)
 * `test`
     * A profile with a complete configuration for automated testing
     * Includes links to test data so needs no other parameters
 * `none`
     * No configuration at all. Useful if you want to build your own config from scratch and want to avoid loading in the default `base` config profile (not recommended).
 
-### `--reads`
-Use this to specify the location of your input FastQ files. For example:
+### `--design`
+You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location.
 
 ```bash
---reads 'path/to/data/sample_*_{1,2}.fastq'
+--design '[path to design file]'
 ```
 
-Please note the following requirements:
-
-1. The path must be enclosed in quotes
-2. The path must have at least one `*` wildcard character
-3. When using the pipeline with paired end data, the path must use `{1,2}` notation to specify read pairs.
-
-If left unspecified, a default pattern is used: `data/*{1,2}.fastq.gz`
-
-### `--singleEnd`
-By default, the pipeline expects paired-end data. If you have single-end data, you need to specify `--singleEnd` on the command line when you launch the pipeline. A normal glob pattern, enclosed in quotation marks, can then be used for `--reads`. For example:
+It has to be a comma-separated file with 4 columns, and a header row as shown in the example below:
 
 ```bash
---singleEnd --reads '*.fastq'
+sample,replicate,fastq_1,fastq_2
+control,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+control,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
+treatment,1,AEG588A3_S5_L003_R1_001.fastq.gz,AEG588A3_S5_L003_R2_001.fastq.gz
+treatment,2,AEG588A4_S3_L002_R1_001.fastq.gz,AEG588A4_S3_L002_R2_001.fastq.gz
+treatment,2,AEG588A5_S4_L002_R1_001.fastq.gz,AEG588A5_S4_L002_R2_001.fastq.gz
 ```
 
-It is not possible to run a mixture of single-end and paired-end files in one run.
+| Column      | Description                                                                                   |
+|-------------|-----------------------------------------------------------------------------------------------|
+| `sample`    | Group identifier for sample.                                                                  |
+| `replicate` | Integer representing replicate number.                                                        |
+| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz". |
+| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz". |
 
+If you have sequenced the same library more than once you just provide this as a separate entry in the design file with the same replicate identifier. The alignments will be performed separately, and subsequently merged before further analysis.
 
 ## Reference Genomes
 
@@ -164,12 +181,66 @@ params {
 }
 ```
 
-### `--fasta`
+### `--bwa_index`
 If you prefer, you can specify the full path to your reference genome when you run the pipeline:
-
 ```bash
---fasta '[path to Fasta reference]'
+--bwa_index '[path to BWA index]'
 ```
+
+### `--fasta`
+If you don't have a BWA index available, you can pass a FASTA file to the pipeline and a BWA index
+will be generated for you. Combine with `--saveReference` to save for future runs.
+```bash
+--fasta '[path to FASTA reference]'
+```
+
+### `--gtf`
+The full path to GTF file can be specified for annotating peaks. Note that the GTF file should be in the Ensembl format.
+```bash
+--gtf '[path to GTF file]'
+```
+
+### `--bed12`
+The full path to BED12 file can be specified for annotating peaks.
+```bash
+--bed12 '[path to BED12 file]'
+```
+
+### `--macs_gsize`
+The full path to BED12 file can be specified for annotating peaks.
+[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided --genome is set as GRCh37, GRCm38, BDGP6 and WBcel235. For other genomes, if this parameter isnt specified then the MACS2 peak-calling step will be skipped.
+```bash
+--macs_gsize 2.7e9
+```
+
+### `--mito_name`
+Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. These have been provided in the iGenomes config file.
+```bash
+--mito_name chrM
+```
+
+### `--blacklist_filtering`
+Specifying this flag instructs the pipeline to use bundled ENCODE blacklist regions to filter out known blacklisted regions in the called ChIP-seq peaks. Please note that this is only supported when --genome is set to `GRCh37` or `GRCm38`.
+
+### `--blacklist`
+If you prefer, you can specify the full path to the blacklist regions (should be in .BED format) which will be filtered out from the called ChIP-seq peaks. Please note that `--blacklist_filtering` is required for using this option.
+```bash
+--blacklist_filtering --blacklist '[path to blacklisted regions]'
+```
+
+### `--saveReference`
+Supply this parameter to save any generated reference genome files to your results folder. These can then be used for future pipeline runs, reducing processing times.
+
+## Adapter trimming & alignment
+
+### `--adapter`
+By default, the [Nextera DNA library preparation kit](https://emea.illumina.com/products/by-type/sequencing-kits/library-prep-kits/nextera-dna.html) adapter will be used for trimming reads i.e 'CTGTCTCTTATA'. If you have used another protocol you can specify the relevant adapter sequence using this parameter.  
+
+### `--notrim`
+Specifying `--notrim` will skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.
+
+### `--saveAlignedIntermediates`
+By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also copy out BAM files from BWA and sorting steps.
 
 ## Job Resources
 ### Automatic resubmission
@@ -233,7 +304,7 @@ Use to set a top-limit for the default CPU requirement for each process.
 Should be a string in the format integer-unit. eg. `--max_cpus 1`
 
 ### `--plaintext_email`
-Set to receive plain-text e-mails instead of HTML formatted.
+Set to receive plain-text e-mails instead of HTML formatted.  
 
 ### `--multiqc_config`
 Specify a path to a custom MultiQC configuration file.
