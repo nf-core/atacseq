@@ -8,12 +8,13 @@
 * [Reproducibility](#reproducibility)
 * [Main arguments](#main-arguments)
     * [`-profile`](#-profile-single-dash)
+        * [`standard`](#standard)
         * [`docker`](#docker)
-        * [`awsbatch`](#awsbatch)
         * [`singularity`](#singularity)
         * [`conda`](#conda)
+        * [`awsbatch`](#awsbatch)
         * [`crick-modules`](#crick-modules)
-        * [`standard`](#standard)
+        * [`test`](#test)
         * [`none`](#none)
     * [`--design`](#--design)
 * [Reference Genomes](#reference-genomes)
@@ -27,7 +28,7 @@
     * [`--blacklist_filtering`](#--blacklist_filtering)
     * [`--blacklist`](#--blacklist)
     * [`--saveReference`](#--saveReference)
-* [Adapter trimming & alignment](#adapter-trimming)
+* [Adapter trimming and alignment](#adapter-trimming-and-alignment)
     * [`--adapter`](#--adapter)
     * [`--notrim`](#--notrim)
     * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
@@ -49,7 +50,6 @@
     * [`--max_cpus`](#--max_cpus)
     * [`--plaintext_emails`](#--plaintext_emails)
     * [`--multiqc_config`](#--multiqc_config)
-
 
 ## General Nextflow info
 Nextflow handles job submissions on SLURM or other environments, and supervises running the jobs. Thus the Nextflow process must run until the pipeline is finished. We recommend that you put the process running in the background through `screen` / `tmux` or similar tool. Alternatively you can run nextflow within a cluster job submitted your job scheduler.
