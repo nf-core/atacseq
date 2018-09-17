@@ -5,3 +5,51 @@ report_comment: >
 report_section_order:
     nf-core/atacseq-software-versions:
         order: -1000
+
+fn_clean_exts:
+    - 'fastq.gz'
+    - 'screen.txt'
+    - 'sorted.bam'
+    - 'mkD'
+    - 'RpL'
+    - 'SmL'
+
+module_order:
+    - fastqc:
+        name: 'FastQC (raw)'
+        info: 'This section of the report shows FastQC results before adapter trimming.'
+        path_filters:
+            - '*_?_fastqc.zip'
+    - cutadapt
+    - fastqc:
+        name: 'FastQC (trimmed)'
+        info: 'This section of the report shows FastQC results after adapter trimming.'
+        target: ''
+        path_filters:
+            - '*.trim_fastqc.zip'
+    - fastq_screen
+    - samtools:
+        name: 'SAMTools (run-level; unfiltered)'
+        info: 'This section of the report shows SAMTools results at the run-level before read filtering.'
+        path_filters:
+            - '*_L?.mkD.sorted.bam*'
+    - picard:
+        name: 'Picard (run-level; unfiltered)'
+        info: 'This section of the report shows picard results at the run-level before read filtering.'
+        path_filters:
+            - '*_L?.mkD.*'
+    - samtools:
+        name: 'SAMTools (run-level; filtered)'
+        info: 'This section of the report shows SAMTools results at the run-level after read filtering.'
+        path_filters:
+            - '*_L?.clN.sorted.bam*'
+    - samtools:
+        name: 'SAMTools (replicate-level; filtered)'
+        info: 'This section of the report shows SAMTools results at the replicate-level after removal of duplicate reads.'
+        path_filters:
+            - '*RpL.rmD*'
+    - samtools:
+        name: 'SAMTools (sample-level; filtered)'
+        info: 'This section of the report shows SAMTools results at the sample-level after removal of duplicate reads.'
+        path_filters:
+            - '*SmL.rmD*'
