@@ -1,8 +1,6 @@
 # PIPELINE & DOCS UNDER CONSTRUCTION. ETA OCTOBER 2018.
 
-# nf-core/atacseq
 # ![nfcore/atacseq](docs/images/nfcore-atacseq_logo.png)
-**ATACSeq peak-calling and differential analysis pipeline.**
 
 [![Build Status](https://travis-ci.org/nf-core/atacseq.svg?branch=master)](https://travis-ci.org/nf-core/atacseq)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.30.0-brightgreen.svg)](https://www.nextflow.io/)
