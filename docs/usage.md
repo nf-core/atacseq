@@ -25,6 +25,7 @@
     * [`--fasta`](#--fasta)
     * [`--bwa_index`](#--bwa_index)
     * [`--gtf`](#--gtf)
+    * [`--bed12`](#--bed12)
     * [`--macs_gsize`](#--macs_gsize)
     * [`--mito_name`](#--mito_name)
     * [`--blacklist`](#--blacklist)
@@ -215,6 +216,12 @@ If you prefer, you can specify the full path to your reference genome when you r
 The full path to GTF file can be specified for annotating peaks. Note that the GTF file should be in the Ensembl format.
 ```bash
 --gtf '[path to GTF file]'
+```
+
+### `--bed12`
+The full path to BED12 file can be specified for annotating peaks.
+```bash
+--bed12 '[path to BED12 file]'
 ```
 
 ### `--mito_name`
