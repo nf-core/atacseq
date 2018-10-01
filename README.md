@@ -31,10 +31,10 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
     * reads that map to multiple locations ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
     * reads containing > 3 mismatches ([`BAMTools`](https://github.com/pezmaster31/bamtools))
     * reads that are soft-clipped ([`BAMTools`](https://github.com/pezmaster31/bamtools))
-    * reads that have an insert size > 2kb ([`BAMTools`](https://github.com/pezmaster31/bamtools); paired-end only)
-    * reads that map to different chromosomes ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); paired-end only)
-    * reads that arent in FR orientation ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); paired-end only)
-    * reads where only one read of the pair fails the above criteria ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); paired-end only)
+    * reads that have an insert size > 2kb (*paired-end only*; [`BAMTools`](https://github.com/pezmaster31/bamtools))
+    * reads that map to different chromosomes (*paired-end only*; [`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html))
+    * reads that arent in FR orientation (*paired-end only*; [`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html))
+    * reads where only one read of the pair fails the above criteria (*paired-end only*; [`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html))
 6. Merge alignments at replicate and sample level ([`picard`](https://broadinstitute.github.io/picard/))
     * Re-mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
     * Remove duplicate reads ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
@@ -62,9 +62,9 @@ The nf-core/atacseq pipeline comes with documentation about the pipeline, found 
 
 The pipeline was originally written by the [The Bioinformatics & Biostatistics Group](https://www.crick.ac.uk/research/science-technology-platforms/bioinformatics-and-biostatistics/) for use at [The Francis Crick Institute](https://www.crick.ac.uk/), London.
 
-The pipeline was developed by [Harshil Patel](mailto:harshil.patel@crick.ac.uk), [Philip East](mailto:philip.east@crick.ac.uk) and [Nourdine Bah](mailto:nourdine.bah@crick.ac.uk).
+The pipeline was developed by [Harshil Patel](mailto:harshil.patel@crick.ac.uk).
 
-The [nf-core/rnaseq](https://github.com/nf-core/rnaseq) pipeline developed by Phil Ewels was used a template for this pipeline. Many thanks to Phil and the team at SciLifeLab.
+The [nf-core/rnaseq](https://github.com/nf-core/rnaseq) and [nf-core/chipseq](https://github.com/nf-core/chipseq) pipelines developed by Phil Ewels were used as a template for this pipeline. Many thanks to Phil and the team at SciLifeLab.
 
 Many thanks to other who have helped out along the way too, including (but not limited to):
 [@pditommaso](https://github.com/pditommaso),
