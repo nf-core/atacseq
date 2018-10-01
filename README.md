@@ -18,7 +18,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 ### Pipeline summary
 
-1. Raw read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/), [`Fastq Screen`](https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/))
+1. Raw read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
 2. Adapter trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
 3. Alignment ([`BWA`](https://sourceforge.net/projects/bio-bwa/files/))
 4. Mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
