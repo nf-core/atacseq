@@ -17,20 +17,25 @@
         * [`test`](#test)
         * [`none`](#none)
     * [`--design`](#--design)
+    * [`--singleEnd`](#--singleEnd)
+    * [`--narrow`](#--narrow)
+    * [`--extendReadsLen`](#--extendReadsLen)
 * [Reference Genomes](#reference-genomes)
     * [`--genome`](#--genome)
-    * [`--bwa_index`](#--bwa_index)
     * [`--fasta`](#--fasta)
+    * [`--bwa_index`](#--bwa_index)
     * [`--gtf`](#--gtf)
-    * [`--bed12`](#--bed12)
     * [`--macs_gsize`](#--macs_gsize)
     * [`--mito_name`](#--mito_name)
-    * [`--blacklist_filtering`](#--blacklist_filtering)
     * [`--blacklist`](#--blacklist)
     * [`--saveReference`](#--saveReference)
-* [Adapter trimming and alignment](#adapter-trimming-and-alignment)
-    * [`--adapter`](#--adapter)
+* [Adapter trimming](#adapter-trimming)
     * [`--notrim`](#--notrim)
+    * [`--saveTrimmed`](#--saveTrimmed)
+* [Alignments](#alignments)
+    * [`--allow_multi_align`](#--allow_multi_align)
+    * [`--keep_duplicates`](#--keep_duplicates)
+    * [`--keep_mitochondrial`](#--keep_mitochondrial)
     * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
 * [Job Resources](#job-resources)
 * [Automatic resubmission](#automatic-resubmission)
@@ -91,7 +96,7 @@ First, go to the [nf-core/atacseq releases page](https://github.com/nf-core/atac
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future.
 
-## Main Arguments
+## Arguments
 
 ### `-profile`
 Use this parameter to choose a configuration profile. Profiles can give configuration presets for different compute environments. Note that multiple profiles can be loaded, for example: `-profile standard,docker` - the order of arguments is important!
@@ -146,6 +151,19 @@ treatment,2,AEG588A5_S4_L002_R1_001.fastq.gz,AEG588A5_S4_L002_R2_001.fastq.gz
 
 If you have sequenced the same library more than once you just provide this as a separate entry in the design file with the same replicate identifier. The alignments will be performed separately, and subsequently merged before further analysis.
 
+### `--singleEnd`
+By default, the pipeline expects paired-end data. If you have single-end data, specify `--singleEnd` on the command line when you launch the pipeline.
+
+It is not possible to run a mixture of single-end and paired-end files in one run.
+
+### `--narrow`
+By default, MACS is run with the `--broad` flag. With this flag on, MACS will try to composite broad regions in BED12 ( a gene-model-like format ) by putting nearby highly enriched regions into a broad region with loose cutoff. The broad region is controlled by the default qvalue cutoff 0.1. Specify this flag to call peaks in narrowPeak mode.
+
+### `--extendReadsLen`
+Number of base pairs to extend the reads for the deepTools analysis. This number should be based on the length of your reads and the expected fragment length.
+
+Default: `0`
+
 ## Reference Genomes
 
 The pipeline config files come bundled with paths to the illumina iGenomes reference index files. If running with docker or AWS, the configuration is set up to use the [AWS-iGenomes](https://ewels.github.io/AWS-iGenomes/) resource.
@@ -181,17 +199,16 @@ params {
 }
 ```
 
+### `--fasta`
+Full path to fasta file containing reference genome. If you don't have a BWA index available this will be generated for you automatically. Combine with `--saveReference` to save for future runs.
+```bash
+--fasta '[path to FASTA reference]'
+```
+
 ### `--bwa_index`
 If you prefer, you can specify the full path to your reference genome when you run the pipeline:
 ```bash
 --bwa_index '[path to BWA index]'
-```
-
-### `--fasta`
-If you don't have a BWA index available, you can pass a FASTA file to the pipeline and a BWA index
-will be generated for you. Combine with `--saveReference` to save for future runs.
-```bash
---fasta '[path to FASTA reference]'
 ```
 
 ### `--gtf`
@@ -200,10 +217,10 @@ The full path to GTF file can be specified for annotating peaks. Note that the G
 --gtf '[path to GTF file]'
 ```
 
-### `--bed12`
-The full path to BED12 file can be specified for annotating peaks.
+### `--mito_name`
+Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. These have been provided in the iGenomes config file.
 ```bash
---bed12 '[path to BED12 file]'
+--mito_name chrM
 ```
 
 ### `--macs_gsize`
@@ -211,15 +228,6 @@ The full path to BED12 file can be specified for annotating peaks.
 ```bash
 --macs_gsize 2.7e9
 ```
-
-### `--mito_name`
-Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. These have been provided in the iGenomes config file.
-```bash
---mito_name chrM
-```
-
-### `--blacklist_filtering`
-Specifying this flag instructs the pipeline to use bundled ENCODE blacklist regions to filter out known blacklisted regions in the called ChIP-seq peaks. Please note that this is only supported when --genome is set to `GRCh37` or `GRCm38`.
 
 ### `--blacklist`
 If you prefer, you can specify the full path to the blacklist regions (should be in .BED format) which will be filtered out from the called ATAC-seq peaks. Please note that `--blacklist_filtering` is required for using this option.
@@ -230,16 +238,38 @@ If you prefer, you can specify the full path to the blacklist regions (should be
 ### `--saveReference`
 Supply this parameter to save any generated reference genome files to your results folder. These can then be used for future pipeline runs, reducing processing times.
 
-## Adapter trimming & alignment
+## Adapter trimming
+The pipeline accepts a number of parameters to change how the trimming is done, according to your data type.
+You can specify custom trimming parameters as follows:
 
-### `--adapter`
-By default, the [Nextera DNA library preparation kit](https://emea.illumina.com/products/by-type/sequencing-kits/library-prep-kits/nextera-dna.html) adapter will be used for trimming reads i.e 'CTGTCTCTTATA'. If you have used another protocol you can specify the relevant adapter sequence using this parameter.  
+* `--clip_r1 <NUMBER>`
+  * Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads).
+* `--clip_r2 <NUMBER>`
+  * Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only).
+* `--three_prime_clip_r1 <NUMBER>`
+  * Instructs Trim Galore to remove bp from the 3' end of read 1 _AFTER_ adapter/quality trimming has been
+* `--three_prime_clip_r2 <NUMBER>`
+  * Instructs Trim Galore to re move bp from the 3' end of read 2 _AFTER_ adapter/quality trimming has been performed.
 
 ### `--notrim`
 Specifying `--notrim` will skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.
 
+### `--saveTrimmed`
+By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete.
+
+## Alignments
+
+### `--allow_multi_align`
+Reads mapping to multiple places are not filtered from alignments.
+
+### `--keep_duplicates`
+Duplicate reads are not filtered from alignments.
+
+### `--keep_mitochondrial`
+Reads mapping to mitochondrial contig are not filtered from alignments.
+
 ### `--saveAlignedIntermediates`
-By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also copy out BAM files from BWA and sorting steps.
+By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also copy out BAM files from BWA and sorting/filtering steps.
 
 ## Job Resources
 ### Automatic resubmission
