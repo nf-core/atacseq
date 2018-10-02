@@ -28,7 +28,7 @@ argParser.add_argument('BAM_INPUT_FILE', help="Input BAM file sorted by name.")
 argParser.add_argument('BAM_OUTPUT_FILE', help="Output BAM file sorted by name.")
 
 ## OPTIONAL PARAMETERS
-argParser.add_argument('-op', '--only_prop_pair', dest="ONLY_PROPER_PAIR", help="Only keeps pairs that are in FR orientation on same chromosome.",action='store_true')
+argParser.add_argument('-fr', '--only_fr_pairs', dest="ONLY_FR_PAIRS", help="Only keeps pairs that are in FR orientation on same chromosome.",action='store_true')
 args = argParser.parse_args()
 
 ############################################
@@ -37,7 +37,7 @@ args = argParser.parse_args()
 ############################################
 ############################################
 
-def bampe_rm_orphan(BAMIn,BAMOut,onlyPropPair=False):
+def bampe_rm_orphan(BAMIn,BAMOut,onlyFRPairs=False):
 
     ## SETUP DIRECTORY/FILE STRUCTURE
     OutDir = os.path.dirname(BAMOut)
@@ -57,7 +57,7 @@ def bampe_rm_orphan(BAMIn,BAMOut,onlyPropPair=False):
             pair1 = currRead; pair2 = read
 
             ## FILTER FOR READS ON SAME CHROMOSOME IN FR ORIENTATION
-            if onlyPropPair:
+            if onlyFRPairs:
                 if pair1.tid == pair2.tid:
 
                     ## READ1 FORWARD AND READ2 REVERSE STRAND
@@ -133,7 +133,7 @@ def bampe_rm_orphan(BAMIn,BAMOut,onlyPropPair=False):
 ############################################
 ############################################
 
-bampe_rm_orphan(BAMIn=args.BAM_INPUT_FILE,BAMOut=args.BAM_OUTPUT_FILE,onlyPropPair=args.ONLY_PROPER_PAIR)
+bampe_rm_orphan(BAMIn=args.BAM_INPUT_FILE,BAMOut=args.BAM_OUTPUT_FILE,onlyFRPairs=args.ONLY_FR_PAIRS)
 
 ############################################
 ############################################
