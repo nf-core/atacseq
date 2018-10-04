@@ -6,50 +6,83 @@ report_section_order:
     nf-core/atacseq-software-versions:
         order: -1000
 
+skip_generalstats: true
+
 fn_clean_exts:
     - 'fastq.gz'
-    - 'screen.txt'
+    - '_val'
     - 'sorted.bam'
     - 'mkD'
-    - 'RpL'
-    - 'SmL'
+    - 'clN'
+    - 'mRp'
+    - 'mSm'
 
 module_order:
     - fastqc:
         name: 'FastQC (raw)'
         info: 'This section of the report shows FastQC results before adapter trimming.'
         path_filters:
-            - '*_?_fastqc.zip'
+            - '*_fastqc.zip'
     - cutadapt
     - fastqc:
         name: 'FastQC (trimmed)'
         info: 'This section of the report shows FastQC results after adapter trimming.'
         target: ''
         path_filters:
-            - '*.trim_fastqc.zip'
-    - fastq_screen
+            - '*val*_fastqc.zip'
     - samtools:
         name: 'SAMTools (run-level; unfiltered)'
         info: 'This section of the report shows SAMTools results at the run-level before read filtering.'
         path_filters:
-            - '*_L?.mkD.sorted.bam*'
+            - '*.mkD.sorted.bam*'
     - picard:
         name: 'Picard (run-level; unfiltered)'
         info: 'This section of the report shows picard results at the run-level before read filtering.'
         path_filters:
-            - '*_L?.mkD.*'
+            - '*.mkD.*'
     - samtools:
         name: 'SAMTools (run-level; filtered)'
         info: 'This section of the report shows SAMTools results at the run-level after read filtering.'
         path_filters:
-            - '*_L?.clN.sorted.bam*'
+            - '*.clN.sorted.bam*'
     - samtools:
         name: 'SAMTools (replicate-level; filtered)'
         info: 'This section of the report shows SAMTools results at the replicate-level after removal of duplicate reads.'
         path_filters:
-            - '*RpL.rmD*'
+            - '*mRp.sorted.bam*'
     - samtools:
         name: 'SAMTools (sample-level; filtered)'
         info: 'This section of the report shows SAMTools results at the sample-level after removal of duplicate reads.'
         path_filters:
-            - '*SmL.rmD*'
+            - '*mSm.sorted.bam*'
+
+custom_data:
+    example_files:
+        file_format: 'tsv'
+        section_name: 'MACS2 peak count (replicate-level; filtered)'
+        description: 'Replicate-level peak counts'
+        plot_type: 'bargraph'
+        pconfig:
+            id: 'replicate_peak_count_bargraph'
+            title: 'MACS2 Peak count'
+            ylab: 'MACS2 Peak count'
+sp:
+    example_files:
+        fn: '*mRp*count*'
+
+custom_data:
+    example_files:
+        file_format: 'tsv'
+        section_name: 'MACS2 peak FRiP score (replicate-level; filtered)'
+        description: 'Replicate-level MACS2 peak FRiP scores'
+        plot_type: 'bargraph'
+        pconfig:
+            id: 'replicate_frip_bargraph'
+            title: 'FRiP score'
+            ylab: 'FRiP score'
+            ymax: 1
+            ymin: 0
+            tt_decimals: 2
+sp:
+    example_files:
+        fn: '*mRp*FRiP*'
