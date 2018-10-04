@@ -11,7 +11,6 @@ skip_generalstats: true
 fn_clean_exts:
     - 'fastq.gz'
     - '_val'
-    - 'sorted.bam'
     - 'mkD'
     - 'clN'
     - 'mRp'
@@ -46,42 +45,70 @@ module_order:
         path_filters:
             - '*.clN.sorted.bam*'
     - samtools:
-        name: 'SAMTools (replicate-level; filtered)'
+        name: 'SAMTools (replicate-level)'
         info: 'This section of the report shows SAMTools results at the replicate-level after removal of duplicate reads.'
         path_filters:
             - '*mRp.sorted.bam*'
     - samtools:
-        name: 'SAMTools (sample-level; filtered)'
+        name: 'SAMTools (sample-level)'
         info: 'This section of the report shows SAMTools results at the sample-level after removal of duplicate reads.'
         path_filters:
             - '*mSm.sorted.bam*'
+    - featureCounts:
+        name: 'featureCounts (replicate-level)'
+        info: 'This section of the report shows featureCounts results for the number of reads assigned to replicate-level merged peaks.'
+        path_filters:
+            - '*.mRp.featureCounts*'
+
+report_section_order:
+    replicate_peak_count:
+        order: -1000
+    replicate_frip_score:
+        order: -1100
+    replicate_peak_annotation:
+        order: -1200
 
 custom_data:
-    macs_peak_count:
+    replicate_peak_count:
         file_format: 'tsv'
-        section_name: 'MACS2 peak count (replicate-level; filtered)'
+        section_name: 'MACS2 peak count (replicate-level)'
         description: 'Replicate-level peak counts'
         plot_type: 'bargraph'
         pconfig:
             id: 'replicate_peak_count_bargraph'
-            title: 'MACS2 peak count'
-            ylab: 'MACS2 peak count'
+            title: 'Peak count'
+            ylab: 'Peak count'
 
-    macs_frip_score:
+    replicate_frip_score:
         file_format: 'tsv'
-        section_name: 'MACS2 peak FRiP score (replicate-level; filtered)'
+        section_name: 'MACS2 peak FRiP score (replicate-level)'
         description: 'Replicate-level MACS2 peak FRiP scores'
         plot_type: 'bargraph'
         pconfig:
-            id: 'replicate_frip_bargraph'
+            id: 'replicate_frip_score_bargraph'
             title: 'FRiP score'
             ylab: 'FRiP score'
             ymax: 1
             ymin: 0
             tt_decimals: 2
 
+    replicate_peak_annotation:
+        file_format: 'tsv'
+        section_name: 'MACS2 peak annotation (replicate-level)'
+        description: 'Replicate-level MACS2 peak annotation'
+        plot_type: 'bargraph'
+        pconfig:
+            id: 'replicate_peak_annotation_bargraph'
+            title: 'annotatePeaks peak to feature %'
+            ylab: 'Feature %'
+            ymax: 100
+            ymin: 0
+            cpswitch_c_active: false
+
 sp:
-    macs_peak_count:
+    replicate_peak_count:
         fn: '*mRp*count*'
-    macs_frip_score:
+    replicate_frip_score:
         fn: '*mRp*FRiP*'
+    replicate_peak_annotation:
+        fn: '*annotatePeaks.mRp*'
