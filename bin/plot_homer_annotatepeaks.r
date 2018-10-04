@@ -85,7 +85,9 @@ for (idx in 1:length(HomerFiles)) {
 
 }
 
-write.table(plot.feature.dat,file=file.path(opt$outdir,paste(opt$outprefix,".annotation.counts.txt",sep="")),sep="\t",row.names=F,col.names=T,quote=F)
+summary.dat <- dcast(plot.feature.dat, variable ~ feature, value.var="value")
+colnames(summary.dat)[1] <- "sample"
+write.table(summary.dat,file=file.path(opt$outdir,paste(opt$outprefix,".summary_mqc.tsv",sep="")),sep="\t",row.names=F,col.names=T,quote=F)
 
 ################################################
 ################################################
