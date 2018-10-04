@@ -108,7 +108,11 @@ if (file.exists(PlotFile) == FALSE) {
     myplot <- ggplot(pca.data, aes(PC1, PC2, color=condition)) +
                      geom_point(size=3) +
                      xlab(paste0("PC1: ",percentVar[1],"% variance")) +
-                     ylab(paste0("PC2: ",percentVar[2],"% variance"))
+                     ylab(paste0("PC2: ",percentVar[2],"% variance")) +
+										 theme(panel.grid.major = element_blank(),
+													 panel.grid.minor = element_blank(),
+													 panel.background = element_blank(),
+                           panel.border = element_rect(colour = "black", fill=NA, size=1))
     print(myplot)
 
     ## SAMPLE CORRELATION HEATMAP
