@@ -57,21 +57,17 @@ module_order:
             - '*mSm.sorted.bam*'
 
 custom_data:
-    example_files:
+    macs_peak_count:
         file_format: 'tsv'
         section_name: 'MACS2 peak count (replicate-level; filtered)'
         description: 'Replicate-level peak counts'
         plot_type: 'bargraph'
         pconfig:
             id: 'replicate_peak_count_bargraph'
-            title: 'MACS2 Peak count'
-            ylab: 'MACS2 Peak count'
-sp:
-    example_files:
-        fn: '*mRp*count*'
+            title: 'MACS2 peak count'
+            ylab: 'MACS2 peak count'
 
-custom_data:
-    example_files:
+    macs_frip_score:
         file_format: 'tsv'
         section_name: 'MACS2 peak FRiP score (replicate-level; filtered)'
         description: 'Replicate-level MACS2 peak FRiP scores'
@@ -83,6 +79,9 @@ custom_data:
             ymax: 1
             ymin: 0
             tt_decimals: 2
+
 sp:
-    example_files:
+    macs_peak_count:
+        fn: '*mRp*count*'
+    macs_frip_score:
         fn: '*mRp*FRiP*'
