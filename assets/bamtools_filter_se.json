@@ -1,0 +1,14 @@
+{
+    "filters" : [
+        { "id" : "mismatch",
+          "tag" : "XM:<=3"
+        },
+
+        { "id" : "cigar",
+          "cigar" : "*S*"
+        }
+    ],
+
+    "rule" : " mismatch & !cigar "
+
+}
