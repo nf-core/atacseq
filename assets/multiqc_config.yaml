@@ -20,10 +20,16 @@ report_section_order:
         order: -1100
     replicate_peak_annotation:
         order: -1200
-    nf-core_atacseq-software-versions:
+    sample_peak_count:
+        order: -1300
+    sample_frip_score:
+        order: -1400
+    sample_peak_annotation:
         order: -1500
-    nf-core-atacseq-summary:
+    nf-core_atacseq-software-versions:
         order: -1600
+    nf-core-atacseq-summary:
+        order: -1700
 
 module_order:
     - fastqc:
@@ -39,18 +45,18 @@ module_order:
         path_filters:
             - '*val*_fastqc.zip'
     - samtools:
-        name: 'SAMTools (run-level; unfiltered)'
-        info: 'This section of the report shows SAMTools results at the run-level before read filtering.'
+        name: 'SAMTools (library-level; unfiltered)'
+        info: 'This section of the report shows SAMTools results at the library-level before read filtering.'
         path_filters:
             - '*mkD.sorted.bam*'
     - picard:
-        name: 'Picard (run-level; unfiltered)'
-        info: 'This section of the report shows picard results at the run-level before read filtering.'
+        name: 'Picard (library-level; unfiltered)'
+        info: 'This section of the report shows picard results at the library-level before read filtering.'
         path_filters:
             - '*mkD.*'
     - samtools:
-        name: 'SAMTools (run-level; filtered)'
-        info: 'This section of the report shows SAMTools results at the run-level after read filtering.'
+        name: 'SAMTools (library-level; filtered)'
+        info: 'This section of the report shows SAMTools results at the library-level after read filtering.'
         path_filters:
             - '*clN.sorted.bam*'
     - samtools:
@@ -68,6 +74,11 @@ module_order:
         info: 'This section of the report shows featureCounts results for the number of reads assigned to replicate-level merged peaks.'
         path_filters:
             - '*mRp.featureCounts*'
+    - featureCounts:
+        name: 'featureCounts (sample-level)'
+        info: 'This section of the report shows featureCounts results for the number of reads assigned to sample-level merged peaks.'
+        path_filters:
+            - '*mSm.featureCounts*'
 
 custom_data:
     replicate_peak_count:
@@ -106,6 +117,42 @@ custom_data:
             ymin: 0
             cpswitch_c_active: false
 
+    sample_peak_count:
+        file_format: 'tsv'
+        section_name: 'MACS2 peak count (sample-level)'
+        description: 'Sample-level peak counts'
+        plot_type: 'bargraph'
+        pconfig:
+            id: 'sample_peak_count_bargraph'
+            title: 'Peak count'
+            ylab: 'Peak count'
+
+    sample_frip_score:
+        file_format: 'tsv'
+        section_name: 'MACS2 peak FRiP score (sample-level)'
+        description: 'Sample-level MACS2 peak FRiP scores'
+        plot_type: 'bargraph'
+        pconfig:
+            id: 'sample_frip_score_bargraph'
+            title: 'FRiP score'
+            ylab: 'FRiP score'
+            ymax: 1
+            ymin: 0
+            tt_decimals: 2
+
+    sample_peak_annotation:
+        file_format: 'tsv'
+        section_name: 'MACS2 peak annotation (sample-level)'
+        description: 'Sample-level MACS2 peak annotation'
+        plot_type: 'bargraph'
+        pconfig:
+            id: 'sample_peak_annotation_bargraph'
+            title: 'annotatePeaks peak to feature %'
+            ylab: 'Feature %'
+            ymax: 100
+            ymin: 0
+            cpswitch_c_active: false
+
 sp:
     replicate_peak_count:
         fn: '*mRp*count*'
@@ -113,3 +160,9 @@ sp:
         fn: '*mRp*FRiP*'
     replicate_peak_annotation:
         fn: '*annotatePeaks.mRp*'
+    sample_peak_count:
+        fn: '*mSm*count*'
+    sample_frip_score:
+        fn: '*mSm*FRiP*'
+    sample_peak_annotation:
+        fn: '*annotatePeaks.mSm*'
