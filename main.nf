@@ -828,14 +828,13 @@ process merge_replicate {
                                                                 merge_replicate_bam_macs
     set val(name), file("*.flagstat") into merge_replicate_flagstat,
                                            merge_replicate_flagstat_bigwig,
-                                           merge_replicate_flagstat_macs,
-                                           merge_replicate_flagstat_mqc
+                                           merge_replicate_flagstat_macs
     file "*.txt" into merge_replicate_metrics
 
     script:
     prefix="${name}.mRp"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    rmdup = params.keep_duplicates ? "true" : "false"
+    rmdup = params.keep_duplicates ? "false" : "true"
     if (bam_files.size() > 1) {
         """
         picard MergeSamFiles \\
@@ -1148,7 +1147,7 @@ process replicate_macs_merge_deseq {
                   -o ${prefix}.featureCounts.txt \\
                   ${bam_files.join(' ')}
 
-    featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix
+    featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix -s .mRp
     """
 }
 
@@ -1160,8 +1159,332 @@ process replicate_macs_merge_deseq {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
+/*
+ * STEP 6.1 merge bam files for all libraries from same sample
+ */
+rm_orphan_bam_sample.map { it -> [ it[0].toString().subSequence(0, it[0].length() - 6), it[1] ] }
+                    .groupTuple(by: [0])
+                    .map { it ->  [ it[0], it[1].flatten() ] }
+                    .set { rm_orphan_bam_sample }
 
+process merge_sample {
+    tag "$name"
+    publishDir "${params.outdir}/bwa/sample", mode: 'copy',
+        saveAs: {filename ->
+                    if (filename.endsWith(".flagstat")) "flagstat/$filename"
+                    else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
+                    else filename
+                }
 
+    input:
+    set val(name), file(bams) from rm_orphan_bam_sample
+
+    output:
+    set val(name), file("*${prefix}.sorted.{bam,bam.bai}") into merge_sample_bam_bigwig,
+                                                                merge_sample_bam_macs
+    set val(name), file("*.flagstat") into merge_sample_flagstat,
+                                           merge_sample_flagstat_bigwig,
+                                           merge_sample_flagstat_macs
+    file "*.txt" into merge_sample_metrics
+
+    when: replicates_exist
+
+    script:
+    prefix="${name}.mSm"
+    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+    rmdup = params.keep_duplicates ? "false" : "true"
+    if (bam_files.size() > 1) {
+        """
+        picard MergeSamFiles \\
+               ${'INPUT='+bam_files.join(' INPUT=')} \\
+               OUTPUT=${name}.sorted.bam \\
+               SORT_ORDER=coordinate \\
+               VALIDATION_STRINGENCY=LENIENT \\
+               TMP_DIR=tmp
+        samtools index ${name}.sorted.bam
+
+        picard MarkDuplicates \\
+               INPUT=${name}.sorted.bam \\
+               OUTPUT=${prefix}.sorted.bam \\
+               ASSUME_SORTED=true \\
+               REMOVE_DUPLICATES=$rmdup \\
+               METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt \\
+               VALIDATION_STRINGENCY=LENIENT \\
+               TMP_DIR=tmp
+
+        samtools index ${prefix}.sorted.bam
+        samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+        """
+    } else {
+      """
+      ln -s ${bams[0]} ${prefix}.sorted.bam
+      ln -s ${bams[1]} ${prefix}.sorted.bam.bai
+      touch ${prefix}.MarkDuplicates.metrics.txt
+      samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+      """
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/* --                                                                     -- */
+/* --                 MERGE SAMPLE BAM POST-ANALYSIS                      -- */
+/* --                                                                     -- */
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+ * STEP 6.2 Read depth normalised bigWig
+ */
+process sample_bigwig {
+    tag "$name"
+    publishDir "${params.outdir}/bwa/sample/bigwig", mode: 'copy',
+        saveAs: {filename ->
+                    if (filename.endsWith(".txt")) "scale/$filename"
+                    else if (filename.endsWith(".bigWig")) "$filename"
+                    else null
+                }
+
+    input:
+    set val(name), file(bam), file(flagstat) from merge_sample_bam_bigwig.join(merge_sample_flagstat_bigwig, by: [0])
+    file sizes from genome_sizes_sample_bigwig.collect()
+
+    output:
+    file "*.bigWig" into sample_bigwig
+    file "*.txt" into sample_bigwig_scale
+
+    when: replicates_exist
+
+    script:
+    prefix="${name}.mSm"
+    pe_fragment = params.singleEnd ? "" : "-pc"
+    extend = (params.singleEnd && params.fragmentSize > 0) ? "-fs ${params.fragmentSize}" : ''
+    """
+    SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
+    echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
+    genomeCoverageBed -ibam ${bam[0]} -bg -trackline -scale \$SCALE_FACTOR $pe_fragment $extend >  ${prefix}.bedGraph
+    wigToBigWig -clip ${prefix}.bedGraph $sizes ${prefix}.bigWig
+    """
+}
+
+/*
+ * STEP 6.3.1 Call peaks with MACS2 and calculate FRiP score
+ */
+process sample_macs {
+    tag "$name"
+    publishDir "${params.outdir}/bwa/sample/macs", mode: 'copy',
+        saveAs: {filename ->
+                    if (filename.endsWith(".tsv")) "qc/$filename"
+                    else filename
+                }
+
+    input:
+    set val(name), file(bam), file(flagstat) from merge_sample_bam_macs.join(merge_sample_flagstat_macs, by: [0])
+
+    output:
+    file "*.{bed,xls,gappedPeak}" into sample_macs_output
+    set val(name), file("*$peakext") into sample_macs_peaks_homer,
+                                          sample_macs_peaks_merge,
+                                          sample_macs_peaks_igv
+    file "*_mqc.tsv" into sample_macs_peak_mqc
+
+    when: params.macs_gsize && replicates_exist
+
+    script:
+    prefix="${name}.mSm"
+    peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
+    broad = params.narrowPeak ? '' : "--broad"
+    format = params.singleEnd ? "BAM" : "BAMPE"
+    """
+    macs2 callpeak \\
+         -t ${bam[0]} \\
+         $broad \\
+         -f $format \\
+         -g ${params.macs_gsize} \\
+         -n ${prefix} \\
+         --keep-dup all \\
+         --nomodel
+
+    READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks${peakext} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
+    grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' > ${prefix}_peaks.FRiP_mqc.tsv
+
+    cat ${prefix}_peaks${peakext} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' > ${prefix}_peaks.count_mqc.tsv
+    """
+}
+
+/*
+ * STEP 6.3.2 annotate peaks with homer
+ */
+process sample_macs_annotate {
+    tag "$name"
+    publishDir "${params.outdir}/bwa/sample/macs", mode: 'copy'
+
+    input:
+    set val(name), file(peak) from sample_macs_peaks_homer
+    file fasta from fasta_sample_macs_annotate.collect()
+    file gtf from gtf_sample_macs_annotate.collect()
+
+    output:
+    file "*.txt" into sample_macs_annotate
+
+    when: params.macs_gsize && replicates_exist
+
+    script:
+    prefix="${name}.mSm"
+    """
+    annotatePeaks.pl $peak \\
+                     $fasta \\
+                     -gid \\
+                     -gtf $gtf \\
+                     > ${prefix}_peaks.annotatePeaks.txt
+    """
+}
+
+/*
+ * STEP 6.3.3 aggregated qc plots for peaks, frip and annotation
+ */
+sample_macs_peaks_merge.map { it -> [ null, it[1] ] }
+                       .groupTuple(by: [0])
+                       .map { it ->  [ it[1].sort().collect{ it.getName().substring(0, it.getName().indexOf(".mSm")) },
+                                       it[1].sort() ] }
+                       .into { sample_macs_peaks_qc;
+                              sample_macs_peaks_merge }
+
+sample_macs_annotate.map { it -> [ null, it ] }
+                    .groupTuple(by: [0])
+                    .map { it ->  [ it[1].sort().collect{ it.getName().substring(0, it.getName().indexOf(".mSm")) },
+                                    it[1].sort() ] }
+                    .set { sample_macs_annotate }
+
+process sample_macs_qc {
+   publishDir "${params.outdir}/bwa/sample/macs/qc", mode: 'copy'
+
+   input:
+   set val(names), file(peaks) from sample_macs_peaks_qc
+   set val(anames), file(annos) from sample_macs_annotate
+
+   output:
+   file "*.{txt,pdf}" into sample_macs_qc
+   file "*.tsv" into sample_macs_qc_mqc
+
+   when: params.macs_gsize && replicates_exist
+
+   script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
+   suffix='mSm'
+   """
+   plot_macs_qc.r -i ${peaks.join(',')} -s ${names.join(',')} -o ./ -p macs_peak.${suffix}
+   plot_homer_annotatepeaks.r -i ${annos.join(',')} -s ${anames.join(',')} -o ./ -p macs_annotatePeaks.${suffix}
+   """
+}
+
+/*
+ * STEP 6.3.4 merge peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
+ */
+process sample_macs_merge {
+    publishDir "${params.outdir}/bwa/sample/macs/merged", mode: 'copy'
+
+    input:
+    set val(names), file(peaks) from sample_macs_peaks_merge
+
+    output:
+    file "*.bed" into sample_macs_merge_bed,
+                      sample_macs_merge_igv
+    file "*.boolean.txt" into sample_macs_merge_bool
+    file "*.saf" into sample_macs_merge_saf
+    file "*.intersect.{txt,plot.pdf}" into sample_macs_merge_intersect
+
+    when: params.macs_gsize && replicates_exist && multiple_samples
+
+    script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
+    prefix="merged_peaks.mSm"
+    """
+    sort -k1,1 -k2,2n ${peaks.join(' ')} \\
+         | mergeBed -c 2,3,4,5,6,7,8,9 -o collapse,collapse,collapse,collapse,collapse,collapse,collapse,collapse > ${prefix}.txt
+
+    macs2_merged_expand.py ${prefix}.txt ${names.join(',')} ${prefix}.boolean.txt --min_samples 1
+
+    awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
+
+    echo -e "GeneID\tChr\tStart\tEnd\tStrand" > ${prefix}.saf
+    awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
+
+    plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
+    """
+}
+
+/*
+ * STEP 6.3.5 annotate merge peaks with homer, and add annotation to boolean output file
+ */
+process sample_macs_merge_annotate {
+    publishDir "${params.outdir}/bwa/sample/macs/merged", mode: 'copy'
+
+    input:
+    file bed from sample_macs_merge_bed
+    file bool from sample_macs_merge_bool
+    file fasta from fasta_sample_macs_merge_annotate.collect()
+    file gtf from gtf_sample_macs_merge_annotate.collect()
+
+    output:
+    file "*.annotatePeaks.txt" into sample_macs_merge_annotate
+
+    when: params.macs_gsize && replicates_exist && multiple_samples
+
+    script:
+    prefix="merged_peaks.mSm"
+    """
+    annotatePeaks.pl $bed \\
+                     $fasta \\
+                     -gid \\
+                     -gtf $gtf \\
+                     > ${prefix}.annotatePeaks.txt
+
+    cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
+    paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
+    """
+}
+
+/*
+ * STEP 6.3.6 count reads in merged peaks with featurecounts
+ */
+replicate_name_bam_sample_counts.map { it -> [ null, it[1] ] }
+                                .groupTuple(by: [0])
+                                .map { it ->   it[1].flatten().sort() }
+                                .set { replicate_name_bam_sample_counts }
+
+process sample_macs_merge_deseq {
+    publishDir "${params.outdir}/bwa/sample/macs/merged/deseq2", mode: 'copy'
+
+    input:
+    file bams from replicate_name_bam_sample_counts
+    file saf from sample_macs_merge_saf.collect()
+
+    output:
+    file "*featureCounts*" into sample_macs_merge_counts
+    file "*.{RData,results.txt,pdf,log}" into sample_macs_merge_deseq_results
+    file "sizeFactors" into sample_macs_merge_deseq_factors
+    file "*vs*/*.{pdf,txt}" into sample_macs_merge_deseq_comp_results
+    file "*vs*/*.bed" into sample_macs_merge_deseq_comp_bed
+
+    when: params.macs_gsize && replicates_exist && multiple_samples
+
+    script:
+    prefix="merged_peaks.mSm"
+    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+    bam_ext = params.singleEnd ? ".mRp.sorted.bam" : ".mRp.bam"
+    pe_params = params.singleEnd ? '' : "-p --donotsort"
+    """
+    featureCounts -F SAF \\
+                  -O \\
+                  --fracOverlap 0.2 \\
+                  -T $task.cpus \\
+                  $pe_params \\
+                  -a $saf \\
+                  -o ${prefix}.featureCounts.txt \\
+                  ${bam_files.join(' ')}
+
+    featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix -s .mSm
+    """
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -1234,11 +1557,16 @@ process multiqc {
     file ('alignment/library/picard_metrics/*') from markdup_metrics.collect()
     file ('alignment/library/picard_metrics/*') from markdup_collectmetrics.collect()
     file ('alignment/library/*') from rm_orphan_flagstat.collect()
-    file ('alignment/replicate/*') from merge_replicate_flagstat_mqc.collect{it[1]}
+    file ('alignment/replicate/*') from merge_replicate_flagstat.collect{it[1]}
     file ('alignment/replicate/picard_metrics/*') from merge_replicate_metrics.collect()
     file ('macs/replicate/*') from replicate_macs_peak_mqc.collect().ifEmpty([])
     file ('macs/replicate/*') from replicate_macs_qc_mqc.collect().ifEmpty([])
     file ('macs/replicate/*') from replicate_macs_merge_counts.collect().ifEmpty([])
+    file ('alignment/sample/*') from merge_sample_flagstat.collect{it[1]}.ifEmpty([])
+    file ('alignment/sample/picard_metrics/*') from merge_sample_metrics.collect().ifEmpty([])
+    file ('macs/sample/*') from sample_macs_peak_mqc.collect().ifEmpty([])
+    file ('macs/sample/*') from sample_macs_qc_mqc.collect().ifEmpty([])
+    file ('macs/sample/*') from sample_macs_merge_counts.collect().ifEmpty([])
     file ('software_versions/*') from software_versions_yaml.collect()
     file ('workflow_summary/*') from create_workflow_summary(summary)
 
@@ -1270,10 +1598,15 @@ process igv {
     publishDir "${params.outdir}/igv", mode: 'copy'
 
     input:
-    file bigwig from replicate_bigwig.collect()
-    file bed from replicate_macs_peaks_igv.collect{it[1]}.ifEmpty([])
-    file merge_bed from replicate_macs_merge_igv.collect().ifEmpty([])
-    file diff_bed from replicate_macs_merge_deseq_comp_bed.collect().ifEmpty([])
+    file rbigwig from replicate_bigwig.collect()
+    file rbed from replicate_macs_peaks_igv.collect{it[1]}.ifEmpty([])
+    file rmerge_bed from replicate_macs_merge_igv.collect().ifEmpty([])
+    file rdiff_bed from replicate_macs_merge_deseq_comp_bed.collect().ifEmpty([])
+
+    file sbigwig from sample_bigwig.collect().ifEmpty([])
+    file sbed from sample_macs_peaks_igv.collect{it[1]}.ifEmpty([])
+    file smerge_bed from sample_macs_merge_igv.collect().ifEmpty([])
+    file sdiff_bed from sample_macs_merge_deseq_comp_bed.collect().ifEmpty([])
 
     output:
     file "*.{xml,txt}" into igv_session
