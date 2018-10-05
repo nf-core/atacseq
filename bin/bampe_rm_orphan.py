@@ -10,8 +10,6 @@ import os
 import pysam
 import argparse
 
-import funcs
-
 ############################################
 ############################################
 ## PARSE ARGUMENTS
@@ -33,6 +31,21 @@ args = argParser.parse_args()
 
 ############################################
 ############################################
+## HELPER FUNCTIONS
+############################################
+############################################
+
+def makedir(path):
+
+    if not len(path) == 0:
+        try:
+            os.makedirs(path)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+
+############################################
+############################################
 ## MAIN FUNCTION
 ############################################
 ############################################
@@ -41,7 +54,7 @@ def bampe_rm_orphan(BAMIn,BAMOut,onlyFRPairs=False):
 
     ## SETUP DIRECTORY/FILE STRUCTURE
     OutDir = os.path.dirname(BAMOut)
-    funcs.makedir(OutDir)
+    makedir(OutDir)
 
     ## COUNT VARIABLES
     totalReads = 0; totalOutputPairs = 0; totalSingletons = 0; totalImproperPairs = 0
