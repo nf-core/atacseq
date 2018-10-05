@@ -9,8 +9,6 @@
 import os
 import argparse
 
-import funcs
-
 ############################################
 ############################################
 ## PARSE ARGUMENTS
@@ -30,13 +28,28 @@ args = argParser.parse_args()
 
 ############################################
 ############################################
+## HELPER FUNCTIONS
+############################################
+############################################
+
+def makedir(path):
+
+    if not len(path) == 0:
+        try:
+            os.makedirs(path)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+
+############################################
+############################################
 ## MAIN FUNCTION
 ############################################
 ############################################
 
 def igv_files_to_session(XMLOut,ListFile,Genome):
 
-    funcs.makedir(os.path.dirname(XMLOut))
+    makedir(os.path.dirname(XMLOut))
 
     fileList = []
     fin = open(ListFile,'r')

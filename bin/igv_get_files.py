@@ -8,8 +8,8 @@
 
 import os
 import argparse
-
-import funcs
+import subprocess
+import fnmatch
 
 ############################################
 ############################################
@@ -17,14 +17,40 @@ import funcs
 ############################################
 ############################################
 
-Description = 'Create a tab-delimited file with "file_path\tcolour" for IGV. This will be specific to directory structure of BABS-ATACSeqPE nextflow pipeline.'
+Description = 'Create a tab-delimited file with "file_path\tcolour" for IGV. This will be specific to results directory structure of nf-core/atacseq nextflow pipeline.'
 Epilog = """Example usage: python igv_get_files.py <RESULTS_DIR> <OUT_FILE>"""
 argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 
 ## REQUIRED PARAMETERS
-argParser.add_argument('RESULTS_DIR', help="Results directory. The directory structure used to find files will be specific to BABS-ATACSeqPE nextflow pipeline.")
+argParser.add_argument('RESULTS_DIR', help="Results directory. The results directory structure used to find files will be specific to nf-core/atacseq nextflow pipeline.")
 argParser.add_argument('OUT_FILE', help="Path to output file.")
 args = argParser.parse_args()
+
+############################################
+############################################
+## HELPER FUNCTIONS
+############################################
+############################################
+
+def makedir(path):
+
+    if not len(path) == 0:
+        try:
+            os.makedirs(path)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+
+############################################
+
+def recursive_glob(treeroot, pattern):
+
+    results = []
+    for base, dirs, files in os.walk(os.path.abspath(treeroot)):
+        goodfiles = fnmatch.filter(files, pattern)
+        results.extend(os.path.join(base, f) for f in goodfiles)
+
+    return results
 
 ############################################
 ############################################
@@ -34,20 +60,20 @@ args = argParser.parse_args()
 
 def igv_get_files(ResultsDir,OutFile):
 
-    funcs.makedir(os.path.dirname(OutFile))
+    makedir(os.path.dirname(OutFile))
 
     ## GET SAMPLE-LEVEL FILES
     fileList = []
     for gid,odir,colList in [('mSm','sample',['255,0,0','0,0,178']),
                              ('mRp','replicate',['0,102,102','0,102,0'])]:
 
-        fileList += [(x,'0,0,0') for x in funcs.recursive_glob(os.path.join(ResultsDir,'bwa/','%s/' % (odir)), 'merged_peaks.%s.bed' % (gid))]
-        fileList += [(x,colList[0]) for x in funcs.recursive_glob(os.path.join(ResultsDir,'bwa/','%s/' % (odir)), '*.FDR0.01.results.bed')]
+        fileList += [(x,'0,0,0') for x in recursive_glob(os.path.join(ResultsDir,'bwa/','%s/' % (odir)), 'merged_peaks.%s.bed' % (gid))]
+        fileList += [(x,colList[0]) for x in recursive_glob(os.path.join(ResultsDir,'bwa/','%s/' % (odir)), '*.FDR0.01.results.bed')]
 
         sampleFileDict = {}
-        for ifile in funcs.recursive_glob(os.path.join(ResultsDir,'bwa/','%s/' % (odir)), '*.broadPeak') \
-                   + funcs.recursive_glob(os.path.join(ResultsDir,'bwa/','%s/' % (odir)), '*.narrowPeak') \
-                   + funcs.recursive_glob(os.path.join(ResultsDir,'bwa/','%s/' % (odir)), '*.bigWig'):
+        for ifile in recursive_glob(os.path.join(ResultsDir,'bwa/','%s/' % (odir)), '*.broadPeak') \
+                   + recursive_glob(os.path.join(ResultsDir,'bwa/','%s/' % (odir)), '*.narrowPeak') \
+                   + recursive_glob(os.path.join(ResultsDir,'bwa/','%s/' % (odir)), '*.bigWig'):
             extension = os.path.splitext(ifile)[1]
             sampleid = ''
             if extension == '.broadPeak':

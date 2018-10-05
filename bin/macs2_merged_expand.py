@@ -9,8 +9,6 @@
 import os
 import argparse
 
-import funcs
-
 ############################################
 ############################################
 ## PARSE ARGUMENTS
@@ -34,6 +32,21 @@ args = argParser.parse_args()
 
 ############################################
 ############################################
+## HELPER FUNCTIONS
+############################################
+############################################
+
+def makedir(path):
+
+    if not len(path) == 0:
+        try:
+            os.makedirs(path)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
+
+############################################
+############################################
 ## MAIN FUNCTION
 ############################################
 ############################################
@@ -46,7 +59,7 @@ args = argParser.parse_args()
 
 def macs2_merged_expand(MergedIntervalTxtFile,SampleNameList,OutFile,isNarrow=False,minSamples=0):
 
-    funcs.makedir(os.path.dirname(OutFile))
+    makedir(os.path.dirname(OutFile))
 
     SampleNameList = sorted(SampleNameList)
     totalInIntervals = 0; totalOutIntervals = 0
