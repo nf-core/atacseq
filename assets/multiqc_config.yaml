@@ -3,16 +3,6 @@ report_comment: >
     analysis pipeline. For information about how to interpret these results, please see the
     <a href="https://github.com/nf-core/atacseq" target="_blank">documentation</a>.
 
-report_section_order:
-    replicate_peak_count:
-        order: -1000
-    replicate_frip_score:
-        order: -1100
-    replicate_peak_annotation:
-        order: -1200
-    nf-core/atacseq-software-versions:
-        order: -2000
-
 skip_generalstats: true
 
 fn_clean_exts:
@@ -22,6 +12,18 @@ fn_clean_exts:
     - 'clN'
     - 'mRp'
     - 'mSm'
+
+report_section_order:
+    replicate_peak_count:
+        order: -1000
+    replicate_frip_score:
+        order: -1100
+    replicate_peak_annotation:
+        order: -1200
+    nf-core_atacseq-software-versions:
+        order: -1500
+    nf-core-atacseq-summary:
+        order: -1600
 
 module_order:
     - fastqc:
@@ -40,17 +42,17 @@ module_order:
         name: 'SAMTools (run-level; unfiltered)'
         info: 'This section of the report shows SAMTools results at the run-level before read filtering.'
         path_filters:
-            - '*.mkD.sorted.bam*'
+            - '*mkD.sorted.bam*'
     - picard:
         name: 'Picard (run-level; unfiltered)'
         info: 'This section of the report shows picard results at the run-level before read filtering.'
         path_filters:
-            - '*.mkD.*'
+            - '*mkD.*'
     - samtools:
         name: 'SAMTools (run-level; filtered)'
         info: 'This section of the report shows SAMTools results at the run-level after read filtering.'
         path_filters:
-            - '*.clN.sorted.bam*'
+            - '*clN.sorted.bam*'
     - samtools:
         name: 'SAMTools (replicate-level)'
         info: 'This section of the report shows SAMTools results at the replicate-level after removal of duplicate reads.'
@@ -65,7 +67,7 @@ module_order:
         name: 'featureCounts (replicate-level)'
         info: 'This section of the report shows featureCounts results for the number of reads assigned to replicate-level merged peaks.'
         path_filters:
-            - '*.mRp.featureCounts*'
+            - '*mRp.featureCounts*'
 
 custom_data:
     replicate_peak_count:
