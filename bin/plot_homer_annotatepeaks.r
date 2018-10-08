@@ -61,7 +61,7 @@ for (idx in 1:length(HomerFiles)) {
 		anno.dat <- anno.dat[,c("Annotation","Distance.to.TSS","Nearest.PromoterID")]
 		anno.dat <- anno.dat[which(!is.na(anno.dat$Distance.to.TSS)),]
 		if (nrow(anno.dat) == 0) {
-				quit(save = "no", status =1, runLast = FALSE)
+				quit(save = "no", status = 0, runLast = FALSE)
 		}
 		anno.dat$name <- rep(sampleid,nrow(anno.dat))
 		anno.dat$Distance.to.TSS <- abs(anno.dat$Distance.to.TSS) + 1
