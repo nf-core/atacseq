@@ -30,11 +30,11 @@ def helpMessage() {
 
     Mandatory arguments:
       --design                      Comma-separted file containing information about the samples in the experiment (see README.md)
-      --genome                      Name of iGenomes reference
       -profile                      Configuration profile to use. Can use multiple (comma separated)
                                     Available: standard, conda, docker, singularity, awsbatch, test
 
-    Options:
+    Generic
+      --genome                      Name of iGenomes reference
       --singleEnd                   Specifies that the input is single end reads
       --narrowPeak                  Run MACS with default parameters in narrowPeak mode
       --fragmentSize [int]          Estimated fragment size used to extend single-end reads. Default: 0
@@ -45,7 +45,7 @@ def helpMessage() {
       --gtf                         Path to GTF file (Ensembl format)
       --bed12                       Path to bed12 file
       --mito_name                   Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out
-      --macs_gsize                  Effective genome size parameter required by MACS2. It only works when --genome is set as GRCh37, GRCm38, BDGP6 and WBcel235
+      --macs_gsize                  Effective genome size parameter required by MACS2. It only works when --genome is set as GRCh37, GRCm38, hg19, mm10, BDGP6 and WBcel235
       --blacklist                   Path to blacklist regions (.BED format), used for filtering alignments
       --saveReference               Save the generated reference files in the Results directory
 
@@ -54,21 +54,22 @@ def helpMessage() {
       --clip_r2 [int]               Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only)
       --three_prime_clip_r1 [int]   Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed
       --three_prime_clip_r2 [int]   Instructs Trim Galore to re move bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed
-      --notrim                      Specifying --notrim will skip the adapter trimming step
+      --skipTrimming                Skip the adapter trimming step
       --saveTrimmed                 Save the trimmed FastQ files in the the Results directory
 
     Alignments
-      --allow_multi_align           Reads mapping to multiple places are not filtered from alignments
-      --keep_duplicates             Duplicate reads are not filtered from alignments
-      --keep_mitochondrial          Reads mapping to mitochondrial contig are not filtered from alignments
+      --keep_mito                   Reads mapping to mitochondrial contig are not filtered from alignments
+      --keep_dups                   Duplicate reads are not filtered from alignments
+      --keep_multimap               Reads mapping to multiple places are not filtered from alignments
+      --skipMergeBySample           Do not perform alignment merging and downstream analysis at the sample-level i.e. only do this at the replicate-level
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
 
-    Other options:
+    Other
       --outdir                      The output directory where the results will be saved
       --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
       -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
 
-    AWSBatch options:
+    AWSBatch
       --awsqueue                    The AWSBatch JobQueue that needs to be set when running on AWSBatch
       --awsregion                   The AWS Region for your AWS Batch job to run on
     """.stripIndent()
@@ -102,8 +103,6 @@ if (params.genomes && params.genome && !params.genomes.containsKey(params.genome
 ////////////////////////////////////////////////////
 
 // Configurable variables
-params.name = false
-params.genome = false
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
 params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
@@ -111,17 +110,6 @@ params.bed12 = params.genome ? params.genomes[ params.genome ].bed12 ?: false : 
 params.mito_name = params.genome ? params.genomes[ params.genome ].mito_name ?: false : false
 params.macs_gsize = params.genome ? params.genomes[ params.genome ].macs_gsize ?: false : false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
-params.multiqc_config = "$baseDir/assets/multiqc_config.yaml"
-params.bamtools_filter_pe_config = "$baseDir/assets/bamtools_filter_pe.json"
-params.bamtools_filter_se_config = "$baseDir/assets/bamtools_filter_se.json"
-params.email = false
-params.plaintext_email = false
-
-// Custom trimming options
-params.clip_r1 = 0
-params.clip_r2 = 0
-params.three_prime_clip_r1 = 0
-params.three_prime_clip_r2 = 0
 
 // Has the run name been specified by the user?
 //  this has the bonus effect of catching both -name and --name
@@ -157,6 +145,8 @@ if( params.fasta ){
                 fasta_sample_macs_annotate;
                 fasta_sample_macs_merge_annotate;
                 fasta_igv }
+} else {
+    exit 1, "No reference genome specified!"
 }
 
 if( params.bwa_index ){
@@ -178,6 +168,8 @@ if( params.gtf ){
                 gtf_sample_macs_annotate;
                 gtf_sample_macs_merge_annotate;
                 gtf_igv }
+} else {
+    exit 1, "No GTF annotation specified!"
 }
 
 if( params.bed12 ){
@@ -230,6 +222,8 @@ if( params.design ){
                   raw_reads_fastqc;
                   raw_reads_trimgalore }
     }
+} else {
+    exit 1, "Sample design file not specified!"
 }
 
 ////////////////////////////////////////////////////
@@ -271,18 +265,18 @@ def summary = [:]
 summary['Pipeline Name']          = 'nf-core/atacseq'
 summary['Pipeline Version']       = workflow.manifest.version
 summary['Run Name'] = custom_runName ?: workflow.runName
-summary['Genome']                 = params.genome
+summary['Genome']                 = params.genome ? params.genome : 'Not supplied'
 summary['Data Type']              = params.singleEnd ? 'Single-End' : 'Paired-End'
 summary['Design File']            = params.design
-if(params.bwa_index)  summary['BWA Index'] = params.bwa_index
+if(params.bwa_index)  summary['BWA Index'] = params.bwa_index ? params.bwa_index : 'Not supplied'
 summary['Fasta Ref']              = params.fasta
 summary['GTF File']               = params.gtf
-summary['BED12 File']             = params.bed12
+summary['BED12 File']             = params.bed12 ? params.bed12 : 'Not supplied'
 if(params.blacklist) summary['Blacklist BED'] = params.blacklist
 summary['Mitochondrial Contig']   = params.mito_name ? params.mito_name : 'Not supplied'
 summary['MACS Genome Size']       = params.macs_gsize ? params.macs_gsize : 'Not supplied'
 if(params.macs_gsize)  summary['MACS narrow peaks'] = params.narrowPeak
-if( params.notrim ){
+if( params.skipTrimming ){
     summary['Trimming Step'] = 'Skipped'
 } else {
     summary['Trim R1'] = params.clip_r1
@@ -291,9 +285,10 @@ if( params.notrim ){
     summary["Trim 3' R2"] = params.three_prime_clip_r2
 }
 summary['Fragment Size']          = "$params.fragmentSize bp"
-summary['Allow Multi-mapped']     = params.allow_multi_align ? 'Yes' : 'No'
-summary['Keep Duplicates']        = params.keep_duplicates ? 'Yes' : 'No'
-summary['Keep Mitochondrial']     = params.keep_mitochondrial ? 'Yes' : 'No'
+summary['Keep Mitochondrial']     = params.keep_mito ? 'Yes' : 'No'
+summary['Keep Duplicates']        = params.keep_dups ? 'Yes' : 'No'
+summary['Keep Multi-mapped']      = params.keep_multimap ? 'Yes' : 'No'
+summary['Sample-level Analysis']  = params.skipMergeBySample ? 'No' : 'Yes'
 summary['Save Reference']         = params.saveReference ? 'Yes' : 'No'
 summary['Save Trimmed']           = params.saveTrimmed ? 'Yes' : 'No'
 summary['Save Intermeds']         = params.saveAlignedIntermediates ? 'Yes' : 'No'
@@ -350,8 +345,6 @@ multiple_samples = design_multiple_samples.map { it -> it[0][0..-7] }
                                           .unique()
                                           .count()
                                           .val > 1
-//println(replicates_exist)
-//println(multiple_samples)
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -374,7 +367,9 @@ if(!params.bwa_index){
         file fasta from fasta_bwa_index
 
         output:
-        file "*" into bwa_index_read1, bwa_index_read2
+        file "*" into bwa_index_read1,
+                      bwa_index_read2,
+                      bwa_index_sai_to_sam
 
         script:
         """
@@ -424,7 +419,7 @@ process makeGenomeFilter {
 
     script:
         bfilter = params.blacklist ? "sortBed -i ${params.blacklist} -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
-        kfilter = params.keep_mitochondrial ? "" : "| awk '\$1 !~ /${params.mito_name}/ {print \$0}'"
+        kfilter = params.keep_mito ? "" : "| awk '\$1 !~ /${params.mito_name}/ {print \$0}'"
         mfilter = params.mito_name ? kfilter : ""
         """
         samtools faidx $fasta
@@ -484,7 +479,7 @@ process fastqc {
 /*
  * STEP 2 - Trim Galore!
  */
-if(params.notrim){
+if(params.skipTrimming){
     raw_reads_trimgalore.into { trimmed_reads_aln_1;
                                 trimmed_reads_aln_2;
                                 trimmed_reads_sai_to_sam }
@@ -738,8 +733,8 @@ process filter_bam {
     script:
     prefix = params.singleEnd ? "${name}.clN" : "${name}.flT"
     filter_params = params.singleEnd ? "-F 0x004 -F 0x0100" : "-f 0x001 -F 0x004 -F 0x0008 -F 0x0100"
-    dup_params = params.keep_duplicates ? "" : "-F 0x0400"
-    multimap_params = params.allow_multi_align ? "" : "-q 1"
+    dup_params = params.keep_dups ? "" : "-F 0x0400"
+    multimap_params = params.keep_multimap ? "" : "-q 1"
     bamtools_filter_config = params.singleEnd ? bamtools_filter_se_config : bamtools_filter_pe_config
     name_sort_bam = params.singleEnd ? "" : "samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${prefix}.sorted.bam"
     """
@@ -834,7 +829,7 @@ process merge_replicate {
     script:
     prefix="${name}.mRp"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    rmdup = params.keep_duplicates ? "false" : "true"
+    rmdup = params.keep_dups ? "false" : "true"
     if (bam_files.size() > 1) {
         """
         picard MergeSamFiles \\
@@ -1187,12 +1182,12 @@ process merge_sample {
                                            merge_sample_flagstat_macs
     file "*.txt" into merge_sample_metrics
 
-    when: replicates_exist
+    when: !skipMergeBySample && replicates_exist
 
     script:
     prefix="${name}.mSm"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    rmdup = params.keep_duplicates ? "false" : "true"
+    rmdup = params.keep_dups ? "false" : "true"
     if (bam_files.size() > 1) {
         """
         picard MergeSamFiles \\
@@ -1253,7 +1248,7 @@ process sample_bigwig {
     file "*.bigWig" into sample_bigwig
     file "*.txt" into sample_bigwig_scale
 
-    when: replicates_exist
+    when: !skipMergeBySample && replicates_exist
 
     script:
     prefix="${name}.mSm"
@@ -1288,7 +1283,7 @@ process sample_macs {
                                           sample_macs_peaks_igv
     file "*_mqc.tsv" into sample_macs_peak_mqc
 
-    when: params.macs_gsize && replicates_exist
+    when: !skipMergeBySample && params.macs_gsize && replicates_exist
 
     script:
     prefix="${name}.mSm"
@@ -1327,7 +1322,7 @@ process sample_macs_annotate {
     output:
     file "*.txt" into sample_macs_annotate
 
-    when: params.macs_gsize && replicates_exist
+    when: !skipMergeBySample && params.macs_gsize && replicates_exist
 
     script:
     prefix="${name}.mSm"
@@ -1367,7 +1362,7 @@ process sample_macs_qc {
    file "*.{txt,pdf}" into sample_macs_qc
    file "*.tsv" into sample_macs_qc_mqc
 
-   when: params.macs_gsize && replicates_exist
+   when: !skipMergeBySample && params.macs_gsize && replicates_exist
 
    script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
    suffix='mSm'
@@ -1393,7 +1388,7 @@ process sample_macs_merge {
     file "*.saf" into sample_macs_merge_saf
     file "*.intersect.{txt,plot.pdf}" into sample_macs_merge_intersect
 
-    when: params.macs_gsize && replicates_exist && multiple_samples
+    when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     prefix="merged_peaks.mSm"
@@ -1427,7 +1422,7 @@ process sample_macs_merge_annotate {
     output:
     file "*.annotatePeaks.txt" into sample_macs_merge_annotate
 
-    when: params.macs_gsize && replicates_exist && multiple_samples
+    when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
 
     script:
     prefix="merged_peaks.mSm"
@@ -1465,7 +1460,7 @@ process sample_macs_merge_deseq {
     file "*vs*/*.{pdf,txt}" into sample_macs_merge_deseq_comp_results
     file "*vs*/*.bed" into sample_macs_merge_deseq_comp_bed
 
-    when: params.macs_gsize && replicates_exist && multiple_samples
+    when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
 
     script:
     prefix="merged_peaks.mSm"
