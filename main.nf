@@ -135,7 +135,7 @@ wherearemyfiles = file("$baseDir/assets/where_are_my_files.txt")
 // Validate inputs
 if( params.fasta ){
     Channel
-        .fromPath(params.fasta)
+        .fromPath(params.fasta, checkIfExists: true)
         .ifEmpty { exit 1, "Fasta file not found: ${params.fasta}" }
         .into { fasta_bwa_index;
                 fasta_genome_filter;
@@ -146,12 +146,12 @@ if( params.fasta ){
                 fasta_sample_macs_merge_annotate;
                 fasta_igv }
 } else {
-    exit 1, "No reference genome specified!"
+    exit 1, "Fasta file not specified!"
 }
 
 if( params.bwa_index ){
     Channel
-        .fromPath("${params.bwa_index}/*.{amb,ann,bwt,pac,sa}")
+        .fromPath("${params.bwa_index}/*.{amb,ann,bwt,pac,sa}", checkIfExists: true)
         .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index}" }
         .into { bwa_index_read1;
                 bwa_index_read2;
@@ -160,7 +160,7 @@ if( params.bwa_index ){
 
 if( params.gtf ){
     Channel
-        .fromPath(params.gtf)
+        .fromPath(params.gtf, checkIfExists: true)
         .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
         .into { gtf_makeBED12;
                 gtf_replicate_macs_annotate;
@@ -174,14 +174,14 @@ if( params.gtf ){
 
 if( params.bed12 ){
     Channel
-        .fromPath(params.bed12)
+        .fromPath(params.bed12, checkIfExists: true)
         .ifEmpty { exit 1, "BED12 annotation file not found: ${params.bed12}" }
         .into { bed12_igv }
 }
 
 if ( params.blacklist ) {
     blacklist = Channel
-        .fromPath(params.blacklist)
+        .fromPath(params.blacklist, checkIfExists: true)
         .ifEmpty { exit 1, "Blacklist file not found: ${params.blacklist}" }
 }
 
@@ -191,7 +191,7 @@ if ( params.blacklist ) {
 if( params.design ){
     if ( params.singleEnd ) {
         Channel
-            .fromPath(params.design)
+            .fromPath(params.design, checkIfExists: true)
             .ifEmpty { exit 1, "Design file not found: ${params.design}" }
             .splitCsv(header:true, sep:',')
             .map { row -> [ [row.sample,"R"+row.replicate].join("_"),
@@ -207,7 +207,7 @@ if( params.design ){
                     raw_reads_trimgalore }
     } else {
       Channel
-          .fromPath(params.design)
+          .fromPath(params.design, checkIfExists: true)
           .ifEmpty { exit 1, "Design file not found: ${params.design}" }
           .splitCsv(header:true, sep:',')
           .map { row -> [ [row.sample,"R"+row.replicate].join("_"),
