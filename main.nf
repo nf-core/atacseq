@@ -455,13 +455,13 @@ process fastqc {
     // Added soft-links to original fastqs for consistent naming in MultiQC
     if (params.singleEnd) {
         """
-        ln -s $reads ${name}.fastq.gz
+        [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
         fastqc -q ${name}.fastq.gz
         """
     } else {
         """
-        ln -s ${reads[0]} ${name}_1.fastq.gz
-        ln -s ${reads[1]} ${name}_2.fastq.gz
+        [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
+        [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
         fastqc -q ${name}_1.fastq.gz
         fastqc -q ${name}_2.fastq.gz
         """
@@ -514,13 +514,13 @@ if(params.skipTrimming){
         tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
         if (params.singleEnd) {
             """
-            ln -s $reads ${name}.fastq.gz
+            [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
             trim_galore --fastqc --gzip $c_r1 $tpc_r1 ${name}.fastq.gz
             """
         } else {
             """
-            ln -s ${reads[0]} ${name}_1.fastq.gz
-            ln -s ${reads[1]} ${name}_2.fastq.gz
+            [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
+            [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
             trim_galore --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 ${name}_1.fastq.gz ${name}_2.fastq.gz
             """
         }
@@ -1024,8 +1024,7 @@ process replicate_macs_qc {
    set val(anames), file(annos) from replicate_macs_annotate
 
    output:
-   file "*.{txt,pdf}" into replicate_macs_qc
-   file "*.tsv" into replicate_macs_qc_mqc
+   file "*.{txt,pdf,tsv}" into replicate_macs_qc
 
    when: params.macs_gsize
 
@@ -1359,8 +1358,7 @@ process sample_macs_qc {
    set val(anames), file(annos) from sample_macs_annotate
 
    output:
-   file "*.{txt,pdf}" into sample_macs_qc
-   file "*.tsv" into sample_macs_qc_mqc
+   file "*.{txt,pdf,tsv}" into sample_macs_qc
 
    when: !skipMergeBySample && params.macs_gsize && replicates_exist
 
@@ -1555,12 +1553,12 @@ process multiqc {
     file ('alignment/replicate/*') from merge_replicate_flagstat.collect{it[1]}
     file ('alignment/replicate/picard_metrics/*') from merge_replicate_metrics.collect()
     file ('macs/replicate/*') from replicate_macs_peak_mqc.collect().ifEmpty([])
-    file ('macs/replicate/*') from replicate_macs_qc_mqc.collect().ifEmpty([])
+    file ('macs/replicate/*') from replicate_macs_qc.collect().ifEmpty([])
     file ('macs/replicate/*') from replicate_macs_merge_counts.collect().ifEmpty([])
     file ('alignment/sample/*') from merge_sample_flagstat.collect{it[1]}.ifEmpty([])
     file ('alignment/sample/picard_metrics/*') from merge_sample_metrics.collect().ifEmpty([])
     file ('macs/sample/*') from sample_macs_peak_mqc.collect().ifEmpty([])
-    file ('macs/sample/*') from sample_macs_qc_mqc.collect().ifEmpty([])
+    file ('macs/sample/*') from sample_macs_qc.collect().ifEmpty([])
     file ('macs/sample/*') from sample_macs_merge_counts.collect().ifEmpty([])
     file ('software_versions/*') from software_versions_yaml.collect()
     file ('workflow_summary/*') from create_workflow_summary(summary)
