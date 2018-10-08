@@ -60,6 +60,9 @@ for (idx in 1:length(HomerFiles)) {
 		anno.dat <- read.table(HomerFiles[idx], sep="\t", header=TRUE)
 		anno.dat <- anno.dat[,c("Annotation","Distance.to.TSS","Nearest.PromoterID")]
 		anno.dat <- anno.dat[which(!is.na(anno.dat$Distance.to.TSS)),]
+		if (nrow(anno.dat) == 0) {
+				quit(save = "no", status =1, runLast = FALSE)
+		}
 		anno.dat$name <- rep(sampleid,nrow(anno.dat))
 		anno.dat$Distance.to.TSS <- abs(anno.dat$Distance.to.TSS) + 1
 		plot.dat <- rbind(plot.dat,anno.dat)
