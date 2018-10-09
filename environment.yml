@@ -1,7 +1,7 @@
 name: nf-core-atacseq-1.0dev
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
   - defaults
 dependencies:
     ## bioconda packages
