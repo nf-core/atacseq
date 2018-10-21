@@ -16,7 +16,8 @@ before_install:
   ## - docker pull nfcore/atacseq
   - docker pull crickbabs/nf-core-atacseq
   # Fake the tag locally so that the pipeline runs properly
-  - docker tag nfcore/atacseq nfcore/atacseq:latest
+  ## - docker tag nfcore/atacseq nfcore/atacseq:latest
+  - docker tag crickbabs/nf-core-atacseq crickbabs/nf-core-atacseq:latest
 
 install:
   # Install Nextflow
