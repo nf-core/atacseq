@@ -2,6 +2,7 @@ From:nfcore/base
 Bootstrap:docker
 
 %labels
+    MAINTAINER Harshil Patel <harshil.patel@crick.ac.uk>
     DESCRIPTION Singularity image containing all requirements for nf-core/atacseq pipeline
     VERSION 1.0dev
 
