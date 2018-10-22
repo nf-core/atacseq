@@ -15,4 +15,6 @@ module load nextflow/0.32.0
 module load Singularity/2.6.0-foss-2016b
 ```
 
-If running regularly, we recommend creating a config file with paths to your reference genome indices (see [reference-genomes.md](reference_genomes.md) for instructions).
+A local copy of the iGenomes resource has been made available on CAMP so you should be able to run the pipeline against your reference by simply using the `--genome <GENOME_ID>` parameter. Some of the more exotic genomes may not be available locally so please contact [BABS](bioinformatics@crick.ac.uk) if you would like them to be added.
+
+Alternatively, if you are running the pipeline regularly for custom genomes, we recommend creating a config file with paths to your reference genome indices (see [reference-genomes.md](reference_genomes.md) for instructions).
