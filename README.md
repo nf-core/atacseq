@@ -69,4 +69,4 @@ The [nf-core/rnaseq](https://github.com/nf-core/rnaseq) and [nf-core/chipseq](ht
 
 Many thanks to other who have helped out along the way too, including (but not limited to):
 [@pditommaso](https://github.com/pditommaso),
-[@apeltzer](https://github.com/apeltzer).
+[@apeltzer](https://github.com/apeltzer), [@sven1103](https://github.com/sven1103).
