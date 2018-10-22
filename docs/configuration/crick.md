@@ -17,4 +17,4 @@ module load Singularity/2.6.0-foss-2016b
 
 A local copy of the iGenomes resource has been made available on CAMP (see [crick.config](../../conf/crick.config)) so you should be able to run the pipeline against your reference by simply using the `--genome <GENOME_ID>` parameter. Some of the more exotic genomes may not have been downloaded so please contact [BABS](mailto:bioinformatics@crick.ac.uk) if you would like them to be added.
 
-Alternatively, if you are running the pipeline regularly for custom genomes, we recommend creating a config file with paths to your reference genome indices (see [reference-genomes.md](reference_genomes.md) for instructions).
+Alternatively, if you are running the pipeline regularly for genomes that arent available in the iGenomes resource, we recommend creating a config file with paths to your reference genome indices (see [reference-genomes.md](reference_genomes.md) for instructions).
