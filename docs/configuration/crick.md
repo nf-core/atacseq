@@ -1,4 +1,4 @@
-# nf-core/atacseq: The Francis Crick Institute (CAMP HPC) Configuration
+# nf-core/atacseq: Crick (CAMP HPC) Configuration
 
 This pipeline has been successfully configured for use on the CAMP HPC cluster at the [The Francis Crick Institute](https://www.crick.ac.uk/).
 
@@ -15,4 +15,4 @@ module load nextflow/0.32.0
 module load Singularity/2.6.0-foss-2016b
 ```
 
-If running regularly, we recommend creating a config file with paths to your reference genome indices (see [reference-genomes.md](reference-genomes.md) for instructions).
+If running regularly, we recommend creating a config file with paths to your reference genome indices (see [reference-genomes.md](reference_genomes.md) for instructions).
