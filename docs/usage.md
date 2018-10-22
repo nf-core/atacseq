@@ -118,8 +118,8 @@ Use this parameter to choose a configuration profile. Profiles can give configur
     * Pulls most software from [Bioconda](https://bioconda.github.io/)
 * `awsbatch`
     * A generic configuration profile to be used with AWS Batch.
-* `crick-modules`
-    * Designed to use environment modules on the CAMP HPC system at [The Francis Crick Institute](https://www.crick.ac.uk/)
+* `crick`
+    * Designed to use Singularity on the CAMP HPC system at [The Francis Crick Institute](https://www.crick.ac.uk/)
     * See [`docs/configuration/crick.md`](configuration/crick.md)
 * `test`
     * A profile with a complete configuration for automated testing
