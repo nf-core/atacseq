@@ -16,7 +16,7 @@ nextflow run nf-core/atacseq -profile docker --genome '<genome ID>' --design '<p
 
 Nextflow will recognise `nf-core/atacseq` and download the pipeline from GitHub. The `-profile docker` configuration lists the [nf-core/atacseq](https://hub.docker.com/r/nf-core/atacseq/) image that we have created and is hosted at dockerhub, and this is downloaded.
 
-For more information about how to work with reference genomes, see [`docs/configuration/reference_genomes.md`](docs/configuration/reference_genomes.md).
+For more information about how to work with reference genomes, see [`docs/configuration/reference_genomes.md`](reference_genomes.md).
 
 ### Pipeline versions
 The public docker images are tagged with the same version numbers as the code, which you can use to ensure reproducibility. When running the pipeline, specify the pipeline version with `-r`, for example `-r 1.0`. This uses pipeline code and docker image from this tagged version.
