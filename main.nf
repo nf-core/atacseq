@@ -39,7 +39,7 @@ def helpMessage() {
       --genome                      Name of iGenomes reference
       --singleEnd                   Specifies that the input is single end reads
       --narrowPeak                  Run MACS with default parameters in narrowPeak mode
-      --fragmentSize [int]          Estimated fragment size used to extend single-end reads. Default: 0
+      --fragment_size [int]          Estimated fragment size used to extend single-end reads. Default: 0
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
       --bwa_index                   Path to BWA index
@@ -58,9 +58,9 @@ def helpMessage() {
       --saveTrimmed                 Save the trimmed FastQ files in the the Results directory
 
     Alignments
-      --keep_mito                   Reads mapping to mitochondrial contig are not filtered from alignments
-      --keep_dups                   Duplicate reads are not filtered from alignments
-      --keep_multimap               Reads mapping to multiple places are not filtered from alignments
+      --keepMito                   Reads mapping to mitochondrial contig are not filtered from alignments
+      --keepDups                   Duplicate reads are not filtered from alignments
+      --keepMultiMap               Reads mapping to multiple places are not filtered from alignments
       --skipMergeBySample           Do not perform alignment merging and downstream analysis at the sample-level i.e. only do this at the replicate-level
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
 
@@ -282,10 +282,10 @@ if( params.skipTrimming ){
     summary["Trim 3' R1"] = "$params.three_prime_clip_r1 bp"
     summary["Trim 3' R2"] = "$params.three_prime_clip_r2 bp"
 }
-summary['Fragment Size']          = "$params.fragmentSize bp"
-summary['Keep Mitochondrial']     = params.keep_mito ? 'Yes' : 'No'
-summary['Keep Duplicates']        = params.keep_dups ? 'Yes' : 'No'
-summary['Keep Multi-mapped']      = params.keep_multimap ? 'Yes' : 'No'
+summary['Fragment Size']          = "$params.fragment_size bp"
+summary['Keep Mitochondrial']     = params.keepMito ? 'Yes' : 'No'
+summary['Keep Duplicates']        = params.keepDups ? 'Yes' : 'No'
+summary['Keep Multi-mapped']      = params.keepMultiMap ? 'Yes' : 'No'
 summary['Sample-level Analysis']  = params.skipMergeBySample ? 'No' : 'Yes'
 summary['Save Reference']         = params.saveReference ? 'Yes' : 'No'
 summary['Save Trimmed']           = params.saveTrimmed ? 'Yes' : 'No'
@@ -417,7 +417,7 @@ process makeGenomeFilter {
 
     script:
         bfilter = params.blacklist ? "sortBed -i ${params.blacklist} -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
-        kfilter = params.keep_mito ? "" : "| awk '\$1 !~ /${params.mito_name}/ {print \$0}'"
+        kfilter = params.keepMito ? "" : "| awk '\$1 !~ /${params.mito_name}/ {print \$0}'"
         mfilter = params.mito_name ? kfilter : ""
         """
         samtools faidx $fasta
@@ -742,8 +742,8 @@ process filter_bam {
     script:
     prefix = params.singleEnd ? "${name}.clN" : "${name}.flT"
     filter_params = params.singleEnd ? "-F 0x004 -F 0x0100" : "-f 0x001 -F 0x004 -F 0x0008 -F 0x0100"
-    dup_params = params.keep_dups ? "" : "-F 0x0400"
-    multimap_params = params.keep_multimap ? "" : "-q 1"
+    dup_params = params.keepDups ? "" : "-F 0x0400"
+    multimap_params = params.keepMultiMap ? "" : "-q 1"
     bamtools_filter_config = params.singleEnd ? bamtools_filter_se_config : bamtools_filter_pe_config
     name_sort_bam = params.singleEnd ? "" : "samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${prefix}.sorted.bam"
     """
@@ -838,7 +838,7 @@ process merge_replicate {
     script:
     prefix="${name}.mRp"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    rmdup = params.keep_dups ? "false" : "true"
+    rmdup = params.keepDups ? "false" : "true"
     if( !task.memory ){
         log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
         avail_mem = 3
@@ -934,7 +934,7 @@ process replicate_bigwig {
     script:
     prefix="${name}.mRp"
     pe_fragment = params.singleEnd ? "" : "-pc"
-    extend = (params.singleEnd && params.fragmentSize > 0) ? "-fs ${params.fragmentSize}" : ''
+    extend = (params.singleEnd && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
     """
     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
@@ -954,7 +954,7 @@ process replicate_tss_plot {
     file bed from bed12_replicate_deeptools.collect()
 
     output:
-    file "*.png" into replicate_deeptools
+    file "*.png" into replicate_tss_plot
 
     script:
     prefix="plotProfile.mRp"
@@ -1225,7 +1225,7 @@ process merge_sample {
     script:
     prefix="${name}.mSm"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    rmdup = params.keep_dups ? "false" : "true"
+    rmdup = params.keepDups ? "false" : "true"
     if( !task.memory ){
         log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
         avail_mem = 3
@@ -1298,7 +1298,7 @@ process sample_bigwig {
     script:
     prefix="${name}.mSm"
     pe_fragment = params.singleEnd ? "" : "-pc"
-    extend = (params.singleEnd && params.fragmentSize > 0) ? "-fs ${params.fragmentSize}" : ''
+    extend = (params.singleEnd && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
     """
     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
@@ -1318,14 +1318,16 @@ process sample_tss_plot {
     file bed from bed12_sample_deeptools.collect()
 
     output:
-    file "*.png" into sample_deeptools
+    file "*.png" into sample_tss_plot
+
+    when: !skipMergeBySample && replicates_exist
 
     script:
     prefix="plotProfile.mSm"
     """
     computeMatrix reference-point \\
                   -R $bed \\
-                  -S ${bigwigs.sort().join(' ')} \\
+                  -S ${bigwigs.join(' ')} \\
                   -out ${prefix}.TSS.mat.gz \\
                   --referencePoint TSS \\
                   -a 3000 \\
