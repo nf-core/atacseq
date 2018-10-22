@@ -65,8 +65,8 @@ The pipeline was originally written by the [The Bioinformatics & Biostatistics G
 
 The pipeline was developed by [Harshil Patel](mailto:harshil.patel@crick.ac.uk).
 
-The [nf-core/rnaseq](https://github.com/nf-core/rnaseq) and [nf-core/chipseq](https://github.com/nf-core/chipseq) pipelines developed by Phil Ewels were used as a template for this pipeline. Many thanks to Phil and the team at SciLifeLab.
+The [nf-core/rnaseq](https://github.com/nf-core/rnaseq) and [nf-core/chipseq](https://github.com/nf-core/chipseq) pipelines developed by Phil Ewels were used as a template for this pipeline. Many thanks to Phil for all of his help and advice, and the team at SciLifeLab.
 
 Many thanks to other who have helped out along the way too, including (but not limited to):
 [@pditommaso](https://github.com/pditommaso),
-[@apeltzer](https://github.com/apeltzer), [@sven1103](https://github.com/sven1103).
+[@apeltzer](https://github.com/apeltzer), [@sven1103](https://github.com/sven1103), [@micans](https://github.com/micans).
