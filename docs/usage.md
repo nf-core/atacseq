@@ -13,32 +13,34 @@
         * [`singularity`](#singularity)
         * [`conda`](#conda)
         * [`awsbatch`](#awsbatch)
-        * [`crick-modules`](#crick-modules)
+        * [`crick`](#crick)
         * [`test`](#test)
         * [`none`](#none)
     * [`--design`](#--design)
+* [Generic arguments](#generic-arguments)
     * [`--singleEnd`](#--singleEnd)
-    * [`--narrow`](#--narrow)
-    * [`--extendReadsLen`](#--extendReadsLen)
-* [Reference Genomes](#reference-genomes)
+    * [`--narrowPeak`](#--narrowPeak)
+    * [`--fragment_size`](#--fragment_size)
+* [Reference genomes](#reference-genomes)
     * [`--genome`](#--genome)
     * [`--fasta`](#--fasta)
-    * [`--bwa_index`](#--bwa_index)
     * [`--gtf`](#--gtf)
+    * [`--bwa_index`](#--bwa_index)
     * [`--bed12`](#--bed12)
-    * [`--macs_gsize`](#--macs_gsize)
     * [`--mito_name`](#--mito_name)
+    * [`--macs_gsize`](#--macs_gsize)
     * [`--blacklist`](#--blacklist)
     * [`--saveReference`](#--saveReference)
 * [Adapter trimming](#adapter-trimming)
-    * [`--notrim`](#--notrim)
+    * [`--skipTrimming`](#--skipTrimming)
     * [`--saveTrimmed`](#--saveTrimmed)
 * [Alignments](#alignments)
-    * [`--allow_multi_align`](#--allow_multi_align)
-    * [`--keep_duplicates`](#--keep_duplicates)
-    * [`--keep_mitochondrial`](#--keep_mitochondrial)
+    * [`--keepMito`](#--keepMito)
+    * [`--keepDups`](#--keepDups)
+    * [`--keepMultiMap`](#--keepMultiMap)
+    * [`--skipMergeBySample`](#--skipMergeBySample)
     * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
-* [Job Resources](#job-resources)
+* [Job resources](#job-resources)
 * [Automatic resubmission](#automatic-resubmission)
 * [Custom resource requests](#custom-resource-requests)
 * [AWS batch specific parameters](#aws-batch-specific-parameters)
@@ -97,7 +99,7 @@ First, go to the [nf-core/atacseq releases page](https://github.com/nf-core/atac
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future.
 
-## Arguments
+## Main arguments
 
 ### `-profile`
 Use this parameter to choose a configuration profile. Profiles can give configuration presets for different compute environments. Note that multiple profiles can be loaded, for example: `-profile standard,docker` - the order of arguments is important!
@@ -152,20 +154,22 @@ treatment,2,AEG588A5_S4_L002_R1_001.fastq.gz,AEG588A5_S4_L002_R2_001.fastq.gz
 
 If you have sequenced the same library more than once you just provide this as a separate entry in the design file with the same replicate identifier. The alignments will be performed separately, and subsequently merged before further analysis.
 
+## Generic arguments
+
 ### `--singleEnd`
 By default, the pipeline expects paired-end data. If you have single-end data, specify `--singleEnd` on the command line when you launch the pipeline.
 
 It is not possible to run a mixture of single-end and paired-end files in one run.
 
-### `--narrow`
+### `--narrowPeak`
 By default, MACS is run with the `--broad` flag. With this flag on, MACS will try to composite broad regions in BED12 ( a gene-model-like format ) by putting nearby highly enriched regions into a broad region with loose cutoff. The broad region is controlled by the default qvalue cutoff 0.1. Specify this flag to call peaks in narrowPeak mode.
 
-### `--extendReadsLen`
-Number of base pairs to extend the reads for the deepTools analysis. This number should be based on the length of your reads and the expected fragment length.
+### `--fragment_size`
+Number of base pairs to extend the reads to when creating bigWig files for single-end reads.
 
 Default: `0`
 
-## Reference Genomes
+## Reference genomes
 
 The pipeline config files come bundled with paths to the illumina iGenomes reference index files. If running with docker or AWS, the configuration is set up to use the [AWS-iGenomes](https://ewels.github.io/AWS-iGenomes/) resource.
 
@@ -201,9 +205,15 @@ params {
 ```
 
 ### `--fasta`
-Full path to fasta file containing reference genome. If you don't have a BWA index available this will be generated for you automatically. Combine with `--saveReference` to save for future runs.
+Full path to fasta file containing reference genome (mandatory if --genome is not specified). If you don't have a BWA index available this will be generated for you automatically. Combine with `--saveReference` to save for future runs.
 ```bash
 --fasta '[path to FASTA reference]'
+```
+
+### `--gtf`
+The full path to GTF file can be specified for annotating peaks (mandatory if --genome is not specified). Note that the GTF file should be in the Ensembl format.
+```bash
+--gtf '[path to GTF file]'
 ```
 
 ### `--bwa_index`
@@ -212,28 +222,22 @@ If you prefer, you can specify the full path to your reference genome when you r
 --bwa_index '[path to BWA index]'
 ```
 
-### `--gtf`
-The full path to GTF file can be specified for annotating peaks. Note that the GTF file should be in the Ensembl format.
-```bash
---gtf '[path to GTF file]'
-```
-
 ### `--bed12`
 The full path to BED12 file can be specified for annotating peaks.
 ```bash
 --bed12 '[path to BED12 file]'
 ```
 
-### `--mito_name`
-Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. These have been provided in the iGenomes config file.
-```bash
---mito_name chrM
-```
-
 ### `--macs_gsize`
 [Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when --genome is set as GRCh37, GRCm38, BDGP6 and WBcel235. For other genomes, if this parameter isnt specified then the MACS2 peak-calling step will be skipped.
 ```bash
 --macs_gsize 2.7e9
+```
+
+### `--mito_name`
+Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. These have been provided in the iGenomes config file.
+```bash
+--mito_name chrM
 ```
 
 ### `--blacklist`
@@ -258,27 +262,30 @@ You can specify custom trimming parameters as follows:
 * `--three_prime_clip_r2 <NUMBER>`
   * Instructs Trim Galore to re move bp from the 3' end of read 2 _AFTER_ adapter/quality trimming has been performed.
 
-### `--notrim`
-Specifying `--notrim` will skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.
+### `--skipTrimming`
+Specifying `--skipTrimming` will skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.
 
 ### `--saveTrimmed`
 By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete.
 
 ## Alignments
 
-### `--allow_multi_align`
-Reads mapping to multiple places are not filtered from alignments.
+### `--keepMito`
+Reads mapping to mitochondrial contig are not filtered from alignments.
 
-### `--keep_duplicates`
+### `--keepDups`
 Duplicate reads are not filtered from alignments.
 
-### `--keep_mitochondrial`
-Reads mapping to mitochondrial contig are not filtered from alignments.
+### `--keepMultiMap`
+Reads mapping to multiple places are not filtered from alignments.
+
+### `--skipMergeBySample`
+Do not perform alignment merging and downstream analysis at the sample-level i.e. only do this at the replicate-level.
 
 ### `--saveAlignedIntermediates`
 By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also copy out BAM files from BWA and sorting/filtering steps.
 
-## Job Resources
+## Job resources
 ### Automatic resubmission
 Each step in the pipeline has a default set of requirements for number of CPUs, memory and time. For most of the steps in the pipeline, if the job exits with an error code of `143` (exceeded requested resources) it will automatically resubmit with higher requests (2 x original, then 3 x original). If it still fails after three times then the pipeline is stopped.
 
