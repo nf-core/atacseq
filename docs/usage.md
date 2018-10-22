@@ -162,12 +162,10 @@ By default, the pipeline expects paired-end data. If you have single-end data, s
 It is not possible to run a mixture of single-end and paired-end files in one run.
 
 ### `--narrowPeak`
-By default, MACS is run with the `--broad` flag. With this flag on, MACS will try to composite broad regions in BED12 ( a gene-model-like format ) by putting nearby highly enriched regions into a broad region with loose cutoff. The broad region is controlled by the default qvalue cutoff 0.1. Specify this flag to call peaks in narrowPeak mode.
+By default, MACS is run with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.
 
 ### `--fragment_size`
-Number of base pairs to extend the reads to when creating bigWig files for single-end reads.
-
-Default: `0`
+Number of base pairs to extend single-end reads when creating bigWig files. Default: `0`
 
 ## Reference genomes
 
@@ -205,43 +203,43 @@ params {
 ```
 
 ### `--fasta`
-Full path to fasta file containing reference genome (mandatory if --genome is not specified). If you don't have a BWA index available this will be generated for you automatically. Combine with `--saveReference` to save for future runs.
+Full path to fasta file containing reference genome (mandatory if `--genome` is not specified). If you don't have a BWA index available this will be generated for you automatically. Combine with `--saveReference` to save for future runs.
 ```bash
 --fasta '[path to FASTA reference]'
 ```
 
 ### `--gtf`
-The full path to GTF file can be specified for annotating peaks (mandatory if --genome is not specified). Note that the GTF file should be in the Ensembl format.
+The full path to GTF file for annotating peaks (mandatory if `--genome` is not specified). Note that the GTF file should be in the Ensembl format.
 ```bash
 --gtf '[path to GTF file]'
 ```
 
 ### `--bwa_index`
-If you prefer, you can specify the full path to your reference genome when you run the pipeline:
+If you prefer, you can specify the full path to the BWA index for your reference genome when you run the pipeline:
 ```bash
 --bwa_index '[path to BWA index]'
 ```
 
 ### `--bed12`
-The full path to BED12 file can be specified for annotating peaks.
+The full path to BED12 file for TSS profile plots. If not specified, then this will be created from the GTF file.
 ```bash
 --bed12 '[path to BED12 file]'
 ```
 
 ### `--macs_gsize`
-[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when --genome is set as GRCh37, GRCm38, BDGP6 and WBcel235. For other genomes, if this parameter isnt specified then the MACS2 peak-calling step will be skipped.
+[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as GRCh37, GRCm38, WBcel235, BDGP6, R64-1-1, EF2, hg38, hg19 and mm10. For other genomes, if this parameter isnt specified then the MACS2 peak-calling step will be skipped.
 ```bash
 --macs_gsize 2.7e9
 ```
 
 ### `--mito_name`
-Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. These have been provided in the iGenomes config file.
+Name of Mitochondrial chomosome in genome fasta. Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the iGenomes config file.
 ```bash
 --mito_name chrM
 ```
 
 ### `--blacklist`
-If you prefer, you can specify the full path to the blacklist regions (should be in .BED format) which will be filtered out from the called ATAC-seq peaks. Please note that `--blacklist_filtering` is required for using this option.
+If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for GRCh37, GRCm38, hg19, hg38, mm10 are bundled with the pipeline in [`blacklists`](../blacklists/), and as such will be used if any of those genomes are used with the `--genome` parameter.
 ```bash
 --blacklist_filtering --blacklist '[path to blacklisted regions]'
 ```
