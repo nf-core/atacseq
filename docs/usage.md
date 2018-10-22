@@ -239,9 +239,9 @@ Name of Mitochondrial chomosome in genome fasta. Reads aligning to this contig a
 ```
 
 ### `--blacklist`
-If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for GRCh37, GRCm38, hg19, hg38, mm10 are bundled with the pipeline in [`blacklists`](../blacklists/), and as such will be used if any of those genomes are used with the `--genome` parameter.
+If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for GRCh37, GRCm38, hg19, hg38, mm10 are bundled with the pipeline in the [`blacklists`](../blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.
 ```bash
---blacklist_filtering --blacklist '[path to blacklisted regions]'
+--blacklist '[path to blacklisted regions]'
 ```
 
 ### `--saveReference`
@@ -305,7 +305,7 @@ Please make sure to also set the `-w/--work-dir` and `--outdir` parameters to a 
 The output directory where the results will be saved.
 
 ### `--email`
-Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to speicfy this on the command line for every run.
+Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.
 
 ### `-name`
 Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic.
