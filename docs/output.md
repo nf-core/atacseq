@@ -24,7 +24,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/). The initial QC
     9. Differential binding analysis, PCA and clustering - [`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
 
 * [Sample-level analysis](#sample-level-analysis)
-    * The analysis steps for the `sample-level` analysis are pretty much the same as for the `replicate-level` analysis. The main difference is that multiple libraries sequenced from the same sample will be merged at the `replicate-level` whereas all the replicates associated with an experimental condition will be merged at the `sample-level`.
+  + The analysis steps for the `sample-level` analysis are pretty much the same as for the `replicate-level` analysis. The main difference is that multiple libraries sequenced from the same sample will be merged at the `replicate-level` whereas all the replicates associated with an experimental condition will be merged at the `sample-level`.
 
 * [Aggregate analysis](#aggregate-analysis)
     1. Collect and present QC at the raw read, alignment and peak-level - [`MultiQC`](http://multiqc.info/) & [`R`](https://www.r-project.org/)
