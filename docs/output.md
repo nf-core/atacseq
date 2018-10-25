@@ -10,7 +10,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/). The initial QC
     2. Adapter trimming - [`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
     3. Alignment - [`BWA`](https://sourceforge.net/projects/bio-bwa/files/)
     4. Mark duplicate reads - [`picard`](https://broadinstitute.github.io/picard/)
-    5. Alignment filtering - [SAMTools](https://sourceforge.net/projects/samtools/files/samtools/), [BEDTools](https://github.com/arq5x/bedtools2/),  [Pysam](http://pysam.readthedocs.io/en/latest/installation.html)
+    5. Alignment filtering - [`SAMTools`](https://sourceforge.net/projects/samtools/files/samtools/), [`BEDTools`](https://github.com/arq5x/bedtools2/),  [`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html)
 
 * [Replicate-level analysis](#replicate-level-analysis)
     1. Alignment merging - [`picard`](https://broadinstitute.github.io/picard/)
