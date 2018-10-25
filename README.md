@@ -40,7 +40,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
     * remove duplicate reads ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
     * create normalised bigWig files scaled to 1 million mapped reads ([`BEDTools`](https://github.com/arq5x/bedtools2/), [`wigToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
     * generate TSS meta-profiles across all genes ([`deepTools`](https://deeptools.readthedocs.io/en/develop/))
-    * call broad peaks ([`MACS2`](https://github.com/taoliu/MACS))
+    * call narrow/broad peaks ([`MACS2`](https://github.com/taoliu/MACS))
     * annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
     * merge peaks across all samples and create tabular file to aid in the filtering of the data ([`BEDTools`](https://github.com/arq5x/bedtools2/))
     * count reads in merged peaks from replicate-level alignments ([`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/))
@@ -55,6 +55,7 @@ The nf-core/atacseq pipeline comes with documentation about the pipeline, found 
 2. Pipeline configuration
     * [Local installation](docs/configuration/local.md)
     * [Adding your own system](docs/configuration/adding_your_own.md)
+    * [Reference genomes](docs/configuration/reference_genomes.md)
 3. [Running the pipeline](docs/usage.md)
 4. [Output and how to interpret the results](docs/output.md)
 5. [Troubleshooting](docs/troubleshooting.md)
