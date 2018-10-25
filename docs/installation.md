@@ -99,6 +99,9 @@ This is slower and less reproducible than the above, but is still better than ha
 The pipeline ships with a conda environment file and nextflow has built-in support for this.
 To use it first ensure that you have conda installed (we recommend [miniconda](https://conda.io/miniconda.html)), then follow the same pattern as above and use the flag `-profile standard,conda`
 
+#### 3.3) Configuration profiles
+
+See [docs](configuration/adding_your_own.md)
 
 ## 4) Reference genomes
 
