@@ -148,11 +148,13 @@ treatment,2,AEG588A5_S4_L002_R1_001.fastq.gz,AEG588A5_S4_L002_R2_001.fastq.gz
 | Column      | Description                                                                                   |
 |-------------|-----------------------------------------------------------------------------------------------|
 | `sample`    | Group identifier for sample.                                                                  |
-| `replicate` | Integer representing replicate number.                                                        |
+| `replicate` | Integer representing replicate number. Must start from 1..<number of replicates>              |
 | `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz". |
 | `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz". |
 
 If you have sequenced the same library more than once you just provide this as a separate entry in the design file with the same replicate identifier. The alignments will be performed separately, and subsequently merged before further analysis.
+
+> The pipeline will assume that the design file is in the correct format so please double-check this before execution.
 
 ## Generic arguments
 
@@ -162,7 +164,7 @@ By default, the pipeline expects paired-end data. If you have single-end data, s
 It is not possible to run a mixture of single-end and paired-end files in one run.
 
 ### `--narrowPeak`
-By default, MACS is run with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.
+By default, MACS is run with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode i.e. default MACS2 parameters.
 
 ### `--fragment_size`
 Number of base pairs to extend single-end reads when creating bigWig files. Default: `0`
@@ -203,43 +205,43 @@ params {
 ```
 
 ### `--fasta`
-Full path to fasta file containing reference genome (mandatory if `--genome` is not specified). If you don't have a BWA index available this will be generated for you automatically. Combine with `--saveReference` to save for future runs.
+Full path to fasta file containing reference genome (*mandatory* if `--genome` is not specified). If you don't have a BWA index available this will be generated for you automatically. Combine with `--saveReference` to save BWA index for future runs.
 ```bash
 --fasta '[path to FASTA reference]'
 ```
 
 ### `--gtf`
-The full path to GTF file for annotating peaks (mandatory if `--genome` is not specified). Note that the GTF file should be in the Ensembl format.
+The full path to GTF file for annotating peaks (*mandatory* if `--genome` is not specified). Note that the GTF file should be in the Ensembl format.
 ```bash
 --gtf '[path to GTF file]'
 ```
 
 ### `--bwa_index`
-If you prefer, you can specify the full path to the BWA index for your reference genome when you run the pipeline:
+If you prefer, you can specify the full path to an existing BWA index for your reference genome when you run the pipeline.
 ```bash
 --bwa_index '[path to BWA index]'
 ```
 
 ### `--bed12`
-The full path to BED12 file for TSS profile plots. If not specified, then this will be created from the GTF file.
+The full path to BED12 file for TSS profile plots. If not specified, this will be created from the GTF file.
 ```bash
 --bed12 '[path to BED12 file]'
 ```
 
 ### `--macs_gsize`
-[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as GRCh37, GRCm38, WBcel235, BDGP6, R64-1-1, EF2, hg38, hg19 and mm10. For other genomes, if this parameter isnt specified then the MACS2 peak-calling step will be skipped.
+[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as *GRCh37*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter isnt specified then the MACS2 peak-calling and differential analysis will be skipped.
 ```bash
 --macs_gsize 2.7e9
 ```
 
 ### `--mito_name`
-Name of Mitochondrial chomosome in genome fasta. Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the iGenomes config file.
+Name of Mitochondrial chomosome in genome fasta. Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the [iGenomes config file](../conf/igenomes.config).
 ```bash
 --mito_name chrM
 ```
 
 ### `--blacklist`
-If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for GRCh37, GRCm38, hg19, hg38, mm10 are bundled with the pipeline in the [`blacklists`](../blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.
+If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.
 ```bash
 --blacklist '[path to blacklisted regions]'
 ```
@@ -252,7 +254,7 @@ The pipeline accepts a number of parameters to change how the trimming is done, 
 You can specify custom trimming parameters as follows:
 
 * `--clip_r1 <NUMBER>`
-  * Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads).
+  * Instructs Trim Galore to remove bp from the 5' end of read 1 (for single-end reads).
 * `--clip_r2 <NUMBER>`
   * Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only).
 * `--three_prime_clip_r1 <NUMBER>`
@@ -261,7 +263,7 @@ You can specify custom trimming parameters as follows:
   * Instructs Trim Galore to re move bp from the 3' end of read 2 _AFTER_ adapter/quality trimming has been performed.
 
 ### `--skipTrimming`
-Specifying `--skipTrimming` will skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.
+Skip the adapter trimming step. Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.
 
 ### `--saveTrimmed`
 By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete.
@@ -275,7 +277,7 @@ Reads mapping to mitochondrial contig are not filtered from alignments.
 Duplicate reads are not filtered from alignments.
 
 ### `--keepMultiMap`
-Reads mapping to multiple places are not filtered from alignments.
+Reads mapping to multiple locations in the genome are not filtered from alignments.
 
 ### `--skipMergeBySample`
 Do not perform alignment merging and downstream analysis at the sample-level i.e. only do this at the replicate-level.
@@ -334,7 +336,7 @@ process.$multiqc.module = []
 
 ### `--max_memory`
 Use to set a top-limit for the default memory requirement for each process.
-Should be a string in the format integer-unit. eg. `--max_memory '8.GB'``
+Should be a string in the format integer-unit. eg. `--max_memory '8.GB'`
 
 ### `--max_time`
 Use to set a top-limit for the default time requirement for each process.
