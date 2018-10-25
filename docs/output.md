@@ -100,7 +100,7 @@ The following directories will be created in the output directory after the pipe
 
 `bwa/replicate/` and `bwa/sample/` have exactly the same directory structure. The main difference is that multiple libraries sequenced from the same sample will be merged at the replicate-level whereas all the replicates associated with an experimental condition will be merged at the sample-level.
 
->NB: Replicate-level alignments will be used for read counting relative to the consensus sample-level peakset.
+>NB: Replicate-level alignments will be used for read counting relative to the consensus sample-level peakset. This is the only way in which differential analysis can be performed at the sample-level.
 
 
 ### Aggregate analysis
