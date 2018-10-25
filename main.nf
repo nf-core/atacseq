@@ -39,7 +39,7 @@ def helpMessage() {
       --genome                      Name of iGenomes reference
       --singleEnd                   Specifies that the input is single end reads
       --narrowPeak                  Run MACS with default parameters in narrowPeak mode
-      --fragment_size [int]          Estimated fragment size used to extend single-end reads. Default: 0
+      --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 0
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
       --bwa_index                   Path to BWA index
@@ -58,9 +58,9 @@ def helpMessage() {
       --saveTrimmed                 Save the trimmed FastQ files in the the Results directory
 
     Alignments
-      --keepMito                   Reads mapping to mitochondrial contig are not filtered from alignments
-      --keepDups                   Duplicate reads are not filtered from alignments
-      --keepMultiMap               Reads mapping to multiple places are not filtered from alignments
+      --keepMito                    Reads mapping to mitochondrial contig are not filtered from alignments
+      --keepDups                    Duplicate reads are not filtered from alignments
+      --keepMultiMap                Reads mapping to multiple places are not filtered from alignments
       --skipMergeBySample           Do not perform alignment merging and downstream analysis at the sample-level i.e. only do this at the replicate-level
       --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
 
