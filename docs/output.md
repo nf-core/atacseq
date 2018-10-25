@@ -3,7 +3,7 @@
 This document describes the output produced by the pipeline. Most of the plots are taken from the MultiQC report, which summarises results at the end of the pipeline.
 
 ## Pipeline overview
-The pipeline is built using [Nextflow](https://www.nextflow.io/). The initial QC and alignments are performed at the `library-level` e.g. if the same library has been sequenced more than once to increase sequencing depth. This has the advantage of being able to assess each library individually, and the ability to process multiple libraries from the same sample in parallel. The alignments are subsequently merged at the `replicate-level` and the `sample-level`. The latter involves merging the alignments across all replicates from the same experimental condition. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/).
+The pipeline is built using [Nextflow](https://www.nextflow.io/). The initial QC and alignments are performed at the library-level e.g. if the same library has been sequenced more than once to increase sequencing depth. This has the advantage of being able to assess each library individually, and the ability to process multiple libraries from the same sample in parallel. The alignments are subsequently merged at the replicate-level and the sample-level. The latter involves merging the alignments across all replicates from the same experimental condition. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/).
 
 * [Library-level analysis](#library-level-analysis)
     1. Raw read QC - [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
@@ -24,7 +24,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/). The initial QC
     9. Differential binding analysis, PCA and clustering - [`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
 
 * [Sample-level analysis](#sample-level-analysis)
-    1. The analysis steps for the `sample-level` analysis are pretty much the same as for the `replicate-level` analysis. The main difference is that multiple libraries sequenced from the same sample will be merged at the `replicate-level` whereas all the replicates associated with an experimental condition will be merged at the `sample-level`.
+    * The analysis steps for the `sample-level` analysis are pretty much the same as for the `replicate-level` analysis. The main difference is that multiple libraries sequenced from the same sample will be merged at the `replicate-level` whereas all the replicates associated with an experimental condition will be merged at the `sample-level`.
 
 * [Aggregate analysis](#aggregate-analysis)
     1. Collect and present QC at the raw read, alignment and peak-level - [`MultiQC`](http://multiqc.info/) & [`R`](https://www.r-project.org/)
