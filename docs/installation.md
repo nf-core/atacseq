@@ -114,4 +114,4 @@ params.project = 'project_ID' // eg. b2017123
 
 #### Running at the Crick
 
-See [docs]((configuration/crick.md))
+See [docs](configuration/crick.md)
