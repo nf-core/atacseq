@@ -38,12 +38,21 @@ The following directories will be created in the output directory after the pipe
 
 #### `fastqc/`
 
+[FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%T/A/G/C). You get information about adapter contamination and other overrepresented sequences.
+
+For further reading and documentation see the [FastQC help](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
+
 | Directory      | Description                                                                         |
 |----------------|-------------------------------------------------------------------------------------|
 | `fastqc/`      | FastQC html files for read 1 (and read2 if paired-end) **before** adapter trimming. |
 | `fastqc/zips/` | FastQC zip files for read 1 (and read2 if paired-end) **before** adapter trimming.  |
 
 #### `trim_galore/`
+
+The nf-core/atacseq pipeline uses [TrimGalore](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) for removal of adapter contamination and trimming of low quality regions. TrimGalore uses [Cutadapt](https://github.com/marcelm/cutadapt) for adapter trimming and runs FastQC after it finishes.
+
+MultiQC generates a line plot showing where reads were trimmed and by how much.
+
 
 | Directory                  | Description                                                                                              |
 |----------------------------|----------------------------------------------------------------------------------------------------------|
