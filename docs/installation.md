@@ -14,6 +14,7 @@ To start using the nf-core/atacseq pipeline, follow the steps below:
 4. [Reference genomes](#4-reference-genomes)
 5. [Appendices](#appendices)
     * [Running on UPPMAX](#running-on-uppmax)
+    * [Running at the Crick](#running-at-the-crick)
 
 ## 1) Install NextFlow
 Nextflow runs on most POSIX systems (Linux, Mac OSX etc). It can be installed by running the following commands:
@@ -59,7 +60,6 @@ export NXF_OFFLINE='TRUE'
 
 If you would like to make changes to the pipeline, it's best to make a fork on GitHub and then clone the files. Once cloned you can run the pipeline directly as above.
 
-
 ## 3) Pipeline configuration
 By default, the pipeline runs with the `standard` configuration profile. This uses a number of sensible defaults for process requirements and is suitable for running on a simple (if powerful!) basic server. You can see this configuration in [`conf/base.config`](../conf/base.config).
 
@@ -93,13 +93,11 @@ nextflow run /path/to/nf-core-atacseq -with-singularity nf-core-atacseq.simg
 
 Remember to pull updated versions of the singularity image if you update the pipeline.
 
-
 #### 3.2) Software deps: conda
 If you're not able to use Docker _or_ Singularity, you can instead use conda to manage the software requirements.
 This is slower and less reproducible than the above, but is still better than having to install all requirements yourself!
 The pipeline ships with a conda environment file and nextflow has built-in support for this.
 To use it first ensure that you have conda installed (we recommend [miniconda](https://conda.io/miniconda.html)), then follow the same pattern as above and use the flag `-profile standard,conda`
-
 
 ## Appendices
 
@@ -113,3 +111,7 @@ Note that you will need to specify your UPPMAX project ID when running a pipelin
 ```nextflow
 params.project = 'project_ID' // eg. b2017123
 ```
+
+#### Running at the Crick
+
+See [docs]((configuration/crick.md))
