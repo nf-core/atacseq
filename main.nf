@@ -127,6 +127,18 @@ bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
 bamtools_filter_se_config = file(params.bamtools_filter_se_config)
 output_docs = file("$baseDir/docs/output.md")
 
+replicate_peak_count_header = file("$baseDir/assets/multiqc/replicate_peak_count_header.txt")
+replicate_frip_score_header = file("$baseDir/assets/multiqc/replicate_frip_score_header.txt")
+replicate_peak_annotation_header = file("$baseDir/assets/multiqc/replicate_peak_annotation_header.txt")
+replicate_deseq2_pca_header = file("$baseDir/assets/multiqc/replicate_deseq2_pca_header.txt")
+replicate_deseq2_clustering_header = file("$baseDir/assets/multiqc/replicate_deseq2_clustering_header.txt")
+
+sample_peak_count_header = file("$baseDir/assets/multiqc/sample_peak_count_header.txt")
+sample_frip_score_header = file("$baseDir/assets/multiqc/sample_frip_score_header.txt")
+sample_peak_annotation_header = file("$baseDir/assets/multiqc/sample_peak_annotation_header.txt")
+sample_deseq2_pca_header = file("$baseDir/assets/multiqc/sample_deseq2_pca_header.txt")
+sample_deseq2_clustering_header = file("$baseDir/assets/multiqc/sample_deseq2_clustering_header.txt")
+
 ////////////////////////////////////////////////////
 /* --          VALIDATE INPUTS                 -- */
 ////////////////////////////////////////////////////
@@ -986,6 +998,8 @@ process replicate_macs {
 
     input:
     set val(name), file(bam), file(flagstat) from merge_replicate_bam_macs.join(merge_replicate_flagstat_macs, by: [0])
+    file replicate_peak_count_header
+    file replicate_frip_score_header
 
     output:
     file "*.{bed,xls,gappedPeak}" into replicate_macs_output
@@ -1012,10 +1026,10 @@ process replicate_macs {
          --keep-dup all \\
          --nomodel
 
-    READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks${peakext} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
-    grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' > ${prefix}_peaks.FRiP_mqc.tsv
+    cat ${prefix}_peaks${peakext} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $replicate_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
 
-    cat ${prefix}_peaks${peakext} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' > ${prefix}_peaks.count_mqc.tsv
+    READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks${peakext} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
+    grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' | cat $replicate_frip_score_header - > ${prefix}_peaks.FRiP_mqc.tsv
     """
 }
 
@@ -1056,6 +1070,7 @@ process replicate_macs_qc {
    input:
    file peaks from replicate_macs_peaks_qc.collect{ it[1] }
    file annos from replicate_macs_annotate.collect()
+   file replicate_peak_annotation_header
 
    output:
    file "*.{txt,pdf,tsv}" into replicate_macs_qc
@@ -1073,6 +1088,8 @@ process replicate_macs_qc {
    plot_homer_annotatepeaks.r -i ${annos.join(',')} \\
                               -s ${annos.join(',').replaceAll("_peaks.annotatePeaks.txt","")} \\
                               -o ./ -p macs_annotatePeaks.${suffix}
+
+   cat $replicate_peak_annotation_header macs_annotatePeaks.${suffix}.summary.txt > macs_annotatePeaks.${suffix}.summary_mqc.tsv
    """
 }
 
@@ -1097,14 +1114,18 @@ process replicate_macs_merge {
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     prefix="merged_peaks.mRp"
     peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
+    mergecols = params.narrowPeak ? (2..10).join(',') : (2..9).join(',')
+    collapsecols = params.narrowPeak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
+    expandparam = params.narrowPeak ? "--is_narrow_peak" : ""
     """
     sort -k1,1 -k2,2n ${peaks.join(' ')} \\
-         | mergeBed -c 2,3,4,5,6,7,8,9 -o collapse,collapse,collapse,collapse,collapse,collapse,collapse,collapse > ${prefix}.txt
+         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
 
     macs2_merged_expand.py ${prefix}.txt \\
                            ${peaks.join(',').replaceAll("_peaks${peakext}","")} \\
                            ${prefix}.boolean.txt \\
-                           --min_samples 1
+                           --min_samples 1 \\
+                           $expandparam
 
     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
 
@@ -1352,6 +1373,8 @@ process sample_macs {
 
     input:
     set val(name), file(bam), file(flagstat) from merge_sample_bam_macs.join(merge_sample_flagstat_macs, by: [0])
+    file sample_peak_count_header
+    file sample_frip_score_header
 
     output:
     file "*.{bed,xls,gappedPeak}" into sample_macs_output
@@ -1378,10 +1401,10 @@ process sample_macs {
          --keep-dup all \\
          --nomodel
 
-    READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks${peakext} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
-    grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' > ${prefix}_peaks.FRiP_mqc.tsv
+    cat ${prefix}_peaks${peakext} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $sample_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
 
-    cat ${prefix}_peaks${peakext} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' > ${prefix}_peaks.count_mqc.tsv
+    READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks${peakext} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
+    grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' | cat $sample_frip_score_header - > ${prefix}_peaks.FRiP_mqc.tsv
     """
 }
 
@@ -1422,6 +1445,7 @@ process sample_macs_qc {
    input:
    file peaks from sample_macs_peaks_qc.collect{ it[1] }
    file annos from sample_macs_annotate.collect()
+   file sample_peak_annotation_header
 
    output:
    file "*.{txt,pdf,tsv}" into sample_macs_qc
@@ -1439,6 +1463,8 @@ process sample_macs_qc {
    plot_homer_annotatepeaks.r -i ${annos.join(',')} \\
                               -s ${annos.join(',').replaceAll("_peaks.annotatePeaks.txt","")} \\
                               -o ./ -p macs_annotatePeaks.${suffix}
+
+   cat $sample_peak_annotation_header macs_annotatePeaks.${suffix}.summary.txt > macs_annotatePeaks.${suffix}.summary_mqc.tsv
    """
 }
 
@@ -1464,14 +1490,18 @@ process sample_macs_merge {
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     prefix="merged_peaks.mSm"
     peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
+    mergecols = params.narrowPeak ? (2..10).join(',') : (2..9).join(',')
+    collapsecols = params.narrowPeak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
+    expandparam = params.narrowPeak ? "--is_narrow_peak" : ""
     """
     sort -k1,1 -k2,2n ${peaks.join(' ')} \\
-         | mergeBed -c 2,3,4,5,6,7,8,9 -o collapse,collapse,collapse,collapse,collapse,collapse,collapse,collapse > ${prefix}.txt
+         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
 
     macs2_merged_expand.py ${prefix}.txt \\
                            ${peaks.join(',').replaceAll("_peaks${peakext}","")} \\
                            ${prefix}.boolean.txt \\
-                           --min_samples 1
+                           --min_samples 1 \\
+                           $expandparam
 
     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
 
