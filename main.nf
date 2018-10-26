@@ -1176,6 +1176,8 @@ process replicate_macs_merge_deseq {
     input:
     file bams from replicate_name_bam_replicate_counts.collect{ it[1] }
     file saf from replicate_macs_merge_saf.collect()
+    file replicate_deseq2_pca_header
+    file replicate_deseq2_clustering_header
 
     output:
     file "*featureCounts*" into replicate_macs_merge_counts
@@ -1183,6 +1185,7 @@ process replicate_macs_merge_deseq {
     file "sizeFactors" into replicate_macs_merge_deseq_factors
     file "*vs*/*.{pdf,txt}" into replicate_macs_merge_deseq_comp_results
     file "*vs*/*.bed" into replicate_macs_merge_deseq_comp_bed
+    file ".tsv" into replicate_macs_merge_deseq_mqc
 
     when: params.macs_gsize && multiple_samples
 
@@ -1202,6 +1205,9 @@ process replicate_macs_merge_deseq {
                   ${bam_files.join(' ')}
 
     featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix -s .mRp
+
+    cat $replicate_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
+    cat $replicate_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
     """
 }
 
@@ -1553,6 +1559,8 @@ process sample_macs_merge_deseq {
     input:
     file bams from replicate_name_bam_sample_counts.collect{ it[1] }
     file saf from sample_macs_merge_saf.collect()
+    file sample_deseq2_pca_header
+    file sample_deseq2_clustering_header
 
     output:
     file "*featureCounts*" into sample_macs_merge_counts
@@ -1560,6 +1568,7 @@ process sample_macs_merge_deseq {
     file "sizeFactors" into sample_macs_merge_deseq_factors
     file "*vs*/*.{pdf,txt}" into sample_macs_merge_deseq_comp_results
     file "*vs*/*.bed" into sample_macs_merge_deseq_comp_bed
+    file ".tsv" into sample_macs_merge_deseq_mqc
 
     when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
 
@@ -1579,6 +1588,10 @@ process sample_macs_merge_deseq {
                   ${bam_files.join(' ')}
 
     featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix -s .mSm
+
+    cat $sample_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
+    cat $sample_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
+
     """
 }
 
@@ -1657,12 +1670,14 @@ process multiqc {
     file ('alignment/replicate/picard_metrics/*') from merge_replicate_metrics.collect()
     file ('macs/replicate/*') from replicate_macs_peak_mqc.collect().ifEmpty([])
     file ('macs/replicate/*') from replicate_macs_qc.collect().ifEmpty([])
-    file ('macs/replicate/*') from replicate_macs_merge_counts.collect().ifEmpty([])
+    file ('macs/replicate/merged/*') from replicate_macs_merge_counts.collect().ifEmpty([])
+    file ('macs/replicate/merged/*') from replicate_macs_merge_deseq_mqc.collect().ifEmpty([])
     file ('alignment/sample/*') from merge_sample_flagstat.collect{it[1]}.ifEmpty([])
     file ('alignment/sample/picard_metrics/*') from merge_sample_metrics.collect().ifEmpty([])
     file ('macs/sample/*') from sample_macs_peak_mqc.collect().ifEmpty([])
     file ('macs/sample/*') from sample_macs_qc.collect().ifEmpty([])
-    file ('macs/sample/*') from sample_macs_merge_counts.collect().ifEmpty([])
+    file ('macs/sample/merged/*') from sample_macs_merge_counts.collect().ifEmpty([])
+    file ('macs/sample/merged/*') from sample_macs_merge_deseq_mqc.collect().ifEmpty([])
     file ('software_versions/*') from software_versions_yaml.collect()
     file ('workflow_summary/*') from create_workflow_summary(summary)
 
