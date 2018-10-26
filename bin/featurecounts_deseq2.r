@@ -132,6 +132,15 @@ if (file.exists(PlotFile) == FALSE) {
     meanSdPlot(assay(rld[notAllZero,]))
     meanSdPlot(assay(vsd[notAllZero,]))
     dev.off()
+
+		## WRITE PC1 vs PC2 VALUES TO FILE
+		pca.vals <- pca.data[,1:2]
+		colnames(pca.vals) <- paste(colnames(pca.vals),paste(percentVar,'% variance',sep=""), sep=": ")
+		pca.vals <- cbind(sample = rownames(pca.vals), pca.vals)
+		write.table(pca.vals,file=paste(opt$outprefix,".pca.vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
+
+		## WRITE SAMPLE DISTANCES TO FILE
+		write.table(cbind(sample = rownames(sampleDistMatrix), sampleDistMatrix),file=paste(opt$outprefix,".sample.dists.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=FALSE)
 }
 
 ################################################
