@@ -7,7 +7,7 @@ dependencies:
     ## conda-forge packages
     - conda-forge::r-optparse=1.6.0
     - conda-forge::r-rcolorbrewer=1.1_2
-    - conda-forge::r-ggplot2=3.0.0
+    - conda-forge::r-ggplot2=3.1.0
     - conda-forge::r-reshape2=1.4.3
     - conda-forge::r-scales=1.0.0
     - conda-forge::r-pheatmap=1.0.10
