@@ -112,9 +112,9 @@ The following directories will be created in the output directory after the pipe
 
       ![tss_plot](images/mqc_deeptools_tss_plot.png)
 
-3. **Call peaks**
+4. **Call peaks**
 
-    *Software*: [`MACS2`](https://github.com/taoliu/MACS)
+    *Software*: [`MACS2`](https://github.com/taoliu/MACS), [`HOMER`](http://homer.ucsd.edu/homer/download.html)
 
     *Description*: TODO.
 
@@ -123,6 +123,8 @@ The following directories will be created in the output directory after the pipe
       MACS2 output files: `*.xls`, `*.broadPeak` or `*.narrowPeak`, `*.gappedPeak` and `*summits.bed`. The files generated will depend on whether MACS2 has been run in narrowPeak or broadPeak mode.  
       HOMER peak-to-gene annotation file: `*.annotatePeaks.txt`.
 
+      ![annotatePeaks](images/mqc_annotatePeaks_feature_percentage_plot.png)
+
     * `bwa/replicate/macs2/qc`  
       Peak QC plots including fold-change distribution and peak percentage across gene features: `*.pdf`.  
       MultiQC custom-content files for [`FRiP score`](https://genome.cshlp.org/content/22/9/1813.full.pdf+html) and peak count: `*.FRiP_mqc.tsv` and `*_peaks.count_mqc.tsv`.
@@ -130,28 +132,47 @@ The following directories will be created in the output directory after the pipe
       ![peak_count](images/mqc_macs2_peak_count_plot.png)
       ![FRiP_score](images/mqc_frip_score_plot.png)
 
+5. **Create consensus set of peaks**
+
+    *Software*: [`BEDTools`](https://github.com/arq5x/bedtools2/)
+
+    *Description*: TODO.
+
+    *Output directories*:
+    * `bwa/replicate/macs2/merged/`  
+      Consensus peak-set across all samples in BED format: `*.bed`.
+      HOMER peak-to-gene annotation file for consensus peak-set: `*.annotatePeaks.txt`.   
+      Consensus peak-set across all samples in SAF format: `*.saf`. Required by featureCounts.  
+      Spreadsheet representation of merged peak set across samples **with** gene annotation columns: `*.boolean.annotatePeaks.txt`. The columns from individual peak files are included in this file along with the ability to filter peaks based on their presence or absence in multiple replicates/conditions.  
+      Spreadsheet representation of merged peak set across samples **without** gene annotation columns: `*.boolean.txt`. Use file above for downstream analysis.  
+      [`UpSetR`](https://cran.r-project.org/web/packages/UpSetR/README.html) files to illustrate peak intersection: `*.boolean.intersect.plot.pdf` and `*.boolean.intersect.txt`.  
+
+      ![upsetr](images/mqc_upsetr_intersect_plot.png)
+
+6. **Read counting relative to consensus set of peaks**
+
+    *Software*: [`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/)
+
+    *Description*: TODO.
+
+    *Output directories*:
+    * `bwa/replicate/macs2/merged/deseq2/`  
+
+    ![featureCounts](images/mqc_featureCounts_assignment_plot.png)
 
 
 <!---
 
-    6. Annotate peaks - [`HOMER`](http://homer.ucsd.edu/homer/download.html)
 
-        ![annotatePeaks](images/mqc_annotatePeaks_feature_percentage_plot.png)
 
-    7. Create consensus set of peaks - [`BEDTools`](https://github.com/arq5x/bedtools2/)
 
-        * `bwa/replicate/macs2/merged/` - Consensus peak-set across all samples in BED format: `*.bed`.                                                                                                                                                                                                                                              
-                                          Consensus peak-set across all samples in SAF format: `*.saf`. Required by featureCounts.                                                                                                                                                                                                                   
-                                          HOMER peak-to-gene annotation file for consensus peak-set: `*.annotatePeaks.txt`.                                                                                                                                                                                                                          
-                                          Spreadsheet representation of merged peak set across samples **with** gene annotation columns: `*.boolean.annotatePeaks.txt`. The columns from individual peak files are included in this file along with the ability to filter peaks based on their presence or absence in multiple replicates/conditions.
-                                          Spreadsheet representation of merged peak set across samples **without** gene annotation columns: `*.boolean.txt`. Use file above for downstream analysis.                                                                                           
-                                          [`UpSetR`](https://cran.r-project.org/web/packages/UpSetR/README.html) files to illustrate peak intersection: `*.boolean.intersect.plot.pdf` and `*.boolean.intersect.txt`.                                                                          
 
-        ![upsetr](images/mqc_upsetr_intersect_plot.png)
 
-    8. Read counting relative to consensus set of peaks - [`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/)
 
-        ![featureCounts](images/mqc_featureCounts_assignment_plot.png)
+
+    8.  -
+
+
 
     9. Differential binding analysis, PCA and clustering - [`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
 
