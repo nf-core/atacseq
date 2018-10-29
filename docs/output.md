@@ -12,7 +12,7 @@ The following directories will be created in the output directory after the pipe
 1. **Raw read QC**
 
     *Software*:  
-    [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)  
+    [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)  
 
     *Description*:  
     [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%T/A/G/C). You get information about adapter contamination and other overrepresented sequences. For further reading and documentation see the [FastQC help](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
@@ -27,7 +27,7 @@ The following directories will be created in the output directory after the pipe
 2. **Adapter trimming**
 
     *Software*:  
-    [`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
+    [Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
 
     *Description*:  
     By default, Trim Galore! will automatically detect and trim the Nextera adapter sequence (i.e. 'CTGTCTCTTATA') which is almost always present in ATAC-seq library preps.   
@@ -50,7 +50,7 @@ The following directories will be created in the output directory after the pipe
 3. **Alignment, duplicate marking and read filtering**
 
     *Software*:  
-    [`BWA`](https://sourceforge.net/projects/bio-bwa/files/), [`picard`](https://broadinstitute.github.io/picard/), [`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/), [`BEDTools`](https://github.com/arq5x/bedtools2/), [`BAMTools`](https://github.com/pezmaster31/bamtools), [`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html)
+    [BWA](https://sourceforge.net/projects/bio-bwa/files/), [picard](https://broadinstitute.github.io/picard/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/), [BEDTools](https://github.com/arq5x/bedtools2/), [BAMTools](https://github.com/pezmaster31/bamtools), [Pysam](http://pysam.readthedocs.io/en/latest/installation.html)
 
     *Description*:  
     By default, Trim Galore! will automatically detect and trim the Nextera adapter sequence (i.e. 'CTGTCTCTTATA') which is almost always present in ATAC-seq library preps.   
@@ -83,7 +83,7 @@ The following directories will be created in the output directory after the pipe
 1. **Alignment merging, duplicate marking and removal**
 
     *Software*:  
-    [`picard`](https://broadinstitute.github.io/picard/), [`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/)
+    [picard](https://broadinstitute.github.io/picard/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/)
 
     *Description*:  
     TODO.
@@ -101,7 +101,7 @@ The following directories will be created in the output directory after the pipe
 2. **Normalised bigWig files**
 
     *Software*:  
-    [`BEDTools`](https://github.com/arq5x/bedtools2/), [`wigToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/)  
+    [BEDTools](https://github.com/arq5x/bedtools2/), [wigToBigWig](http://hgdownload.soe.ucsc.edu/admin/exe/)  
 
     *Description*:  
     TODO.
@@ -113,7 +113,7 @@ The following directories will be created in the output directory after the pipe
 3. **TSS meta-profiles**
 
     *Software*:  
-    [`deepTools`](https://deeptools.readthedocs.io/en/develop/)  
+    [deepTools](https://deeptools.readthedocs.io/en/develop/)  
 
     *Description*:  
     TODO.
@@ -127,7 +127,7 @@ The following directories will be created in the output directory after the pipe
 4. **Call peaks**
 
     *Software*:  
-    [`MACS2`](https://github.com/taoliu/MACS), [`HOMER`](http://homer.ucsd.edu/homer/download.html)
+    [MACS2](https://github.com/taoliu/MACS), [HOMER](http://homer.ucsd.edu/homer/download.html)
 
     *Description*:  
     TODO.
@@ -149,7 +149,7 @@ The following directories will be created in the output directory after the pipe
 5. **Create consensus set of peaks**
 
     *Software*:  
-    [`BEDTools`](https://github.com/arq5x/bedtools2/)
+    [BEDTools](https://github.com/arq5x/bedtools2/)
 
     *Description*:  
     TODO.
@@ -168,7 +168,7 @@ The following directories will be created in the output directory after the pipe
 6. **Read counting relative to consensus set of peaks**
 
     *Software*:  
-    [`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/)
+    [featureCounts](http://bioinf.wehi.edu.au/featureCounts/)
 
     *Description*:  
     TODO.
@@ -181,7 +181,7 @@ The following directories will be created in the output directory after the pipe
 7. **Differential binding analysis, PCA and clustering**
 
     *Software*:  
-    [`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
+    [R](https://www.r-project.org/), [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
 
     *Description*:  
     TODO.
@@ -219,7 +219,7 @@ The following directories will be created in the output directory after the pipe
 1. **Present QC at the raw read, alignment and peak-level**
 
     *Software*:  
-    [`MultiQC`](http://multiqc.info/)
+    [MultiQC](http://multiqc.info/)
 
     *Description*:  
     TODO.
@@ -231,7 +231,7 @@ The following directories will be created in the output directory after the pipe
 2. **Create IGV session file**
 
     *Software*:  
-    [`IGV`](https://software.broadinstitute.org/software/igv/)
+    [IGV](https://software.broadinstitute.org/software/igv/)
 
     *Description*:  
     bigWig tracks, peaks and differential sites for data visualisation.
@@ -249,7 +249,7 @@ The following directories will be created in the output directory after the pipe
 1. **Reference genome files**
 
     *Software*:  
-    [`BWA`](https://sourceforge.net/projects/bio-bwa/files/), [`BEDTools`](https://github.com/arq5x/bedtools2/)
+    [BWA](https://sourceforge.net/projects/bio-bwa/files/), [BEDTools](https://github.com/arq5x/bedtools2/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/)
 
     *Description*:    
     TODO.
@@ -261,7 +261,7 @@ The following directories will be created in the output directory after the pipe
 2. **Pipeline information**
 
     *Software*:  
-    [`Nextflow!`](https://www.nextflow.io/)
+    [Nextflow!](https://www.nextflow.io/)
 
     *Description*:  
     Nextflow provides excellent functionality for generating various reports relevant to the running and execution of the pipeline. This will allow you to trouble-shoot errors with the running of the pipeline, and also provide you with other information such as launch commands, run times and resource usage.
