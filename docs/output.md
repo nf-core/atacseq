@@ -50,7 +50,7 @@ The following directories will be created in the output directory after the pipe
 3. **Alignment, duplicate marking and read filtering**
 
     *Software*:  
-    [`BWA`](https://sourceforge.net/projects/bio-bwa/files/), [`picard`](https://broadinstitute.github.io/picard/)  
+    [`BWA`](https://sourceforge.net/projects/bio-bwa/files/), [`picard`](https://broadinstitute.github.io/picard/), [`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/), [`BEDTools`](https://github.com/arq5x/bedtools2/), [`BAMTools`](https://github.com/pezmaster31/bamtools), [`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html)
 
     *Description*:  
     By default, Trim Galore! will automatically detect and trim the Nextera adapter sequence (i.e. 'CTGTCTCTTATA') which is almost always present in ATAC-seq library preps.   
@@ -83,7 +83,7 @@ The following directories will be created in the output directory after the pipe
 1. **Alignment merging, duplicate marking and removal**
 
     *Software*:  
-    [`picard`](https://broadinstitute.github.io/picard/)  
+    [`picard`](https://broadinstitute.github.io/picard/), [`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/)
 
     *Description*:  
     TODO.
