@@ -186,18 +186,17 @@ The following directories will be created in the output directory after the pipe
     * `bwa/replicate/macs2/merged/sizeFactors/`  
       Files containing DESeq2 sizeFactors per sample: `*.txt` and `*.RData`.
 
+## Sample-level analysis
+
+The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/` are almost identical. The main difference is that multiple libraries sequenced from the same sample will be merged at the replicate-level whereas all the replicates associated with an experimental condition will be merged at the sample-level.
+
+>NB: Replicate-level alignments will be used for read counting relative to the consensus sample-level peakset. This is the only way in which differential analysis can be performed at the sample-level.
 
 
 
 
 
 <!---
-
-## Sample-level analysis
-
-    * `bwa/sample/` - The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/` are almost identical. The main difference is that multiple libraries sequenced from the same sample will be merged at the replicate-level whereas all the replicates associated with an experimental condition will be merged at the sample-level.
-
-    >NB: Replicate-level alignments will be used for read counting relative to the consensus sample-level peakset. This is the only way in which differential analysis can be performed at the sample-level.
 
 ## Aggregate analysis
     1. Collect and present QC at the raw read, alignment and peak-level - [`MultiQC`](http://multiqc.info/) & [`R`](https://www.r-project.org/)
