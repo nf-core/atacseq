@@ -43,9 +43,9 @@ The following directories will be created in the output directory after the pipe
     * `trim_galore/fastqc/zips/`    
       FastQC zip files for read 1 (and read2 if paired-end) **after** adapter trimming.
 
-2. **Alignment, duplicate marking and read filtering**
+3. **Alignment, duplicate marking and read filtering**
 
-    *Software*: [`BWA`](https://sourceforge.net/projects/bio-bwa/files/)  
+    *Software*: [`BWA`](https://sourceforge.net/projects/bio-bwa/files/), [`picard`](https://broadinstitute.github.io/picard/)  
 
     *Description*: By default, Trim Galore! will automatically detect and trim the Nextera adapter sequence (i.e. 'CTGTCTCTTATA') which is almost always present in ATAC-seq library preps.   
 
@@ -70,16 +70,29 @@ The following directories will be created in the output directory after the pipe
     * `bwa/library/picard_metrics/pdf/`    
       Alignment QC plot files from picard CollectMultipleMetrics and the metrics file from MarkDuplicates.
 
+## Replicate-level analysis
+
+The following directories will be created in the output directory after the pipeline has finished. All paths are relative to the top-level results directory.
+
+1. **Alignment merging, duplicate marking and removal**
+
+    *Software*: [`picard`](https://broadinstitute.github.io/picard/)  
+
+    *Description*: TODO.
+
+    *Output directories*:
+    * `bwa/replicate/`  
+      Replicate-level, merged, coordinate sorted BAM files after the re-marking and removal of duplicates.
+
+    * `bwa/replicate/flagstat/`    
+      Flagstat files associated with the final filtered merged BAM file.
+
+    * `bwa/replicate/picard_metrics/`    
+      Metrics file from MarkDuplicates.
+
 
 
 <!---
-
-## Replicate-level analysis
-    1. Alignment merging, duplicate marking and removal - [`picard`](https://broadinstitute.github.io/picard/)
-
-        * `bwa/replicate/` - Replicate-level, merged, coordinate sorted BAM files after the re-marking and removal of duplicates.                                                                                                                                                                                                       
-        * `bwa/replicate/flagstat/` - Flagstat files associated with the final filtered merged BAM file.                                                                                                                                                                                                                                         
-        * `bwa/replicate/picard_metrics/` - Metrics file from MarkDuplicates.                                                                                                                                                                                                                                                                          
 
     2. Normalised bigWig files - [`BEDTools`](https://github.com/arq5x/bedtools2/), [`wigToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/)
         * `bwa/replicate/bigwig/` - Normalised [`bigWig`](https://genome.ucsc.edu/goldenpath/help/bigWig.html) files scaled to 1 million mapped reads.                                                                                                                                                                                         
