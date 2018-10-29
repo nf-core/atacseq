@@ -8,6 +8,7 @@ skip_generalstats: true
 fn_clean_exts:
     - 'fastq.gz'
     - '_val'
+    - 'sorted.bam'
     - 'mkD'
     - 'clN'
     - 'mRp'
