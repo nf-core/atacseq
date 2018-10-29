@@ -11,17 +11,17 @@ The following directories will be created in the output directory after the pipe
 
 1. **Raw read QC**
 
-  *Software*: [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)  
+    *Software*: [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)  
 
-  [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%T/A/G/C). You get information about adapter contamination and other overrepresented sequences.
+    [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%T/A/G/C). You get information about adapter contamination and other overrepresented sequences.
 
-  * `fastqc/`
-  FastQC html files for read 1 (and read2 if paired-end) **before** adapter trimming.
+    * `fastqc/`  
+    FastQC html files for read 1 (and read2 if paired-end) **before** adapter trimming.
 
-  * `fastqc/zips/`  
-  FastQC zip files for read 1 (and read2 if paired-end) **before** adapter trimming.  
+    * `fastqc/zips/`    
+    FastQC zip files for read 1 (and read2 if paired-end) **before** adapter trimming.  
 
-  For further reading and documentation see the [FastQC help](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
+    For further reading and documentation see the [FastQC help](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
 
 
 <!---
