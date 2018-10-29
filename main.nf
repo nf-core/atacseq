@@ -127,6 +127,7 @@ bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
 bamtools_filter_se_config = file(params.bamtools_filter_se_config)
 output_docs = file("$baseDir/docs/output.md")
 
+// Header files for MultiQC custom-content
 replicate_peak_count_header = file("$baseDir/assets/multiqc/replicate_peak_count_header.txt")
 replicate_frip_score_header = file("$baseDir/assets/multiqc/replicate_frip_score_header.txt")
 replicate_peak_annotation_header = file("$baseDir/assets/multiqc/replicate_peak_annotation_header.txt")
@@ -1185,7 +1186,7 @@ process replicate_macs_merge_deseq {
     file "sizeFactors" into replicate_macs_merge_deseq_factors
     file "*vs*/*.{pdf,txt}" into replicate_macs_merge_deseq_comp_results
     file "*vs*/*.bed" into replicate_macs_merge_deseq_comp_bed
-    file ".tsv" into replicate_macs_merge_deseq_mqc
+    file "*.tsv" into replicate_macs_merge_deseq_mqc
 
     when: params.macs_gsize && multiple_samples
 
@@ -1568,7 +1569,7 @@ process sample_macs_merge_deseq {
     file "sizeFactors" into sample_macs_merge_deseq_factors
     file "*vs*/*.{pdf,txt}" into sample_macs_merge_deseq_comp_results
     file "*vs*/*.bed" into sample_macs_merge_deseq_comp_bed
-    file ".tsv" into sample_macs_merge_deseq_mqc
+    file "*.tsv" into sample_macs_merge_deseq_mqc
 
     when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
 
@@ -1591,7 +1592,6 @@ process sample_macs_merge_deseq {
 
     cat $sample_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $sample_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
-
     """
 }
 
