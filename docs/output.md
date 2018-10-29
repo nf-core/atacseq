@@ -102,6 +102,16 @@ The following directories will be created in the output directory after the pipe
 
 >NB: Replicate-level alignments will be used for read counting relative to the consensus sample-level peakset. This is the only way in which differential analysis can be performed at the sample-level.
 
+![cutadapt](images/mqc_cutadapt_plot.png)
+![idxstats](images/mqc_samtools_idxstats_plot.png)
+![deduplication](images/mqc_picard_deduplication_plot.png)
+![insert_size](images/mqc_picard_insert_size_plot.png)
+![peak_count](images/mqc_macs2_peak_count_plot.png)
+![FRiP_score](images/mqc_frip_score_plot.png)
+![annotatePeaks](images/mqc_annotatePeaks_feature_percentage_plot.png)
+![featureCounts](images/mqc_featureCounts_assignment_plot.png)
+![PCA](images/mqc_deseq2_pca_plot.png)
+![sample_similarity](images/mqc_deseq2_sample_similarity_plot.png)
 
 ### Aggregate analysis
 
