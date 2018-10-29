@@ -97,8 +97,6 @@ if (file.exists(DDSFile) == FALSE) {
 ################################################
 ################################################
 
-## ADD SCATTERPLOTS FOR REPLICATES
-## ADD ANY MORE PLOTS?
 PlotFile <- paste(opt$outprefix,".plots.pdf",sep="")
 if (file.exists(PlotFile) == FALSE) {
     pdf(file=PlotFile,onefile=TRUE,width=7,height=7)
@@ -116,31 +114,22 @@ if (file.exists(PlotFile) == FALSE) {
                            panel.border = element_rect(colour = "black", fill=NA, size=1))
     print(myplot)
 
-    ## SAMPLE CORRELATION HEATMAP
-    sampleDists <- dist(t(assay(rld)))
-    sampleDistMatrix <- as.matrix(sampleDists)
-    colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
-    pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists,clustering_distance_cols=sampleDists,col=colors)
-
-    ## DISPERSION ESTIMATES
-    DESeq2::plotDispEsts(dds,main="Dispersion estimates plot")
-
-    ## VARIANCE STABILIZING TRANSFORMATION
-    vsd <- varianceStabilizingTransformation(dds)
-    notAllZero <- (rowSums(counts(dds))>0)
-    meanSdPlot(log2(counts(dds,normalized=TRUE)[notAllZero,] + 1))
-    meanSdPlot(assay(rld[notAllZero,]))
-    meanSdPlot(assay(vsd[notAllZero,]))
-    dev.off()
-
 		## WRITE PC1 vs PC2 VALUES TO FILE
 		pca.vals <- pca.data[,1:2]
 		colnames(pca.vals) <- paste(colnames(pca.vals),paste(percentVar,'% variance',sep=""), sep=": ")
 		pca.vals <- cbind(sample = rownames(pca.vals), pca.vals)
 		write.table(pca.vals,file=paste(opt$outprefix,".pca.vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
 
+    ## SAMPLE CORRELATION HEATMAP
+    sampleDists <- dist(t(assay(rld)))
+    sampleDistMatrix <- as.matrix(sampleDists)
+    colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+    pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists,clustering_distance_cols=sampleDists,col=colors)
+
 		## WRITE SAMPLE DISTANCES TO FILE
 		write.table(cbind(sample = rownames(sampleDistMatrix), sampleDistMatrix),file=paste(opt$outprefix,".sample.dists.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=FALSE)
+
+    dev.off()
 }
 
 ################################################
@@ -178,7 +167,6 @@ if (file.exists(LogFile) == FALSE) {
     cat("\nSamples =",samples.vec,"\n\n",file=LogFile,append=TRUE,sep=', ')
     cat("Groups =",groups,"\n\n",file=LogFile,append=TRUE,sep=', ')
     cat("Dimensions of count matrix =",dim(counts),"\n\n",file=LogFile,append=FALSE,sep=' ')
-    write.table(head(counts,1),file=LogFile,append=TRUE,row.names=TRUE,col.names=TRUE,sep="\t")
     cat("\n",file=LogFile,append=TRUE,sep='')
 }
 
