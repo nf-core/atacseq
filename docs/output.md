@@ -38,38 +38,41 @@ The following directories will be created in the output directory after the pipe
       ![cutadapt](images/mqc_cutadapt_plot.png)
 
     * `trim_galore/fastqc/`    
-      FastQC html files for read 1 (and read2 if paired-end) **after** adapter trimming
+      FastQC html files for read 1 (and read2 if paired-end) **after** adapter trimming.
 
     * `trim_galore/fastqc/zips/`    
       FastQC zip files for read 1 (and read2 if paired-end) **after** adapter trimming.
 
+2. **Alignment, duplicate marking and read filtering**
+
+    *Software*: [`BWA`](https://sourceforge.net/projects/bio-bwa/files/)  
+
+    *Description*: By default, Trim Galore! will automatically detect and trim the Nextera adapter sequence (i.e. 'CTGTCTCTTATA') which is almost always present in ATAC-seq library preps.   
+
+    *Output directories*:
+    * `bwa/library/`  
+      Filtered, coordinate sorted alignment files in [`BAM`](https://samtools.github.io/hts-specs/SAMv1.pdf) format at the library-level.
+
+    * `bwa/library/flagstat/`    
+      Multiple BAM files will be generated before the final filtered BAM file is created. The SAMtools flagstat files for a selection of these will be placed in this directory.
+
+    * `bwa/library/idxstats/`    
+      SAMtools idxstats files to determine the percentage of reads mapping to mitochondrial DNA.
+
+      ![idxstats](images/mqc_samtools_idxstats_plot.png)
+
+    * `bwa/library/picard_metrics/`    
+      Alignment QC files from picard CollectMultipleMetrics and the metrics file from MarkDuplicates.
+
+      ![deduplication](images/mqc_picard_deduplication_plot.png)
+      ![insert_size](images/mqc_picard_insert_size_plot.png)
+
+    * `bwa/library/picard_metrics/pdf/`    
+      Alignment QC plot files from picard CollectMultipleMetrics and the metrics file from MarkDuplicates.
+
+
 
 <!---
-
-
-3. Alignment, duplicate marking and filtering
-
-  * `bwa/library/`  
-  Filtered, coordinate sorted alignment files in [`BAM`](https://samtools.github.io/hts-specs/SAMv1.pdf) format at the library-level.
-
-  * `bwa/library/flagstat/`
-  Multiple BAM files will be generated before the final filtered BAM file is created. The SAMtools flagstat files for a selection of these will be placed in this directory.
-
-  * `bwa/library/idxstats/`
-  SAMtools idxstats files to determine the percentage of reads mapping to mitochondrial DNA.
-
-  ![idxstats](images/mqc_samtools_idxstats_plot.png)
-
-  * `bwa/library/picard_metrics/`
-  Alignment QC files from picard CollectMultipleMetrics and the metrics file from MarkDuplicates.
-
-  ![deduplication](images/mqc_picard_deduplication_plot.png)
-  ![insert_size](images/mqc_picard_insert_size_plot.png)
-
-  * `bwa/library/picard_metrics/pdf/`
-  Alignment QC plot files from picard CollectMultipleMetrics and the metrics file from MarkDuplicates.
-
-*Software*: [`BWA`](https://sourceforge.net/projects/bio-bwa/files/)
 
 ## Replicate-level analysis
     1. Alignment merging, duplicate marking and removal - [`picard`](https://broadinstitute.github.io/picard/)
