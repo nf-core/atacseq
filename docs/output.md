@@ -11,9 +11,11 @@ The following directories will be created in the output directory after the pipe
 
 1. **Raw read QC**
 
-    *Software*: [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)  
+    *Software*:  
+    [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)  
 
-    *Description*: [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%T/A/G/C). You get information about adapter contamination and other overrepresented sequences. For further reading and documentation see the [FastQC help](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
+    *Description*:  
+    [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%T/A/G/C). You get information about adapter contamination and other overrepresented sequences. For further reading and documentation see the [FastQC help](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
 
     *Output directories*:
     * `fastqc/`  
@@ -24,9 +26,11 @@ The following directories will be created in the output directory after the pipe
 
 2. **Adapter trimming**
 
-    *Software*: [`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
+    *Software*:  
+    [`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
 
-    *Description*: By default, Trim Galore! will automatically detect and trim the Nextera adapter sequence (i.e. 'CTGTCTCTTATA') which is almost always present in ATAC-seq library preps.   
+    *Description*:  
+    By default, Trim Galore! will automatically detect and trim the Nextera adapter sequence (i.e. 'CTGTCTCTTATA') which is almost always present in ATAC-seq library preps.   
 
     *Output directories*:
     * `trim_galore/`  
@@ -45,9 +49,11 @@ The following directories will be created in the output directory after the pipe
 
 3. **Alignment, duplicate marking and read filtering**
 
-    *Software*: [`BWA`](https://sourceforge.net/projects/bio-bwa/files/), [`picard`](https://broadinstitute.github.io/picard/)  
+    *Software*:  
+    [`BWA`](https://sourceforge.net/projects/bio-bwa/files/), [`picard`](https://broadinstitute.github.io/picard/)  
 
-    *Description*: By default, Trim Galore! will automatically detect and trim the Nextera adapter sequence (i.e. 'CTGTCTCTTATA') which is almost always present in ATAC-seq library preps.   
+    *Description*:  
+    By default, Trim Galore! will automatically detect and trim the Nextera adapter sequence (i.e. 'CTGTCTCTTATA') which is almost always present in ATAC-seq library preps.   
 
     *Output directories*:
     * `bwa/library/`  
@@ -76,9 +82,11 @@ The following directories will be created in the output directory after the pipe
 
 1. **Alignment merging, duplicate marking and removal**
 
-    *Software*: [`picard`](https://broadinstitute.github.io/picard/)  
+    *Software*:  
+    [`picard`](https://broadinstitute.github.io/picard/)  
 
-    *Description*: TODO.
+    *Description*:  
+    TODO.
 
     *Output directories*:
     * `bwa/replicate/`  
@@ -92,9 +100,11 @@ The following directories will be created in the output directory after the pipe
 
 2. **Normalised bigWig files**
 
-    *Software*: [`BEDTools`](https://github.com/arq5x/bedtools2/), [`wigToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/)  
+    *Software*:  
+    [`BEDTools`](https://github.com/arq5x/bedtools2/), [`wigToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/)  
 
-    *Description*: TODO.
+    *Description*:  
+    TODO.
 
     *Output directories*:
     * `bwa/replicate/bigwig/`  
@@ -102,9 +112,11 @@ The following directories will be created in the output directory after the pipe
 
 3. **TSS meta-profiles**
 
-    *Software*: [`deepTools`](https://deeptools.readthedocs.io/en/develop/)  
+    *Software*:  
+    [`deepTools`](https://deeptools.readthedocs.io/en/develop/)  
 
-    *Description*: TODO.
+    *Description*:  
+    TODO.
 
     *Output directories*:
     * `bwa/replicate/deeptools/`  
@@ -114,9 +126,11 @@ The following directories will be created in the output directory after the pipe
 
 4. **Call peaks**
 
-    *Software*: [`MACS2`](https://github.com/taoliu/MACS), [`HOMER`](http://homer.ucsd.edu/homer/download.html)
+    *Software*:  
+    [`MACS2`](https://github.com/taoliu/MACS), [`HOMER`](http://homer.ucsd.edu/homer/download.html)
 
-    *Description*: TODO.
+    *Description*:  
+    TODO.
 
     *Output directories*:
     * `bwa/replicate/macs2/`  
@@ -134,9 +148,11 @@ The following directories will be created in the output directory after the pipe
 
 5. **Create consensus set of peaks**
 
-    *Software*: [`BEDTools`](https://github.com/arq5x/bedtools2/)
+    *Software*:  
+    [`BEDTools`](https://github.com/arq5x/bedtools2/)
 
-    *Description*: TODO.
+    *Description*:  
+    TODO.
 
     *Output directories*:
     * `bwa/replicate/macs2/merged/`  
@@ -151,9 +167,11 @@ The following directories will be created in the output directory after the pipe
 
 6. **Read counting relative to consensus set of peaks**
 
-    *Software*: [`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/)
+    *Software*:  
+    [`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/)
 
-    *Description*: TODO.
+    *Description*:  
+    TODO.
 
     *Output directories*:
     * `bwa/replicate/macs2/merged/deseq2/`  
@@ -162,9 +180,11 @@ The following directories will be created in the output directory after the pipe
 
 7. **Differential binding analysis, PCA and clustering**
 
-    *Software*: [`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
+    *Software*:  
+    [`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
 
-    *Description*: TODO.
+    *Description*:  
+    TODO.
 
     *Output directories*:
     * `bwa/replicate/macs2/merged/deseq2/`  
@@ -192,21 +212,39 @@ The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/
 
 >NB: Replicate-level alignments will be used for read counting relative to the consensus sample-level peakset. This is the only way in which differential analysis can be performed at the sample-level.
 
+## Aggregate analysis
 
+The following directories will be created in the output directory after the pipeline has finished. All paths are relative to the top-level results directory.
+
+1. **Present QC at the raw read, alignment and peak-level**
+
+    *Software*:  
+    [`MultiQC`](http://multiqc.info/)
+
+    *Description*:  
+    TODO.
+
+    *Output directories*:
+    * `multiqc/`  
+      Results generated by MultiQC to collate pipeline QC from FastQC, TrimGalore, samtools flagstat, samtools idxstats, picard CollectMultipleMetrics, picard MarkDuplicates, featureCounts. The default [multiqc config file](../assets/multiqc_config.yaml) also contains the provision for loading custom-content to report peak counts, FriP scores, peak to gene annnotation proportions, sample-similarity heatmaps and PCA plots.
+
+2. **Create IGV session file**
+
+    *Software*:  
+    [`IGV`](https://software.broadinstitute.org/software/igv/)
+
+    *Description*:  
+    bigWig tracks, peaks and differential sites for data visualisation
+
+    *Output directories*:
+    * `igv/`  
+      An IGV session file called `igv_session.xml` will be created at the end of the pipeline. This avoids having to load all the data individually into IGV for visualisation.  
+
+    Once installed, open IGV, go to `File > Open Session` and select the `igv_session.xml` file for loading. File paths in the IGV session file will be set as absolute paths to the directory containing the results. If you prefer to load the data over the web you can just replace the relevant portion of the file path with a link in the session file. The path to the genome fasta file provided to the pipeline will be set as the genome for the IGV session. If you prefer to use an in-built genome provided by IGV just change the file path to the name of the IGV genome e.g. mm10 or hg19.
 
 
 
 <!---
-
-## Aggregate analysis
-    1. Collect and present QC at the raw read, alignment and peak-level - [`MultiQC`](http://multiqc.info/) & [`R`](https://www.r-project.org/)
-        * `multiqc/` - Results generated by MultiQC to collate pipeline QC from FastQC, TrimGalore, samtools flagstat, samtools idxstats, picard CollectMultipleMetrics, picard MarkDuplicates, featureCounts. The default [multiqc config file](../assets/multiqc_config.yaml) also contains the provision for loading custom-content to report peak counts, FriP scores and peak to gene annnotation proportions.
-
-    2. Create IGV session file containing bigWig tracks, peaks and differential sites for data visualisation - [`IGV`](https://software.broadinstitute.org/software/igv/)
-
-        * `igv/` - An IGV session file called `igv_session.xml` will be created at the end of the pipeline. This avoids having to load all the data individually into IGV for visualisation. Once installed, open IGV, go to `File > Open Session` and select the `igv_session.xml` file for loading.
-                   File paths in the IGV session file will be set as absolute paths to the directory containing the results. If you prefer to load the data over the web you can just replace the relevant portion of the file path with a link in the session file.
-                   The path to the genome fasta file provided to the pipeline will be set as the genome for the IGV session. If you prefer to use an in-built genome provided by IGV just change the file path to the name of the IGV genome e.g. mm10 or hg19.
 
 ## Other results
     1. Reference genome files
