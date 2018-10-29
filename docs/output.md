@@ -9,7 +9,8 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/). The initial QC
 
 The following directories will be created in the output directory after the pipeline has finished. All paths are relative to the top-level results directory.
 
-1. Raw read QC [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+1. Raw read QC
+Sotware: [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
   * `fastqc/` - FastQC html files for read 1 (and read2 if paired-end) **before** adapter trimming.
   * `fastqc/zips/` - FastQC zip files for read 1 (and read2 if paired-end) **before** adapter trimming.
 
