@@ -5,9 +5,10 @@ This document describes the output produced by the pipeline. Most of the plots a
 ## Pipeline overview
 The pipeline is built using [Nextflow](https://www.nextflow.io/). The initial QC and alignments are performed at the library-level e.g. if the same library has been sequenced more than once to increase sequencing depth. This has the advantage of being able to assess each library individually, and the ability to process multiple libraries from the same sample in parallel. The alignments are subsequently merged at the replicate-level and the sample-level. The latter involves merging the alignments across all replicates from the same experimental condition. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/). See [main README.md](../README.md) for an overview of the pipeline, and the bioinformatics tools used at each step.
 
+## Library-level analysis
+
 The following directories will be created in the output directory after the pipeline has finished. All paths are relative to the top-level results directory.
 
-## [Library-level analysis](#library-level-analysis)
     1. Raw read QC - [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
 
         * `fastqc/` - FastQC html files for read 1 (and read2 if paired-end) **before** adapter trimming.
@@ -25,6 +26,8 @@ The following directories will be created in the output directory after the pipe
         * `trim_galore/fastqc/` - FastQC html files for read 1 (and read2 if paired-end) **after** adapter trimming
         * `trim_galore/fastqc/zips/` - FastQC zip files for read 1 (and read2 if paired-end) **after** adapter trimming.
 
+<!---
+
     3. Alignment, duplicate marking and filtering - [`BWA`](https://sourceforge.net/projects/bio-bwa/files/)
 
         * `bwa/library/` - Filtered, coordinate sorted alignment files in [`BAM`](https://samtools.github.io/hts-specs/SAMv1.pdf) format at the library-level.
@@ -40,7 +43,7 @@ The following directories will be created in the output directory after the pipe
 
         * `bwa/library/picard_metrics/pdf/` - Alignment QC plot files from picard CollectMultipleMetrics and the metrics file from MarkDuplicates.
 
-## [Replicate-level analysis](#replicate-level-analysis)
+## Replicate-level analysis
     1. Alignment merging, duplicate marking and removal - [`picard`](https://broadinstitute.github.io/picard/)
 
         * `bwa/replicate/` - Replicate-level, merged, coordinate sorted BAM files after the re-marking and removal of duplicates.                                                                                                                                                                                                       
@@ -52,6 +55,8 @@ The following directories will be created in the output directory after the pipe
 
     3. TSS meta-profiles - [`deepTools`](https://deeptools.readthedocs.io/en/develop/)
         * `bwa/replicate/deeptools/` - TSS meta-profile plot for coverage across all genes. Generated with deepTools *computeMatrix* and *plotProfile* commands.                                                                                                                                                                                  
+
+        ![tss_plot](images/mqc_deeptools_tss_plot.png)
 
     4. Call peaks - [`MACS2`](https://github.com/taoliu/MACS)
 
@@ -76,6 +81,8 @@ The following directories will be created in the output directory after the pipe
                                           Spreadsheet representation of merged peak set across samples **without** gene annotation columns: `*.boolean.txt`. Use file above for downstream analysis.                                                                                           
                                           [`UpSetR`](https://cran.r-project.org/web/packages/UpSetR/README.html) files to illustrate peak intersection: `*.boolean.intersect.plot.pdf` and `*.boolean.intersect.txt`.                                                                          
 
+        ![upsetr](images/mqc_upsetr_intersect_plot.png)
+
     8. Read counting relative to consensus set of peaks - [`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/)
 
         ![featureCounts](images/mqc_featureCounts_assignment_plot.png)
@@ -96,13 +103,13 @@ The following directories will be created in the output directory after the pipe
             ![PCA](images/mqc_deseq2_pca_plot.png)
             ![sample_similarity](images/mqc_deseq2_sample_similarity_plot.png)
 
-## [Sample-level analysis](#sample-level-analysis)
+## Sample-level analysis
 
     * `bwa/sample/` - The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/` are almost identical. The main difference is that multiple libraries sequenced from the same sample will be merged at the replicate-level whereas all the replicates associated with an experimental condition will be merged at the sample-level.
 
     >NB: Replicate-level alignments will be used for read counting relative to the consensus sample-level peakset. This is the only way in which differential analysis can be performed at the sample-level.
 
-## [Aggregate analysis](#aggregate-analysis)
+## Aggregate analysis
     1. Collect and present QC at the raw read, alignment and peak-level - [`MultiQC`](http://multiqc.info/) & [`R`](https://www.r-project.org/)
         * `multiqc/` - Results generated by MultiQC to collate pipeline QC from FastQC, TrimGalore, samtools flagstat, samtools idxstats, picard CollectMultipleMetrics, picard MarkDuplicates, featureCounts. The default [multiqc config file](../assets/multiqc_config.yaml) also contains the provision for loading custom-content to report peak counts, FriP scores and peak to gene annnotation proportions.
 
@@ -121,3 +128,5 @@ The following directories will be created in the output directory after the pipe
         * `pipeline_info/` - Nextflow provides excellent functionality for generating various reports relevant to the running and execution of the pipeline. This will allow you to trouble-shoot errors with the running of the pipeline, and also provide you with other information such as launch commands, run times and resource usage. Default reports generated by the pipeline are `atacseq_report.html`, `atacseq_timeline.html`, `atacseq_trace.txt` and `atacseq_dag.dot`. See [Nextflow Tracing & visualisation](https://www.nextflow.io/docs/latest/tracing.html).
 
         * `Documentation/` - Additional reports and documentation generated by the pipeline i.e. `pipeline_report.html`, `pipeline_report.txt`, `results_description.html`.
+
+-->
