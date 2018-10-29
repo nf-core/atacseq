@@ -119,11 +119,11 @@ The following directories will be created in the output directory after the pipe
     *Description*: TODO.
 
     *Output directories*:
-    * `bwa/replicate/macs2/`
+    * `bwa/replicate/macs2/`  
       MACS2 output files: `*.xls`, `*.broadPeak` or `*.narrowPeak`, `*.gappedPeak` and `*summits.bed`. The files generated will depend on whether MACS2 has been run in narrowPeak or broadPeak mode.  
       HOMER peak-to-gene annotation file: `*.annotatePeaks.txt`.
 
-    * `bwa/replicate/macs2/qc`
+    * `bwa/replicate/macs2/qc`  
       Peak QC plots including fold-change distribution and peak percentage across gene features: `*.pdf`.  
       MultiQC custom-content files for [`FRiP score`](https://genome.cshlp.org/content/22/9/1813.full.pdf+html) and peak count: `*.FRiP_mqc.tsv` and `*_peaks.count_mqc.tsv`.
 
