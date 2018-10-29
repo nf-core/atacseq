@@ -100,7 +100,7 @@ The following directories will be created in the output directory after the pipe
     * `bwa/replicate/bigwig/`  
       Normalised [`bigWig`](https://genome.ucsc.edu/goldenpath/help/bigWig.html) files scaled to 1 million mapped reads.
 
-3. **Normalised bigWig files**
+3. **TSS meta-profiles**
 
     *Software*: [`deepTools`](https://deeptools.readthedocs.io/en/develop/)  
 
@@ -112,25 +112,27 @@ The following directories will be created in the output directory after the pipe
 
       ![tss_plot](images/mqc_deeptools_tss_plot.png)
 
+3. **Call peaks**
+
+    *Software*: [`MACS2`](https://github.com/taoliu/MACS)
+
+    *Description*: TODO.
+
+    *Output directories*:
+    * `bwa/replicate/macs2/`
+      MACS2 output files: `*.xls`, `*.broadPeak` or `*.narrowPeak`, `*.gappedPeak` and `*summits.bed`. The files generated will depend on whether MACS2 has been run in narrowPeak or broadPeak mode.  
+      HOMER peak-to-gene annotation file: `*.annotatePeaks.txt`.
+
+    * `bwa/replicate/macs2/qc`
+      Peak QC plots including fold-change distribution and peak percentage across gene features: `*.pdf`.  
+      MultiQC custom-content files for [`FRiP score`](https://genome.cshlp.org/content/22/9/1813.full.pdf+html) and peak count: `*.FRiP_mqc.tsv` and `*_peaks.count_mqc.tsv`.
+
+      ![peak_count](images/mqc_macs2_peak_count_plot.png)
+      ![FRiP_score](images/mqc_frip_score_plot.png)
+
+
+
 <!---
-
-    2. Normalised bigWig files -
-        * `bwa/replicate/bigwig/` - Normalised [`bigWig`](https://genome.ucsc.edu/goldenpath/help/bigWig.html) files scaled to 1 million mapped reads.                                                                                                                                                                                         
-
-    3. TSS meta-profiles -
-        * `bwa/replicate/deeptools/` - TSS meta-profile plot for coverage across all genes. Generated with deepTools *computeMatrix* and *plotProfile* commands.                                                                                                                                                                                  
-
-        ![tss_plot](images/mqc_deeptools_tss_plot.png)
-
-    4. Call peaks - [`MACS2`](https://github.com/taoliu/MACS)
-
-        * `bwa/replicate/macs2/` - MACS2 output files: `*.xls`, `*.broadPeak` or `*.narrowPeak`, `*.gappedPeak` and `*summits.bed`. The files generated will depend on whether MACS2 has been run in narrowPeak or broadPeak mode.                                                                                                            
-                                   HOMER peak-to-gene annotation file: `*.annotatePeaks.txt`.                                                                                                                                                                                                                                                  
-        * `bwa/replicate/macs2/qc/` - Peak QC plots including fold-change distribution and peak percentage across gene features: `*.pdf`.                                                                                                                                                                                                        
-                                      MultiQC custom-content files for [`FRiP score`](https://genome.cshlp.org/content/22/9/1813.full.pdf+html) and peak count: `*.FRiP_mqc.tsv` and `*_peaks.count_mqc.tsv`.                                                                                                                                     
-
-            ![peak_count](images/mqc_macs2_peak_count_plot.png)
-            ![FRiP_score](images/mqc_frip_score_plot.png)
 
     6. Annotate peaks - [`HOMER`](http://homer.ucsd.edu/homer/download.html)
 
