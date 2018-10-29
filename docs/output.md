@@ -9,12 +9,13 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/). The initial QC
 
 The following directories will be created in the output directory after the pipeline has finished. All paths are relative to the top-level results directory.
 
-    1. Raw read QC - [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+1. Raw read QC [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+  * `fastqc/` - FastQC html files for read 1 (and read2 if paired-end) **before** adapter trimming.
+  * `fastqc/zips/` - FastQC zip files for read 1 (and read2 if paired-end) **before** adapter trimming.
 
-        * `fastqc/` - FastQC html files for read 1 (and read2 if paired-end) **before** adapter trimming.
-        * `fastqc/zips/` - FastQC zip files for read 1 (and read2 if paired-end) **before** adapter trimming.
+<!---
 
-    2. Adapter trimming - [`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
+2. Adapter trimming - [`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
 
         By default, Trim Galore! will automatically detect and trim the Nextera adapter sequence (i.e. 'CTGTCTCTTATA') which is almost always present in ATAC-seq library preps.
 
@@ -26,7 +27,7 @@ The following directories will be created in the output directory after the pipe
         * `trim_galore/fastqc/` - FastQC html files for read 1 (and read2 if paired-end) **after** adapter trimming
         * `trim_galore/fastqc/zips/` - FastQC zip files for read 1 (and read2 if paired-end) **after** adapter trimming.
 
-<!---
+
 
     3. Alignment, duplicate marking and filtering - [`BWA`](https://sourceforge.net/projects/bio-bwa/files/)
 
