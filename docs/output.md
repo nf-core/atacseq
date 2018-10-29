@@ -90,14 +90,34 @@ The following directories will be created in the output directory after the pipe
     * `bwa/replicate/picard_metrics/`    
       Metrics file from MarkDuplicates.
 
+2. **Normalised bigWig files**
 
+    *Software*: [`BEDTools`](https://github.com/arq5x/bedtools2/), [`wigToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/)  
+
+    *Description*: TODO.
+
+    *Output directories*:
+    * `bwa/replicate/bigwig/`  
+      Normalised [`bigWig`](https://genome.ucsc.edu/goldenpath/help/bigWig.html) files scaled to 1 million mapped reads.
+
+3. **Normalised bigWig files**
+
+    *Software*: [`deepTools`](https://deeptools.readthedocs.io/en/develop/)  
+
+    *Description*: TODO.
+
+    *Output directories*:
+    * `bwa/replicate/deeptools/`  
+      TSS meta-profile plot for coverage across all genes. Generated with deepTools *computeMatrix* and *plotProfile* commands.
+
+      ![tss_plot](images/mqc_deeptools_tss_plot.png)
 
 <!---
 
-    2. Normalised bigWig files - [`BEDTools`](https://github.com/arq5x/bedtools2/), [`wigToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/)
+    2. Normalised bigWig files -
         * `bwa/replicate/bigwig/` - Normalised [`bigWig`](https://genome.ucsc.edu/goldenpath/help/bigWig.html) files scaled to 1 million mapped reads.                                                                                                                                                                                         
 
-    3. TSS meta-profiles - [`deepTools`](https://deeptools.readthedocs.io/en/develop/)
+    3. TSS meta-profiles -
         * `bwa/replicate/deeptools/` - TSS meta-profile plot for coverage across all genes. Generated with deepTools *computeMatrix* and *plotProfile* commands.                                                                                                                                                                                  
 
         ![tss_plot](images/mqc_deeptools_tss_plot.png)
