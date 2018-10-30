@@ -134,7 +134,7 @@ You will need to create a design file with information about the samples in your
 --design '[path to design file]'
 ```
 
-It has to be a comma-separated file with 4 columns, and a header row as shown in the example below:
+It has to be a comma-separated file with 4 columns, and a header row as shown in the example below (or [here](../assets/design.csv)):
 
 ```bash
 sample,replicate,fastq_1,fastq_2
@@ -164,7 +164,7 @@ By default, the pipeline expects paired-end data. If you have single-end data, s
 It is not possible to run a mixture of single-end and paired-end files in one run.
 
 ### `--narrowPeak`
-By default, MACS is run with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode i.e. default MACS2 parameters.
+MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.
 
 ### `--fragment_size`
 Number of base pairs to extend single-end reads when creating bigWig files. Default: `0`
@@ -211,7 +211,7 @@ Full path to fasta file containing reference genome (*mandatory* if `--genome` i
 ```
 
 ### `--gtf`
-The full path to GTF file for annotating peaks (*mandatory* if `--genome` is not specified). Note that the GTF file should be in the Ensembl format.
+The full path to GTF file for annotating peaks (*mandatory* if `--genome` is not specified). Note that the GTF file should resemble the Ensembl format.
 ```bash
 --gtf '[path to GTF file]'
 ```
@@ -223,7 +223,7 @@ If you prefer, you can specify the full path to an existing BWA index for your r
 ```
 
 ### `--bed12`
-The full path to BED12 file for TSS profile plots. If not specified, this will be created from the GTF file.
+The full path to BED12 file for TSS profile plots. This will be created from the GTF file if it isnt specified.
 ```bash
 --bed12 '[path to BED12 file]'
 ```
@@ -247,7 +247,7 @@ If provided, alignments that overlap with the regions in this file will be filte
 ```
 
 ### `--saveReference`
-Supply this parameter to save any generated reference genome files to your results folder. These can then be used for future pipeline runs, reducing processing times.
+Supply this parameter to save any generated reference genome files such as the BWA index to your results folder. These can then be used for future pipeline runs, reducing processing times.
 
 ## Adapter trimming
 The pipeline accepts a number of parameters to change how the trimming is done, according to your data type.
