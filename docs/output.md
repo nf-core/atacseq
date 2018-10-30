@@ -77,7 +77,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
       SAMtools `*.idxstats` files to determine the percentage of reads mapping to mitochondrial DNA.
 
     * `bwa/library/picard_metrics/`    
-      Alignment QC files from picard CollectMultipleMetrics (`*.metrics`) and the metrics file from MarkDuplicates (`*.txt`).
+      Alignment QC files from picard CollectMultipleMetrics (`*_metrics`) and the metrics file from MarkDuplicates (`*.txt`).
 
     * `bwa/library/picard_metrics/pdf/`    
       Alignment QC plot files in `*.pdf` format from picard CollectMultipleMetrics.
@@ -89,20 +89,19 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
 ## Replicate-level analysis
 
-The library-level alignments associated with any given sample are merged at the replicate-level.
-
+The library-level alignments associated with any given sample are merged at the replicate-level and subsequently used for the downstream analyses. Sample names for the files created in the resulting output directories will have the '`.mRp.`' suffix to denote **m**erging at the **R**e**p**licate-level.
 
 1. **Alignment merging, duplicate marking and removal**
 
     *Software*:  
     [picard](https://broadinstitute.github.io/picard/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/)
 
-    *Description*:  
-    TODO.
+    *Description*:
+    Picard MergeSamFiles and MarkDuplicates are used in combination to merge the alignments, and for the re-marking and removal of duplicates. If you only have one library for any given replicate then the merging step isnt carried out because the library-level and replicate-level BAM files will be exactly the same.
 
     *Output directories*:
     * `bwa/replicate/`  
-      Replicate-level, merged, coordinate sorted BAM files after the re-marking and removal of duplicates.
+      Replicate-level, merged, coordinate sorted `*.bam` files after the re-marking and removal of duplicates.
 
     * `bwa/replicate/flagstat/`    
       Flagstat files associated with the final filtered merged BAM file.
