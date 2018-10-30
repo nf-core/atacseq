@@ -58,7 +58,13 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
     [BWA](https://sourceforge.net/projects/bio-bwa/files/), [picard](https://broadinstitute.github.io/picard/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/), [BEDTools](https://github.com/arq5x/bedtools2/), [BAMTools](https://github.com/pezmaster31/bamtools), [Pysam](http://pysam.readthedocs.io/en/latest/installation.html)
 
     *Description*:  
-    Trim Galore! is a wrapper tool around Cutadapt and FastQC to consistently apply quality and adapter trimming to FastQ files. By default, Trim Galore! will automatically detect and trim the Nextera adapter sequence (i.e. 'CTGTCTCTTATA') which is almost always present in ATAC-seq library preps.   
+    Adapter-trimmed reads are mapped to the reference assembly using BWA. A genome index is required to run BWA so if this isnt provided explicitly using the `--bwa_index` parameter then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--saveReference` parameter to save the indices for future pipeline runs, reducing processing times.
+
+    Read duplicate marking is carried out using the Picard MarkDuplicates command. Duplicate reads are generally removed from the aligned reads to mitigate for fragments in the library that may have been sequenced more than once due to PCR biases. There is an option to keep duplicate reads with the `--keepDups` parameter but its generally recommend to remove them to avoid the wrong interpretation of the results. A similar option has been provided to keep reads that are multi-mapped - `--keepMultiMap`.
+
+    For ATAC-seq datasets, certain cell types and tissues yield an enormous fraction (typically 20–80%) of unusable sequences of mitochondrial origin. This is a known problem that is specific to ATAC-seq library preps - see [Montefiori et al. 2017](https://www.nature.com/articles/s41598-017-02547-w). There is an option to keep these reads using the `--keepMito` parameter but its generally recommended to remove these in order to get a more reliable assessment of the duplication rate from the rest of the genome.
+
+    Other steps have been incorporated into the pipeline to clean the resulting alignments - see [main README.md](../README.md) for a more comprehensive listing and the tools used at each step.
 
     *Output directories*:
     * `bwa/library/`  
@@ -218,6 +224,7 @@ The library-level alignments associated with any given sample are merged at the 
 
 ## Sample-level analysis
 
+`--skipMergeBySample`
 The library-level alignments associated with all of the replicates from the same experimental condition are also merged at the sample-level. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/).
 
 The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/` are almost identical.
