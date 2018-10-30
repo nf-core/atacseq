@@ -1,4 +1,3 @@
-# PIPELINE & DOCS UNDER CONSTRUCTION. ETA OCTOBER 2018.
 
 # ![nfcore/atacseq](docs/images/nfcore-atacseq_logo.png)
 
