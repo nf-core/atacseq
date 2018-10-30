@@ -77,7 +77,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
       SAMtools `*.idxstats` files to determine the percentage of reads mapping to mitochondrial DNA.
 
     * `bwa/library/picard_metrics/`    
-      Alignment QC files from picard CollectMultipleMetrics (`*_metrics`) and the metrics file from MarkDuplicates (`*.txt`).
+      Alignment QC files from picard CollectMultipleMetrics (`*_metrics`) and the metrics file from MarkDuplicates (`*metrics.txt`).
 
     * `bwa/library/picard_metrics/pdf/`    
       Alignment QC plot files in `*.pdf` format from picard CollectMultipleMetrics.
@@ -104,22 +104,24 @@ The library-level alignments associated with any given sample are merged at the 
       Replicate-level, merged, coordinate sorted `*.bam` files after the re-marking and removal of duplicates.
 
     * `bwa/replicate/flagstat/`    
-      Flagstat files associated with the final filtered merged BAM file.
+      SAMtools `*.flagstat` files associated with the final filtered merged BAM file.
 
     * `bwa/replicate/picard_metrics/`    
-      Metrics file from MarkDuplicates.
+      Metrics file from MarkDuplicates - `*metrics.txt`.
 
 2. **Normalised bigWig files**
 
     *Software*:  
     [BEDTools](https://github.com/arq5x/bedtools2/), [wigToBigWig](http://hgdownload.soe.ucsc.edu/admin/exe/)  
 
-    *Description*:  
-    TODO.
+    *Description*:
+    The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in an indexed binary format useful for displaying dense, continuous data in Genome Browser's such as the [UCSC](https://genome.ucsc.edu/cgi-bin/hgTracks) and [IGV](http://software.broadinstitute.org/software/igv/). This removes the need to load the much larger BAM files for data visualisation purposes. The coverage values represented in the bigWig file can also be normalised in order to be able to compare across multiple samples - this is not possible with BAM files.
+
+    The bigWig format is also supported by various bioinformatics software for downstream processing such as meta-profile plotting.
 
     *Output directories*:
     * `bwa/replicate/bigwig/`  
-      Normalised [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) files scaled to 1 million mapped reads.
+      Normalised `.bigWig` files scaled to 1 million mapped reads.
 
 3. **TSS meta-profiles**
 
