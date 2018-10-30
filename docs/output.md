@@ -89,7 +89,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
 ## Replicate-level analysis
 
-The library-level alignments associated with any given sample are merged at the replicate-level and subsequently used for the downstream analyses. Sample names for the files created in the resulting output directories (i.e. `bwa/replicate/`) will have the '`.mRp.`' suffix to denote **m**erging at the **R**e**p**licate-level.
+The library-level alignments associated with any given sample are merged at the replicate-level and subsequently used for the downstream analyses. File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.mRp.`' suffix to denote **m**erging at the **R**e**p**licate-level.
 
 1. **Alignment merging, duplicate marking and removal**
 
@@ -114,10 +114,8 @@ The library-level alignments associated with any given sample are merged at the 
     *Software*:  
     [BEDTools](https://github.com/arq5x/bedtools2/), [wigToBigWig](http://hgdownload.soe.ucsc.edu/admin/exe/)  
 
-    *Description*:
-    The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in an indexed binary format useful for displaying dense, continuous data in Genome Browser's such as the [UCSC](https://genome.ucsc.edu/cgi-bin/hgTracks) and [IGV](http://software.broadinstitute.org/software/igv/). This removes the need to load the much larger BAM files for data visualisation purposes. The coverage values represented in the bigWig file can also be normalised in order to be able to compare across multiple samples - this is not possible with BAM files.
-
-    The bigWig format is also supported by various bioinformatics software for downstream processing such as meta-profile plotting.
+    *Description*:  
+    The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in an indexed binary format useful for displaying dense, continuous data in Genome Browser's such as the [UCSC](https://genome.ucsc.edu/cgi-bin/hgTracks) and [IGV](http://software.broadinstitute.org/software/igv/). This removes the need to load the much larger BAM files for data visualisation purposes which will be slower and result in memory issues. The coverage values represented in the bigWig file can also be normalised in order to be able to compare the coverage across multiple samples - this is not possible with BAM files. The bigWig format is also supported by various bioinformatics software for downstream processing such as meta-profile plotting.
 
     *Output directories*:
     * `bwa/replicate/bigwig/`  
@@ -129,11 +127,11 @@ The library-level alignments associated with any given sample are merged at the 
     [deepTools](https://deeptools.readthedocs.io/en/develop/)  
 
     *Description*:  
-    TODO.
+    Transcription start site (TSS) enrichment is another QC measure which is useful to ATAC-seq datasets. In theory, the open chromatin regions denoted by ATAC-seq signal should be enriched within the promoter regions of genes.
 
     *Output directories*:
     * `bwa/replicate/deeptools/`  
-      TSS meta-profile plot for coverage across all genes. Generated with deepTools *computeMatrix* and *plotProfile* commands.
+      TSS meta-profile `*.png` plot for coverage across all genes. Generated with deepTools *computeMatrix* and *plotProfile* commands.
 
     *Plots*:  
     [MultiQC - deepTools TSS meta-profile plot](images/mqc_deeptools_tss_plot.png)
@@ -228,7 +226,9 @@ The library-level alignments associated with any given sample are merged at the 
 `--skipMergeBySample`
 The library-level alignments associated with all of the replicates from the same experimental condition are also merged at the sample-level. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/).
 
-Sample names for the files created in the resulting output directories (i.e. `bwa/sample/`) will have the '`.mSm.`' suffix to denote **m**erging at the **S**a**m**ple-level.
+File names in the resulting directory (i.e. `bwa/sample/`) will have the '`.mSm.`' suffix to denote **m**erging at the **S**a**m**ple-level.
+
+Sample names for the files created in the resulting output directories (i.e. `bwa/sample/`)
 
 The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/` are almost identical.
 
