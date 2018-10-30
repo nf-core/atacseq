@@ -3,14 +3,18 @@
 This document describes the output produced by the pipeline. Most of the plots are taken from the MultiQC report, which summarises results at the end of the pipeline.
 
 ## Pipeline overview
-The pipeline is built using [Nextflow](https://www.nextflow.io/). The initial QC and alignments are performed at the library-level e.g. if the same library has been sequenced more than once to increase sequencing depth. This has the advantage of being able to assess each library individually, and the ability to process multiple libraries from the same sample in parallel. The alignments are subsequently merged at the replicate-level and the sample-level. The latter involves merging the alignments across all replicates from the same experimental condition. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/). See [main README.md](../README.md) for an overview of the pipeline, and the bioinformatics tools used at each step.
+The pipeline is built using [Nextflow](https://www.nextflow.io/). See [main README.md](../README.md) for a condensed listing of the pipeline, and the bioinformatics tools used at each step.
 
 See [Illumina website](https://emea.illumina.com/science/sequencing-method-explorer/kits-and-arrays/atac-seq.html) for more information regarding the ATAC-seq protocol, and for an extensive list of publications.
 
+The directories listed below will be created in the output directory after the pipeline has finished. All paths are relative to the top-level results directory.
+
 ## Library-level analysis
 
+The initial QC and alignments are performed at the library-level e.g. if the same library has been sequenced more than once to increase sequencing depth. This has the advantage of being able to assess each library individually, and the ability to process multiple libraries from the same sample in parallel.
+
 ADD SOMETHING HERE!
-The following directories will be created in the output directory after the pipeline has finished. All paths are relative to the top-level results directory.
+
 
 1. **Raw read QC**
 
@@ -49,7 +53,7 @@ The following directories will be created in the output directory after the pipe
       FastQC zip files for read 1 (and read2 if paired-end) **after** adapter trimming.
 
     *Plots*:  
-    [cutadapt](images/mqc_cutadapt_plot.png)
+    [MultiQC Cutadapt Trimmed Sequence Plot](images/mqc_cutadapt_plot.png)
 
 3. **Alignment, duplicate marking and read filtering**
 
@@ -82,7 +86,8 @@ The following directories will be created in the output directory after the pipe
 
 ## Replicate-level analysis
 
-The following directories will be created in the output directory after the pipeline has finished. All paths are relative to the top-level results directory.
+The library-level alignments associated with any given sample are merged at the replicate-level.
+
 
 1. **Alignment merging, duplicate marking and removal**
 
@@ -203,7 +208,7 @@ The following directories will be created in the output directory after the pipe
 
     * `bwa/replicate/macs2/merged/<COMPARISON>/`  
       Spreadsheet containing comparison-specific DESeq2 output for differential binding results across all peaks: '`*.results.txt`'  
-      Subset of above file for peaks that pass FDR <= 0.01 (`*FDR0.01.results.txt`), FDR <= 0.01 and fold-change >= 2 (`*FDR0.01.FC2.results.txt`), FDR <= 0.05 (`*FDR0.05.results.txt`) and FDR <= 0.05 and fold-change >= 2 (`*FDR0.05.FC2.results.txt`).  
+      Subset of above file for peaks that pass FDR <= 0.01 (`*FDR0.01.results.txt`), FDR <= 0.01 and fold-change >= 2 (`*FDR0.01.FC2.results.txt`), FDR <= 0.05 (`*FDR0.05.results.txt`) and FDR <= 0.0The main difference is that multiple libraries sequenced from the same sample will be merged at the replicate-level whereas all the replicates associated with an experimental condition will be merged at the sample-level.5 and fold-change >= 2 (`*FDR0.05.FC2.results.txt`).  
       BED files for peaks that pass FDR <= 0.01 (`*FDR0.01.results.bed`), FDR <= 0.01 and fold-change >= 2 (`*FDR0.01.FC2.results.bed`), FDR <= 0.05 (`*FDR0.05.results.bed`) and FDR <= 0.05 and fold-change >= 2 (`*FDR0.05.FC2.results.bed`).
       MA, Volcano, clustering and scatterplots at FDR <= 0.01 and FDR <= 0.05: `*deseq2.plots.pdf`.  
 
@@ -212,7 +217,9 @@ The following directories will be created in the output directory after the pipe
 
 ## Sample-level analysis
 
-The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/` are almost identical. The main difference is that multiple libraries sequenced from the same sample will be merged at the replicate-level whereas all the replicates associated with an experimental condition will be merged at the sample-level.
+The library-level alignments associated with all of the replicates from the same experimental condition are also merged at the sample-level. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/).
+
+The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/` are almost identical.
 
 >NB: Replicate-level alignments will be used for read counting relative to the consensus sample-level peakset. This is the only way in which differential analysis can be performed at the sample-level.
 
@@ -285,5 +292,5 @@ The following directories will be created in the output directory after the pipe
       Additional reports and documentation generated by the pipeline i.e. `pipeline_report.html`, `pipeline_report.txt`, `results_description.html`.
 
 <!---
-
+The main difference is that multiple libraries sequenced from the same sample will be merged at the replicate-level whereas all the replicates associated with an experimental condition will be merged at the sample-level.
 -->
