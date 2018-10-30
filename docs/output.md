@@ -89,7 +89,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
 ## Replicate-level analysis
 
-The library-level alignments associated with any given sample are merged at the replicate-level and subsequently used for the downstream analyses. Sample names for the files created in the resulting output directories will have the '`.mRp.`' suffix to denote **m**erging at the **R**e**p**licate-level.
+The library-level alignments associated with any given sample are merged at the replicate-level and subsequently used for the downstream analyses. Sample names for the files created in the resulting output directories (i.e. `bwa/replicate/`) will have the '`.mRp.`' suffix to denote **m**erging at the **R**e**p**licate-level.
 
 1. **Alignment merging, duplicate marking and removal**
 
@@ -225,6 +225,8 @@ The library-level alignments associated with any given sample are merged at the 
 
 `--skipMergeBySample`
 The library-level alignments associated with all of the replicates from the same experimental condition are also merged at the sample-level. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/).
+
+Sample names for the files created in the resulting output directories (i.e. `bwa/sample/`) will have the '`.mSm.`' suffix to denote **m**erging at the **S**a**m**ple-level.
 
 The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/` are almost identical.
 
