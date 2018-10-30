@@ -101,11 +101,11 @@ To use it first ensure that you have conda installed (we recommend [miniconda](h
 
 #### 3.3) Configuration profiles
 
-See [Adding your own profile docs](configuration/adding_your_own.md)
+See [`docs/configuration/adding_your_own.md`](configuration/adding_your_own.md)
 
 ## 4) Reference genomes
 
-See [Reference genomes docs](configuration/reference_genomes.md)
+See [`docs/configuration/reference_genomes.md`](configuration/reference_genomes.md)
 
 ## 5) Appendices
 
@@ -122,4 +122,4 @@ params.project = 'project_ID' // eg. b2017123
 
 #### Running at the Crick
 
-See [Crick profile docs](configuration/crick.md)
+See [`docs/configuration/crick.md`](configuration/crick.md)
