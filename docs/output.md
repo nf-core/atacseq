@@ -23,10 +23,10 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
     *Output directories*:
     * `fastqc/`  
-      FastQC html files for read 1 (and read2 if paired-end) **before** adapter trimming.
+      FastQC `*.html` files for read 1 (and read2 if paired-end) **before** adapter trimming.
 
     * `fastqc/zips/`    
-      FastQC zip files for read 1 (and read2 if paired-end) **before** adapter trimming.    
+      FastQC `*.zip` files for read 1 (and read2 if paired-end) **before** adapter trimming.    
 
 2. **Adapter trimming**
 
@@ -34,7 +34,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
     [Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
 
     *Description*:  
-    Trim Galore! is a wrapper tool around Cutadapt and FastQC to consistently apply quality and adapter trimming to FastQ files. By default, Trim Galore! will automatically detect and trim the appropriate adapter sequence. For most ATAC-seq datasets this will be the Nextera adapter sequence 'CTGTCTCTTATA').   
+    Trim Galore! is a wrapper tool around Cutadapt and FastQC to consistently apply quality and adapter trimming to FastQ files. By default, Trim Galore! will automatically detect and trim the appropriate adapter sequence. For most ATAC-seq datasets this will be the Nextera adapter sequence 'CTGTCTCTTATA'. See [usage.md](usage.md) for more details about the trimming options.
 
     *Output directories*:
     * `trim_galore/`  
@@ -62,13 +62,13 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
     Read duplicate marking is carried out using the Picard MarkDuplicates command. Duplicate reads are generally removed from the aligned reads to mitigate for fragments in the library that may have been sequenced more than once due to PCR biases. There is an option to keep duplicate reads with the `--keepDups` parameter but its generally recommend to remove them to avoid the wrong interpretation of the results. A similar option has been provided to keep reads that are multi-mapped - `--keepMultiMap`.
 
-    For ATAC-seq datasets, certain cell types and tissues yield an enormous fraction (typically 20–80%) of unusable sequences of mitochondrial origin. This is a known problem that is specific to ATAC-seq library preps - see [Montefiori et al. 2017](https://www.nature.com/articles/s41598-017-02547-w). There is an option to keep these reads using the `--keepMito` parameter but its generally recommended to remove these in order to get a more reliable assessment of the duplication rate from the rest of the genome.
+    Certain cell types and tissues yield an enormous fraction (typically 20–80%) of unusable sequences of mitochondrial origin. This is a known problem that is specific to ATAC-seq library preps - see [Montefiori et al. 2017](https://www.nature.com/articles/s41598-017-02547-w). There is an option to keep these reads using the `--keepMito` parameter but its generally recommended to remove these in order to get a more reliable assessment of the duplication rate from the rest of the genome.
 
     Other steps have been incorporated into the pipeline to clean the resulting alignments - see [main README.md](../README.md) for a more comprehensive listing and the tools used at each step.
 
     *Output directories*:
     * `bwa/library/`  
-      Filtered, coordinate sorted alignment files in [BAM](https://samtools.github.io/hts-specs/SAMv1.pdf) format at the library-level.
+      Filtered, coordinate sorted alignment files in [BAM](https://samtools.github.io/hts-specs/SAMv1.pdf) format at the library-level. If `--saveAlignedIntermediates` is specified then the intermediate BAM files will be placed in this directory.
 
     * `bwa/library/flagstat/`    
       Multiple BAM files will be generated before the final filtered BAM file is created. The SAMtools flagstat files for a selection of these will be placed in this directory.
