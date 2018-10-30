@@ -179,7 +179,7 @@ The library-level alignments associated with any given sample are merged at the 
       * [UpSetR](https://cran.r-project.org/web/packages/UpSetR/README.html) files to illustrate peak intersection: `*.boolean.intersect.plot.pdf` and `*.boolean.intersect.txt`.  
 
     *Plots*:  
-    [R - UpSetR peak intersection plot](images/mqc_upsetr_intersect_plot.png)
+    [R - UpSetR peak intersection plot](images/r_upsetr_intersect_plot.png)
 
 6. **Read counting and differential binding analysis**
 
@@ -208,9 +208,11 @@ The library-level alignments associated with any given sample are merged at the 
       Files containing DESeq2 sizeFactors per sample: `*.txt` and `*.RData`.
 
     *Plots*:  
-    [MultiQC - featureCounts consensus peak read assignment plot](images/mqc_featureCounts_assignment_plot.png)
-    [MultiQC - DESeq2 PCA plot](images/mqc_deseq2_pca_plot.png)
-    [MultiQC - DESeq2 sample similarity plot](images/mqc_deseq2_sample_similarity_plot.png)
+    [MultiQC - featureCounts consensus peak read assignment plot](images/mqc_featureCounts_assignment_plot.png)  
+    [MultiQC - DESeq2 PCA plot](images/mqc_deseq2_pca_plot.png)  
+    [MultiQC - DESeq2 sample similarity plot](images/mqc_deseq2_sample_similarity_plot.png)  
+    [MultiQC - DESeq2 MA plot](images/r_deseq2_ma_plot.png)  
+    [MultiQC - DESeq2 Volcano plot](images/r_deseq2_volcano_plot.png)  
 
 ## Sample-level analysis
 
@@ -256,6 +258,9 @@ You can skip this portion of the analysis by specifying the `--skipMergeBySample
     *Output directories*:
     * `igv/`  
       `igv_session.xml` file.
+
+    *Plots*:   
+    [IGV screenshot](images/igv_screenshot.png)  
 
 ## Other results
 
