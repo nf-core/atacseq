@@ -214,7 +214,9 @@ The library-level alignments associated with any given sample are merged at the 
 
 ## Sample-level analysis
 
-The library-level alignments associated with all of the replicates from the same experimental condition are also merged at the sample-level. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/). You can skip this portion of the analysis by specifying the `--skipMergeBySample` parameter.
+The library-level alignments associated with all of the replicates from the same experimental condition are also merged at the sample-level. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/).  
+
+You can skip this portion of the analysis by specifying the `--skipMergeBySample` parameter.
 
 The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/` are almost identical. File names in the resulting directory (i.e. `bwa/sample/`) will have the '`.mSm.`' suffix to denote **m**erging at the **S**a**m**ple-level.
 
