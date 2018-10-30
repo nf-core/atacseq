@@ -224,8 +224,6 @@ You can skip this portion of the analysis by specifying the `--skipMergeBySample
 
 ## Aggregate analysis
 
-The following directories will be created in the output directory after the pipeline has finished. All paths are relative to the top-level results directory.
-
 1. **Present QC at the raw read, alignment and peak-level**
 
     *Software*:  
