@@ -77,10 +77,9 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
       Alignment QC plot files from picard CollectMultipleMetrics and the metrics file from MarkDuplicates.
 
     *Plots*:  
-    [MultiQC - SAMtools idxstats plot](images/mqc_samtools_idxstats_plot.png)
-    [MultiQC - Picard deduplication stats plot](images/mqc_picard_deduplication_plot.png)
+    [MultiQC - SAMtools idxstats plot](images/mqc_samtools_idxstats_plot.png)  
+    [MultiQC - Picard deduplication stats plot](images/mqc_picard_deduplication_plot.png)  
     [MultiQC - Picard insert size plot](images/mqc_picard_insert_size_plot.png)
-
 
 ## Replicate-level analysis
 
@@ -150,9 +149,9 @@ The library-level alignments associated with any given sample are merged at the 
       MultiQC custom-content files for [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html) and peak count: `*.FRiP_mqc.tsv` and `*_peaks.count_mqc.tsv`.
 
     *Plots*:  
-    [MultiQC - HOMER annotatePeaks peak to genomic feature ratio plot](images/mqc_annotatePeaks_feature_percentage_plot.png)
-    [MultiQC - MACS2 total peak_count plot](images/mqc_macs2_peak_count_plot.png)
-    [MultiQC - MACS2 peaks FRiP_score plot](images/mqc_frip_score_plot.png)
+    [MultiQC - HOMER annotatePeaks peak to genomic feature ratio plot](images/mqc_annotatePeaks_feature_percentage_plot.png)  
+    [MultiQC - MACS2 total peak count plot](images/mqc_macs2_peak_count_plot.png)  
+    [MultiQC - MACS2 peaks FRiP score plot](images/mqc_frip_score_plot.png)
 
 5. **Create consensus set of peaks**
 
