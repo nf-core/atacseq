@@ -174,37 +174,24 @@ The library-level alignments associated with any given sample are merged at the 
       * Consensus peak-set across all samples in `*.saf` format. Required by featureCounts.  
       * HOMER `*.annotatePeaks.txt` peak-to-gene annotation file for consensus peak-set.   
       * Spreadsheet representation of merged peak set across samples **with** gene annotation columns: `*.boolean.annotatePeaks.txt`.  
-          The columns from individual peak files are included in this file along with the ability to filter peaks based on their presence or absence in multiple replicates/conditions.  
+         The columns from individual peak files are included in this file along with the ability to filter peaks based on their presence or absence in multiple replicates/conditions.  
       * Spreadsheet representation of merged peak set across samples **without** gene annotation columns: `*.boolean.txt`. Use file above for downstream analysis.  
       * [UpSetR](https://cran.r-project.org/web/packages/UpSetR/README.html) files to illustrate peak intersection: `*.boolean.intersect.plot.pdf` and `*.boolean.intersect.txt`.  
 
     *Plots*:  
     [R - UpSetR peak intersection plot](images/mqc_upsetr_intersect_plot.png)
 
-6. **Read counting relative to consensus set of peaks**
+6. **Read counting and differential binding analysis**
 
     *Software*:  
-    [featureCounts](http://bioinf.wehi.edu.au/featureCounts/)
+    [featureCounts](http://bioinf.wehi.edu.au/featureCounts/), [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html), [R](https://www.r-project.org/),
 
     *Description*:  
     TODO.
 
     *Output directories*:
-    * `bwa/replicate/macs2/merged/deseq2/`  
-
-    *Plots*:  
-    [MultiQC - featureCounts consensus peak read assignment plot](images/mqc_featureCounts_assignment_plot.png)
-
-7. **Differential binding analysis, PCA and clustering**
-
-    *Software*:  
-    [R](https://www.r-project.org/), [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
-
-    *Description*:  
-    TODO.
-
-    *Output directories*:
-    * `bwa/replicate/macs2/merged/deseq2/`  
+    * `bwa/replicate/macs2/merged/deseq2/`
+        * `.featureCounts.txt` output file for sample read counts across consensus peak set.
         * Differential binding results across all merged peaks and all comparisons: `*.results.txt`.  
         * Plots for PCA, hierarchical clustering,and DESeq2 dispersion estimates and variance stabilizing transformation: `*.plots.pdf`  
         * Log file with information for number of genes differentially bound at different FDR and fold-change thresholds for each comparison: `*log`.  
@@ -221,6 +208,7 @@ The library-level alignments associated with any given sample are merged at the 
       Files containing DESeq2 sizeFactors per sample: `*.txt` and `*.RData`.
 
     *Plots*:  
+    [MultiQC - featureCounts consensus peak read assignment plot](images/mqc_featureCounts_assignment_plot.png)
     [MultiQC - DESeq2 PCA plot](images/mqc_deseq2_pca_plot.png)
     [MultiQC - DESeq2 sample similarity plot](images/mqc_deseq2_sample_similarity_plot.png)
 
