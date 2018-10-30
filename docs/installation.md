@@ -101,7 +101,7 @@ To use it first ensure that you have conda installed (we recommend [miniconda](h
 
 #### 3.3) Configuration profiles
 
-See [Adding your own system docs](configuration/adding_your_own.md)
+See [Adding your own profile docs](configuration/adding_your_own.md)
 
 ## 4) Reference genomes
 
