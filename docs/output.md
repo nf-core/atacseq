@@ -173,8 +173,8 @@ The library-level alignments associated with any given sample are merged at the 
       * Consensus peak-set across all samples in `*.bed` format.
       * Consensus peak-set across all samples in `*.saf` format. Required by featureCounts.  
       * HOMER `*.annotatePeaks.txt` peak-to-gene annotation file for consensus peak-set.   
-      * Spreadsheet representation of merged peak set across samples **with** gene annotation columns: `*.boolean.annotatePeaks.txt`. 
-        The columns from individual peak files are included in this file along with the ability to filter peaks based on their presence or absence in multiple replicates/conditions.  
+      * Spreadsheet representation of merged peak set across samples **with** gene annotation columns: `*.boolean.annotatePeaks.txt`.  
+          The columns from individual peak files are included in this file along with the ability to filter peaks based on their presence or absence in multiple replicates/conditions.  
       * Spreadsheet representation of merged peak set across samples **without** gene annotation columns: `*.boolean.txt`. Use file above for downstream analysis.  
       * [UpSetR](https://cran.r-project.org/web/packages/UpSetR/README.html) files to illustrate peak intersection: `*.boolean.intersect.plot.pdf` and `*.boolean.intersect.txt`.  
 
