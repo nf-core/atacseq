@@ -139,7 +139,7 @@ The library-level alignments associated with any given sample are merged at the 
 4. **Call peaks**
 
     *Software*:  
-    [MACS2](https://github.com/taoliu/MACS), [HOMER](http://homer.ucsd.edu/homer/download.html)
+    [MACS2](https://github.com/taoliu/MACS), [HOMER](http://homer.ucsd.edu/homer/download.html), [R](https://www.r-project.org/)
 
     *Description*:  
     TODO.
@@ -150,8 +150,9 @@ The library-level alignments associated with any given sample are merged at the 
       * HOMER peak-to-gene annotation file: `*.annotatePeaks.txt`.
 
     * `bwa/replicate/macs2/qc`  
-      * Peak QC plots including fold-change distribution and peak percentage across gene features: `*.pdf`.  
-      * MultiQC custom-content files for [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html) and peak count: `*.FRiP_mqc.tsv` and `*_peaks.count_mqc.tsv`.
+      * QC plots for MACS2 peaks - `macs_peak.mRp.plots.pdf`
+      * QC plots for peak to gene feature annotation - `macs_annotatePeaks.mRp.plots.pdf`
+      * MultiQC custom-content files for [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html) and peak count: `*.FRiP_mqc.tsv` and `*.count_mqc.tsv`.
 
     *Plots*:  
     [MultiQC - HOMER annotatePeaks peak to genomic feature ratio plot](images/mqc_annotatePeaks_feature_percentage_plot.png)  
