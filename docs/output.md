@@ -151,9 +151,9 @@ The library-level alignments associated with any given sample are merged at the 
       * HOMER peak-to-gene annotation file: `*.annotatePeaks.txt`.
 
     * `bwa/replicate/macs2/qc`  
-      * QC plots for MACS2 peaks - `macs_peak.mRp.plots.pdf`
-      * QC plots for peak to gene feature annotation - `macs_annotatePeaks.mRp.plots.pdf`
-      * MultiQC custom-content files for [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html) and peak count: `*.FRiP_mqc.tsv` and `*.count_mqc.tsv`.
+      * QC plots for MACS2 peaks: `macs_peak.mRp.plots.pdf`
+      * QC plots for peak to gene feature annotation: `macs_annotatePeaks.mRp.plots.pdf`
+      * MultiQC custom-content files for [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html) and peak count: `*.FRiP_mqc.tsv` and `*.count_mqc.tsv`, respectively.
 
     *Plots*:  
     [MultiQC - HOMER annotatePeaks peak to genomic feature ratio plot](images/mqc_annotatePeaks_feature_percentage_plot.png)  
@@ -170,10 +170,11 @@ The library-level alignments associated with any given sample are merged at the 
 
     *Output directories*:
     * `bwa/replicate/macs2/merged/`  
-      * Consensus peak-set across all samples in BED format: `*.bed`.
-      * Consensus peak-set across all samples in SAF format: `*.saf`. Required by featureCounts.  
-      * HOMER peak-to-gene annotation file for consensus peak-set: `*.annotatePeaks.txt`.   
-      * Spreadsheet representation of merged peak set across samples **with** gene annotation columns: `*.boolean.annotatePeaks.txt`. The columns from individual peak files are included in this file along with the ability to filter peaks based on their presence or absence in multiple replicates/conditions.  
+      * Consensus peak-set across all samples in `*.bed` format.
+      * Consensus peak-set across all samples in `*.saf` format. Required by featureCounts.  
+      * HOMER `*.annotatePeaks.txt` peak-to-gene annotation file for consensus peak-set.   
+      * Spreadsheet representation of merged peak set across samples **with** gene annotation columns: `*.boolean.annotatePeaks.txt`. 
+        The columns from individual peak files are included in this file along with the ability to filter peaks based on their presence or absence in multiple replicates/conditions.  
       * Spreadsheet representation of merged peak set across samples **without** gene annotation columns: `*.boolean.txt`. Use file above for downstream analysis.  
       * [UpSetR](https://cran.r-project.org/web/packages/UpSetR/README.html) files to illustrate peak intersection: `*.boolean.intersect.plot.pdf` and `*.boolean.intersect.txt`.  
 
