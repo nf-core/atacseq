@@ -12,7 +12,7 @@ regexes = {
     'Samtools': ['v_samtools.txt', r"samtools (\S+)"],
     'BEDTools': ['v_bedtools.txt', r"bedtools v(\S+)"],
     'BamTools': ['v_bamtools.txt', r"bamtools (\S+)"],
-    'Picard': ['v_picard.txt', r"version (\S+)"],
+    'Picard': ['v_picard.txt', r"([\d\.]+)-SNAPSHOT"],
     'R': ['v_R.txt', r"R version (\S+)"],
     'Pysam': ['v_pysam.txt', r"(\S+)"],
     'MACS2': ['v_macs2.txt', r"macs2 (\S+)"],
