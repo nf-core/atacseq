@@ -14,32 +14,6 @@ fn_clean_exts:
     - 'mRp'
     - 'mSm'
 
-report_section_order:
-    replicate_peak_count:
-        order: -1000
-    sample_peak_count:
-        order: -1100
-    replicate_frip_score:
-        order: -1200
-    sample_frip_score:
-        order: -1300
-    replicate_peak_annotation:
-        order: -1400
-    sample_peak_annotation:
-        order: -1500
-    replicate_deseq2_pca:
-        order: -1600
-    sample_deseq2_pca:
-        order: -1700
-    replicate_deseq2_clustering:
-        order: -1800
-    sample_deseq2_clustering:
-        order: -1900
-    nf-core_atacseq-software-versions:
-        order: -2000
-    nf-core-atacseq-summary:
-        order: -2100
-
 module_order:
     - fastqc:
         name: 'FastQC (raw)'
@@ -88,3 +62,35 @@ module_order:
         info: 'This section of the report shows featureCounts results for the number of reads assigned to sample-level merged peaks.'
         path_filters:
             - '*mSm.featureCounts*'
+
+report_section_order:
+    replicate_peak_count:
+        order: -1000
+    sample_peak_count:
+        order: -1100
+    replicate_frip_score:
+        order: -1200
+    sample_frip_score:
+        order: -1300
+    replicate_peak_annotation:
+        order: -1400
+    sample_peak_annotation:
+        order: -1500
+    replicate_deseq2_pca:
+        order: -1600
+    sample_deseq2_pca:
+        order: -1700
+    replicate_deseq2_clustering:
+        order: -1800
+    sample_deseq2_clustering:
+        order: -1900
+    nf-core_atacseq-software-versions:
+        order: -2000
+    nf-core-atacseq-summary:
+        order: -2100
+
+custom_plot_config:
+    picard-insertsize:
+        cpswitch_c_active: False
+        smooth_points: 1000
+    
