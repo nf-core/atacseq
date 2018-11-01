@@ -156,7 +156,7 @@ If you have sequenced the same library more than once you just provide this as a
 
 Example design files have been provided with the pipeline for [paired-end](../assets/design_pe.csv) and [single-end](../assets/design_se.csv) data.
 
-> The pipeline will assume that the design file is in the correct format so please double-check this before execution.
+>NB: The pipeline will assume that the design file is in the correct format so please double-check this before execution.
 
 ## Generic arguments
 
@@ -178,7 +178,7 @@ The pipeline config files come bundled with paths to the illumina iGenomes refer
 ### `--genome` (using iGenomes)
 There are 31 different species supported in the iGenomes references. To run the pipeline, you must specify which to use with the `--genome` flag.
 
-You can find the keys to specify the genomes in the [iGenomes config file](../conf/igenomes.config). Common genomes that are supported are:
+You can find the keys to specify the genomes in the [`igenomes.config`](../conf/igenomes.config). Common genomes that are supported are:
 
 * Human
   * `--genome GRCh37`
@@ -237,7 +237,7 @@ The full path to BED12 file for TSS profile plots. This will be created from the
 ```
 
 ### `--mito_name`
-Name of Mitochondrial chomosome in genome fasta. Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the [iGenomes config file](../conf/igenomes.config).
+Name of Mitochondrial chomosome in genome fasta. Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the [`igenomes.config`](../conf/igenomes.config).
 ```bash
 --mito_name chrM
 ```
