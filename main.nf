@@ -62,7 +62,7 @@ def helpMessage() {
       --keepDups                    Duplicate reads are not filtered from alignments
       --keepMultiMap                Reads mapping to multiple places are not filtered from alignments
       --skipMergeBySample           Do not perform alignment merging and downstream analysis at the sample-level i.e. only do this at the replicate-level
-      --saveAlignedIntermediates    Save the intermediate BAM files from the Alignment step  - not done by default
+      --saveAlignedIntermediates    Save the intermediate BAM files from the alignment step  - not done by default
 
     Other
       --outdir                      The output directory where the results will be saved
@@ -153,9 +153,9 @@ if( params.fasta ){
                 fasta_genome_filter;
                 fasta_markdup_metrics;
                 fasta_replicate_macs_annotate;
-                fasta_replicate_macs_merge_annotate;
+                fasta_replicate_macs_consensus_annotate;
                 fasta_sample_macs_annotate;
-                fasta_sample_macs_merge_annotate }
+                fasta_sample_macs_consensus_annotate }
 } else {
     exit 1, "Fasta file not specified!"
 }
@@ -175,9 +175,9 @@ if( params.gtf ){
         .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
         .into { gtf_makeBED12;
                 gtf_replicate_macs_annotate;
-                gtf_replicate_macs_merge_annotate;
+                gtf_replicate_macs_consensus_annotate;
                 gtf_sample_macs_annotate;
-                gtf_sample_macs_merge_annotate }
+                gtf_sample_macs_consensus_annotate }
 } else {
     exit 1, "GTF annotation file not specified!"
 }
@@ -1006,7 +1006,7 @@ process replicate_macs {
     file "*.{bed,xls,gappedPeak}" into replicate_macs_output
     set val(name), file("*$peakext") into replicate_macs_peaks_homer,
                                           replicate_macs_peaks_qc,
-                                          replicate_macs_peaks_merge,
+                                          replicate_macs_peaks_consensus,
                                           replicate_macs_peaks_igv
     file "*_mqc.tsv" into replicate_macs_peak_mqc
 
@@ -1095,25 +1095,25 @@ process replicate_macs_qc {
 }
 
 /*
- * STEP 5.5.4 merge peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
+ * STEP 5.5.4 consensus peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
  */
-process replicate_macs_merge {
-    publishDir "${params.outdir}/bwa/replicate/macs/merged", mode: 'copy'
+process replicate_macs_consensus {
+    publishDir "${params.outdir}/bwa/replicate/macs/consensus", mode: 'copy'
 
     input:
-    file peaks from replicate_macs_peaks_merge.collect{ it[1] }
+    file peaks from replicate_macs_peaks_consensus.collect{ it[1] }
 
     output:
-    file "*.bed" into replicate_macs_merge_bed,
-                      replicate_macs_merge_igv
-    file "*.boolean.txt" into replicate_macs_merge_bool
-    file "*.saf" into replicate_macs_merge_saf
-    file "*.intersect.{txt,plot.pdf}" into replicate_macs_merge_intersect
+    file "*.bed" into replicate_macs_consensus_bed,
+                      replicate_macs_consensus_igv
+    file "*.boolean.txt" into replicate_macs_consensus_bool
+    file "*.saf" into replicate_macs_consensus_saf
+    file "*.intersect.{txt,plot.pdf}" into replicate_macs_consensus_intersect
 
     when: params.macs_gsize && (multiple_samples || replicates_exist)
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
-    prefix="merged_peaks.mRp"
+    prefix="consensus_peaks.mRp"
     peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
     mergecols = params.narrowPeak ? (2..10).join(',') : (2..9).join(',')
     collapsecols = params.narrowPeak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
@@ -1138,24 +1138,24 @@ process replicate_macs_merge {
 }
 
 /*
- * STEP 5.5.5 annotate merge peaks with homer, and add annotation to boolean output file
+ * STEP 5.5.5 annotate consensus peaks with homer, and add annotation to boolean output file
  */
-process replicate_macs_merge_annotate {
-    publishDir "${params.outdir}/bwa/replicate/macs/merged", mode: 'copy'
+process replicate_macs_consensus_annotate {
+    publishDir "${params.outdir}/bwa/replicate/macs/consensus", mode: 'copy'
 
     input:
-    file bed from replicate_macs_merge_bed
-    file bool from replicate_macs_merge_bool
-    file fasta from fasta_replicate_macs_merge_annotate.collect()
-    file gtf from gtf_replicate_macs_merge_annotate.collect()
+    file bed from replicate_macs_consensus_bed
+    file bool from replicate_macs_consensus_bool
+    file fasta from fasta_replicate_macs_consensus_annotate.collect()
+    file gtf from gtf_replicate_macs_consensus_annotate.collect()
 
     output:
-    file "*.annotatePeaks.txt" into replicate_macs_merge_annotate
+    file "*.annotatePeaks.txt" into replicate_macs_consensus_annotate
 
     when: params.macs_gsize && (multiple_samples || replicates_exist)
 
     script:
-    prefix="merged_peaks.mRp"
+    prefix="consensus_peaks.mRp"
     """
     annotatePeaks.pl $bed \\
                      $fasta \\
@@ -1169,29 +1169,29 @@ process replicate_macs_merge_annotate {
 }
 
 /*
- * STEP 5.5.6 count reads in merged peaks with featurecounts
+ * STEP 5.5.6 count reads in consensus peaks with featurecounts
  */
-process replicate_macs_merge_deseq {
-    publishDir "${params.outdir}/bwa/replicate/macs/merged/deseq2", mode: 'copy'
+process replicate_macs_consensus_deseq {
+    publishDir "${params.outdir}/bwa/replicate/macs/consensus/deseq2", mode: 'copy'
 
     input:
     file bams from replicate_name_bam_replicate_counts.collect{ it[1] }
-    file saf from replicate_macs_merge_saf.collect()
+    file saf from replicate_macs_consensus_saf.collect()
     file replicate_deseq2_pca_header
     file replicate_deseq2_clustering_header
 
     output:
-    file "*featureCounts*" into replicate_macs_merge_counts
-    file "*.{RData,results.txt,pdf,log}" into replicate_macs_merge_deseq_results
-    file "sizeFactors" into replicate_macs_merge_deseq_factors
-    file "*vs*/*.{pdf,txt}" into replicate_macs_merge_deseq_comp_results
-    file "*vs*/*.bed" into replicate_macs_merge_deseq_comp_bed
-    file "*.tsv" into replicate_macs_merge_deseq_mqc
+    file "*featureCounts*" into replicate_macs_consensus_counts
+    file "*.{RData,results.txt,pdf,log}" into replicate_macs_consensus_deseq_results
+    file "sizeFactors" into replicate_macs_consensus_deseq_factors
+    file "*vs*/*.{pdf,txt}" into replicate_macs_consensus_deseq_comp_results
+    file "*vs*/*.bed" into replicate_macs_consensus_deseq_comp_bed
+    file "*.tsv" into replicate_macs_consensus_deseq_mqc
 
     when: params.macs_gsize && multiple_samples
 
     script:
-    prefix="merged_peaks.mRp"
+    prefix="consensus_peaks.mRp"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
     bam_ext = params.singleEnd ? ".mRp.sorted.bam" : ".mRp.bam"
     pe_params = params.singleEnd ? '' : "-p --donotsort"
@@ -1387,7 +1387,7 @@ process sample_macs {
     file "*.{bed,xls,gappedPeak}" into sample_macs_output
     set val(name), file("*$peakext") into sample_macs_peaks_homer,
                                           sample_macs_peaks_qc,
-                                          sample_macs_peaks_merge,
+                                          sample_macs_peaks_consensus,
                                           sample_macs_peaks_igv
     file "*_mqc.tsv" into sample_macs_peak_mqc
 
@@ -1477,25 +1477,25 @@ process sample_macs_qc {
 
 
 /*
- * STEP 6.4.4 merge peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
+ * STEP 6.4.4 consensus peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
  */
-process sample_macs_merge {
-    publishDir "${params.outdir}/bwa/sample/macs/merged", mode: 'copy'
+process sample_macs_consensus {
+    publishDir "${params.outdir}/bwa/sample/macs/consensus", mode: 'copy'
 
     input:
-    file peaks from sample_macs_peaks_merge.collect{ it[1] }
+    file peaks from sample_macs_peaks_consensus.collect{ it[1] }
 
     output:
-    file "*.bed" into sample_macs_merge_bed,
-                      sample_macs_merge_igv
-    file "*.boolean.txt" into sample_macs_merge_bool
-    file "*.saf" into sample_macs_merge_saf
-    file "*.intersect.{txt,plot.pdf}" into sample_macs_merge_intersect
+    file "*.bed" into sample_macs_consensus_bed,
+                      sample_macs_consensus_igv
+    file "*.boolean.txt" into sample_macs_consensus_bool
+    file "*.saf" into sample_macs_consensus_saf
+    file "*.intersect.{txt,plot.pdf}" into sample_macs_consensus_intersect
 
     when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
-    prefix="merged_peaks.mSm"
+    prefix="consensus_peaks.mSm"
     peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
     mergecols = params.narrowPeak ? (2..10).join(',') : (2..9).join(',')
     collapsecols = params.narrowPeak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
@@ -1521,24 +1521,24 @@ process sample_macs_merge {
 
 
 /*
- * STEP 6.4.5 annotate merge peaks with homer, and add annotation to boolean output file
+ * STEP 6.4.5 annotate consensus peaks with homer, and add annotation to boolean output file
  */
-process sample_macs_merge_annotate {
-    publishDir "${params.outdir}/bwa/sample/macs/merged", mode: 'copy'
+process sample_macs_consensus_annotate {
+    publishDir "${params.outdir}/bwa/sample/macs/consensus", mode: 'copy'
 
     input:
-    file bed from sample_macs_merge_bed
-    file bool from sample_macs_merge_bool
-    file fasta from fasta_sample_macs_merge_annotate.collect()
-    file gtf from gtf_sample_macs_merge_annotate.collect()
+    file bed from sample_macs_consensus_bed
+    file bool from sample_macs_consensus_bool
+    file fasta from fasta_sample_macs_consensus_annotate.collect()
+    file gtf from gtf_sample_macs_consensus_annotate.collect()
 
     output:
-    file "*.annotatePeaks.txt" into sample_macs_merge_annotate
+    file "*.annotatePeaks.txt" into sample_macs_consensus_annotate
 
     when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
 
     script:
-    prefix="merged_peaks.mSm"
+    prefix="consensus_peaks.mSm"
     """
     annotatePeaks.pl $bed \\
                      $fasta \\
@@ -1552,29 +1552,29 @@ process sample_macs_merge_annotate {
 }
 
 /*
- * STEP 6.4.6 count reads in merged peaks with featurecounts
+ * STEP 6.4.6 count reads in consensus peaks with featurecounts
  */
-process sample_macs_merge_deseq {
-    publishDir "${params.outdir}/bwa/sample/macs/merged/deseq2", mode: 'copy'
+process sample_macs_consensus_deseq {
+    publishDir "${params.outdir}/bwa/sample/macs/consensus/deseq2", mode: 'copy'
 
     input:
     file bams from replicate_name_bam_sample_counts.collect{ it[1] }
-    file saf from sample_macs_merge_saf.collect()
+    file saf from sample_macs_consensus_saf.collect()
     file sample_deseq2_pca_header
     file sample_deseq2_clustering_header
 
     output:
-    file "*featureCounts*" into sample_macs_merge_counts
-    file "*.{RData,results.txt,pdf,log}" into sample_macs_merge_deseq_results
-    file "sizeFactors" into sample_macs_merge_deseq_factors
-    file "*vs*/*.{pdf,txt}" into sample_macs_merge_deseq_comp_results
-    file "*vs*/*.bed" into sample_macs_merge_deseq_comp_bed
-    file "*.tsv" into sample_macs_merge_deseq_mqc
+    file "*featureCounts*" into sample_macs_consensus_counts
+    file "*.{RData,results.txt,pdf,log}" into sample_macs_consensus_deseq_results
+    file "sizeFactors" into sample_macs_consensus_deseq_factors
+    file "*vs*/*.{pdf,txt}" into sample_macs_consensus_deseq_comp_results
+    file "*vs*/*.bed" into sample_macs_consensus_deseq_comp_bed
+    file "*.tsv" into sample_macs_consensus_deseq_mqc
 
     when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
 
     script:
-    prefix="merged_peaks.mSm"
+    prefix="consensus_peaks.mSm"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
     bam_ext = params.singleEnd ? ".mRp.sorted.bam" : ".mRp.bam"
     pe_params = params.singleEnd ? '' : "-p --donotsort"
@@ -1639,7 +1639,7 @@ process get_software_versions {
     samtools --version > v_samtools.txt
     bedtools --version > v_bedtools.txt
     echo \$(bamtools --version 2>&1) > v_bamtools.txt
-    echo "version" \$(picard MarkDuplicates --version 2>&1) > v_picard.txt
+    picard MarkDuplicates --version &> v_picard.txt  || true
     echo \$(R --version 2>&1) > v_R.txt
     python -c "import pysam; print(pysam.__version__)" > v_pysam.txt
     echo \$(macs2 --version 2>&1) > v_macs2.txt
@@ -1670,14 +1670,14 @@ process multiqc {
     file ('alignment/replicate/picard_metrics/*') from merge_replicate_metrics.collect()
     file ('macs/replicate/*') from replicate_macs_peak_mqc.collect().ifEmpty([])
     file ('macs/replicate/*') from replicate_macs_qc.collect().ifEmpty([])
-    file ('macs/replicate/merged/*') from replicate_macs_merge_counts.collect().ifEmpty([])
-    file ('macs/replicate/merged/*') from replicate_macs_merge_deseq_mqc.collect().ifEmpty([])
+    file ('macs/replicate/consensus/*') from replicate_macs_consensus_counts.collect().ifEmpty([])
+    file ('macs/replicate/consensus/*') from replicate_macs_consensus_deseq_mqc.collect().ifEmpty([])
     file ('alignment/sample/*') from merge_sample_flagstat.collect{it[1]}.ifEmpty([])
     file ('alignment/sample/picard_metrics/*') from merge_sample_metrics.collect().ifEmpty([])
     file ('macs/sample/*') from sample_macs_peak_mqc.collect().ifEmpty([])
     file ('macs/sample/*') from sample_macs_qc.collect().ifEmpty([])
-    file ('macs/sample/merged/*') from sample_macs_merge_counts.collect().ifEmpty([])
-    file ('macs/sample/merged/*') from sample_macs_merge_deseq_mqc.collect().ifEmpty([])
+    file ('macs/sample/consensus/*') from sample_macs_consensus_counts.collect().ifEmpty([])
+    file ('macs/sample/consensus/*') from sample_macs_consensus_deseq_mqc.collect().ifEmpty([])
     file ('software_versions/*') from software_versions_yaml.collect()
     file ('workflow_summary/*') from create_workflow_summary(summary)
 
@@ -1709,23 +1709,23 @@ process igv {
     publishDir "${params.outdir}/igv", mode: 'copy'
 
     input:
-    file rbigwig from replicate_bigwig_igv.collect()
-    file rbed from replicate_macs_peaks_igv.collect{it[1]}.ifEmpty([])
-    file rmerge_bed from replicate_macs_merge_igv.collect().ifEmpty([])
-    file rdiff_bed from replicate_macs_merge_deseq_comp_bed.collect().ifEmpty([])
+    file ('bwa/replicate/bigwig/*') from replicate_bigwig_igv.collect()
+    file ('bwa/replicate/macs/*') from replicate_macs_peaks_igv.collect{it[1]}.ifEmpty([])
+    file ('bwa/replicate/macs/consensus/*') from replicate_macs_consensus_igv.collect().ifEmpty([])
+    file ('bwa/replicate/macs/consensus/deseq2/*') from replicate_macs_consensus_deseq_comp_bed.collect().ifEmpty([])
 
-    file sbigwig from sample_bigwig_igv.collect().ifEmpty([])
-    file sbed from sample_macs_peaks_igv.collect{it[1]}.ifEmpty([])
-    file smerge_bed from sample_macs_merge_igv.collect().ifEmpty([])
-    file sdiff_bed from sample_macs_merge_deseq_comp_bed.collect().ifEmpty([])
+    file ('bwa/sample/bigwig/*') from sample_bigwig_igv.collect().ifEmpty([])
+    file ('bwa/sample/macs/*') from sample_macs_peaks_igv.collect{it[1]}.ifEmpty([])
+    file ('bwa/sample/macs/consensus/*') from sample_macs_consensus_igv.collect().ifEmpty([])
+    file ('bwa/sample/macs/consensus/deseq2/*') from sample_macs_consensus_deseq_comp_bed.collect().ifEmpty([])
 
     output:
     file "*.{xml,txt}" into igv_session
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
-    abspath = new File(params.outdir).getCanonicalPath().toString()
     """
-    igv_get_files.py $abspath igv_files.txt
+    igv_get_files.sh ./ mSm > igv_files.txt
+    igv_get_files.sh ./ mRp >> igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt ${params.fasta}
     """
 }
