@@ -7,5 +7,5 @@
 #anchor: 'nfcore_atacseq-sample_deseq2_pca'
 #pconfig:
 #    title: 'DESeq2: Principal component plot'
-#    xlab: True
-#    ylab: True
+#    xlab: PC1
+#    ylab: PC2
