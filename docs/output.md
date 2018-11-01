@@ -13,6 +13,8 @@ The directories listed below will be created in the output directory after the p
 
 The initial QC and alignments are performed at the library-level e.g. if the same library has been sequenced more than once to increase sequencing depth. This has the advantage of being able to assess each library individually, and the ability to process multiple libraries from the same sample in parallel.
 
+File names in the resulting directory (i.e. `bwa/library/`) will either have the '`.mkD.`' (**m**ar**k** **D**uplicates) or '`.clN.`' suffix to denote files before and after read filtering, respectively.  
+
 1. **Raw read QC**
 
     *Software*:  
@@ -89,7 +91,9 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
 ## Replicate-level analysis
 
-The library-level alignments associated with any given sample are merged at the replicate-level and subsequently used for the downstream analyses. File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.mRp.`' suffix to denote **m**erging at the **R**e**p**licate-level.
+The library-level alignments associated with any given sample are merged at the replicate-level and subsequently used for the downstream analyses.
+
+File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.mRp.`' suffix to denote **m**erging at the **R**e**p**licate-level.
 
 1. **Alignment merging, duplicate marking and removal**
 
@@ -216,11 +220,9 @@ The library-level alignments associated with any given sample are merged at the 
 
 ## Sample-level analysis
 
-The library-level alignments associated with all of the replicates from the same experimental condition are also merged at the sample-level. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/).  
+The library-level alignments associated with all of the replicates from the same experimental condition are also merged at the sample-level. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/). The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/` are almost identical. You can skip this portion of the analysis by specifying the `--skipMergeBySample` parameter.
 
-The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/` are almost identical. File names in the resulting directory (i.e. `bwa/sample/`) will have the '`.mSm.`' suffix to denote **m**erging at the **S**a**m**ple-level.
-
-You can skip this portion of the analysis by specifying the `--skipMergeBySample` parameter.
+File names in the resulting directory (i.e. `bwa/sample/`) will have the '`.mSm.`' suffix to denote **m**erging at the **S**a**m**ple-level.
 
 >NB: Replicate-level alignments will be used for read counting relative to the consensus sample-level peakset. This is the only way in which differential analysis can be performed at the sample-level.
 
