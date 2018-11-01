@@ -2,7 +2,7 @@
 
 This pipeline has been successfully configured for use on the CAMP HPC cluster at the [The Francis Crick Institute](https://www.crick.ac.uk/).
 
-To use, run the pipeline with `-profile crick`. This will launch the [crick.config](../../conf/crick.config) which has been pre-configured with a setup suitable for the CAMP HPC cluster. Using this profile, Nextflow will download a temporary singularity image with all of the required software before execution of the pipeline.
+To use, run the pipeline with `-profile crick`. This will launch the [`crick.config`](../../conf/crick.config) which has been pre-configured with a setup suitable for the CAMP HPC cluster. Using this profile, Nextflow will download a temporary singularity image with all of the required software before execution of the pipeline.
 
 Before running the pipeline you will need to load Nextflow and Singularity using the environment module system on CAMP. You can do this by issuing the commands below:
 
@@ -10,10 +10,12 @@ Before running the pipeline you will need to load Nextflow and Singularity using
 module purge
 module load Nextflow/0.32.0
 module load Singularity/2.6.0-foss-2016b
+
+nextflow run nf-core/atacseq -profile crick --genome '<genome ID>' --design '<path to your design file>' --email test.user@crick.ac.uk
 ```
 
-A local copy of the iGenomes resource has been made available on CAMP (see [crick.config](../../conf/crick.config)) so you should be able to run the pipeline against your reference by simply using the `--genome <GENOME_ID>` parameter. Some of the more exotic genomes may not have been downloaded onto CAMP so please contact [BABS](mailto:bioinformatics@crick.ac.uk) if you would like them to be added.
+A local copy of the iGenomes resource has been made available on CAMP (see [`crick.config`](../../conf/crick.config) for file path) so you should be able to run the pipeline against any reference available in the [`igenomes.config`](../../conf/igenomes.config) by simply using the `--genome <GENOME_ID>` parameter. Some of the more exotic genomes may not have been downloaded onto CAMP so please contact [BABS](mailto:bioinformatics@crick.ac.uk) if you would like them to be added.
 
-Alternatively, if you are running the pipeline regularly for genomes that arent available in the iGenomes resource, we recommend creating a config file with paths to your reference genome indices (see [reference_genomes.md](reference_genomes.md) for instructions).
+Alternatively, if you are running the pipeline regularly for genomes that arent available in the iGenomes resource, we recommend creating a config file with paths to your reference genome indices (see [`reference_genomes.md`](reference_genomes.md) for instructions).
 
 >NB: You will need an account to use the HPC cluster on CAMP. If in doubt contact IT.**
