@@ -1,9 +1,12 @@
 name: nf-core-atacseq-1.0dev
 channels:
-  - conda-forge
-  - bioconda
   - defaults
+  - bioconda
+  - conda-forge
 dependencies:
+    ## defaults packages
+    ##- defaults::openjdk=8.0.152
+
     ## conda-forge packages
     - conda-forge::r-optparse=1.6.0
     - conda-forge::r-rcolorbrewer=1.1_2
