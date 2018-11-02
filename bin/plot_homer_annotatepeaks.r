@@ -87,6 +87,9 @@ for (idx in 1:length(HomerFiles)) {
 		plot.dist.dat <- rbind(plot.dist.dat,dist.melt)
 
 }
+levels(plot.dat$name) <- sort(unique(as.character(plot.dat$name)))
+levels(plot.dist.dat$variable) <- sort(unique(as.character(plot.dist.dat$variable)))
+levels(plot.feature.dat$variable) <- sort(unique(as.character(plot.feature.dat$variable)))
 
 summary.dat <- dcast(plot.feature.dat, variable ~ feature, value.var="value")
 colnames(summary.dat)[1] <- "sample"
