@@ -238,13 +238,13 @@ if( params.design ){
     exit 1, "Samples design file not specified!"
 }
 
-// BOOLEAN VALUE FOR REPLICATES EXISTING IN DESIGN
+// Boolean value for replicates existing in design
 replicates_exist = design_replicates_exist.map { it -> it[0][-4].toInteger() }
                                           .flatten()
                                           .max()
                                           .val > 1
 
-// BOOLEAN VALUE FOR MULTIPLE SAMPLES EXISTING IN DESIGN
+// Boolean value for multiple samples existing in design
 multiple_samples = design_multiple_samples.map { it -> it[0][0..-7] }
                                           .flatten()
                                           .unique()
@@ -966,7 +966,7 @@ process replicate_tss_plot {
 
     script:
     suffix='mRp'
-    prefix="plotProfile"
+    prefix="plotProfile.${suffix}"
     """
     computeMatrix reference-point \\
                   -R $bed \\
