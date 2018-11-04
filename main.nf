@@ -965,11 +965,13 @@ process replicate_tss_plot {
     file "*.png" into replicate_tss_plot
 
     script:
-    prefix="plotProfile.mRp"
+    suffix='mRp'
+    prefix="plotProfile"
     """
     computeMatrix reference-point \\
                   -R $bed \\
                   -S ${bigwigs.collect{it.toString()}.sort().join(' ')} \\
+                  --samplesLabel ${bigwigs.collect{it.toString()}.sort().join(' ').replaceAll(".${suffix}.bigWig","")} \\
                   -out ${prefix}.TSS.mat.gz \\
                   --referencePoint TSS \\
                   -a 3000 \\
@@ -1109,7 +1111,8 @@ process replicate_macs_consensus {
     when: params.macs_gsize && (multiple_samples || replicates_exist)
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
-    prefix="consensus_peaks.mRp"
+    suffix='mRp'
+    prefix="consensus_peaks.${suffix}"
     peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
     mergecols = params.narrowPeak ? (2..10).join(',') : (2..9).join(',')
     collapsecols = params.narrowPeak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
@@ -1348,11 +1351,13 @@ process sample_tss_plot {
     when: !skipMergeBySample && replicates_exist
 
     script:
-    prefix="plotProfile.mSm"
+    suffix='mSm'
+    prefix="plotProfile.${suffix}"
     """
     computeMatrix reference-point \\
                   -R $bed \\
                   -S ${bigwigs.collect{it.toString()}.sort().join(' ')} \\
+                  --samplesLabel ${bigwigs.collect{it.toString()}.sort().join(' ').replaceAll(".${suffix}.bigWig","")} \\
                   -out ${prefix}.TSS.mat.gz \\
                   --referencePoint TSS \\
                   -a 3000 \\
@@ -1492,7 +1497,8 @@ process sample_macs_consensus {
     when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
-    prefix="consensus_peaks.mSm"
+    suffix='mSm'
+    prefix="consensus_peaks.${suffix}"
     peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
     mergecols = params.narrowPeak ? (2..10).join(',') : (2..9).join(',')
     collapsecols = params.narrowPeak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
