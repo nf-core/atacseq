@@ -18,4 +18,4 @@ A local copy of the iGenomes resource has been made available on CAMP so you sho
 
 Alternatively, if you are running the pipeline regularly for genomes that arent available in the iGenomes resource, we recommend creating a config file with paths to your reference genome indices (see [`reference genomes documentation`](reference_genomes.md) for instructions).
 
->NB: You will need an account to use the HPC cluster on CAMP in order to run the pipeline. If in doubt contact IT.**
+>NB: You will need an account to use the HPC cluster on CAMP in order to run the pipeline. If in doubt contact IT.
