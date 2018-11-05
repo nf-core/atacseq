@@ -41,7 +41,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
     * generate TSS meta-profiles across all genes ([`deepTools`](https://deeptools.readthedocs.io/en/develop/))
     * call narrow/broad peaks ([`MACS2`](https://github.com/taoliu/MACS))
     * annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
-    * create consensus peak-set across all samples and create tabular file to aid in the filtering of the data ([`BEDTools`](https://github.com/arq5x/bedtools2/))
+    * create consensus peakset across all samples and create tabular file to aid in the filtering of the data ([`BEDTools`](https://github.com/arq5x/bedtools2/))
     * count reads in consensus peaks from replicate-level alignments ([`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/))
     * differential binding analysis, PCA and clustering ([`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html))
 7. Create IGV session file containing bigWig tracks, peaks and differential sites for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
