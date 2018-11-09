@@ -19,8 +19,8 @@ library(scales)
 
 option_list <- list(make_option(c("-i", "--peak_files"), type="character", default=NULL, help="Comma-separated list of peak files.", metavar="peak_files"),
 										make_option(c("-s", "--sample_ids"), type="character", default=NULL, help="Comma-separated list of sample ids associated with peak files. Must be unique and in same order as peaks files input.", metavar="sampleids"),
-									  make_option(c("-o", "--outdir"), type="character", default='./', help="Output directory", metavar="path"),
-									  make_option(c("-p", "--outprefix"), type="character", default='macs2_peakqc', help="Output prefix", metavar="character"))
+										make_option(c("-o", "--outdir"), type="character", default='./', help="Output directory", metavar="path"),
+										make_option(c("-p", "--outprefix"), type="character", default='macs2_peakqc', help="Output prefix", metavar="character"))
 
 opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser)
@@ -35,7 +35,7 @@ if (is.null(opt$sample_ids)){
 }
 
 if (file.exists(opt$outdir) == FALSE) {
-    dir.create(opt$outdir,recursive=TRUE)
+		dir.create(opt$outdir,recursive=TRUE)
 }
 
 PeakFiles <- unlist(strsplit(opt$peak_files,","))
@@ -96,19 +96,19 @@ write.table(summary.dat,file=SummaryFile,quote=FALSE,sep="\t",row.names=FALSE,co
 violin.plot <- function(plot.dat,x,y,ylab,title,log) {
 
 		plot  <- ggplot(plot.dat, aes_string(x=x, y=y)) +
-		         geom_violin(aes_string(colour=x,fill=x), alpha = 0.3) +
-						 geom_boxplot(width=0.1) +
-		         xlab("") +
-						 ylab(ylab) +
-		         ggtitle(title) +
-		         theme(legend.position="none",
-			       			 panel.grid.major = element_blank(),
-		               panel.grid.minor = element_blank(),
-		               panel.background = element_blank(),
-		               axis.text.y = element_text(colour="black"),
-		               axis.text.x= element_text(colour="black",face="bold"),
-		               axis.line.x = element_line(size = 1, colour = "black", linetype = "solid"),
-		               axis.line.y = element_line(size = 1, colour = "black", linetype = "solid"))
+							geom_violin(aes_string(colour=x,fill=x), alpha = 0.3) +
+							geom_boxplot(width=0.1) +
+							xlab("") +
+							ylab(ylab) +
+							ggtitle(title) +
+							theme(legend.position="none",
+										panel.grid.major = element_blank(),
+										panel.grid.minor = element_blank(),
+										panel.background = element_blank(),
+										axis.text.y = element_text(colour="black"),
+										axis.text.x= element_text(colour="black",face="bold"),
+										axis.line.x = element_line(size = 1, colour = "black", linetype = "solid"),
+										axis.line.y = element_line(size = 1, colour = "black", linetype = "solid"))
 		if (log == 10) {
 				plot <- plot + scale_y_continuous(trans='log10',breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x)))
 		}
@@ -127,19 +127,19 @@ pdf(PlotFile,height=6,width=3*length(unique(plot.dat$name)))
 peak.count.dat <- as.data.frame(table(plot.dat$name))
 colnames(peak.count.dat) <- c("name","count")
 plot  <- ggplot(peak.count.dat, aes(x=name, y=count)) +
-				 geom_bar(stat="identity",aes(colour=name,fill=name), position = "dodge", width = 0.8, alpha = 0.3) +
-				 xlab("") +
-				 ylab("Number of peaks") +
-				 ggtitle("Peak count") +
-				 theme(legend.position="none",
-							 panel.grid.major = element_blank(),
-							 panel.grid.minor = element_blank(),
-							 panel.background = element_blank(),
-							 axis.text.y = element_text(colour="black"),
-							 axis.text.x= element_text(colour="black",face="bold"),
-							 axis.line.x = element_line(size = 1, colour = "black", linetype = "solid"),
-							 axis.line.y = element_line(size = 1, colour = "black", linetype = "solid")) +
-				geom_text(aes(label = count, x = name, y = count), position = position_dodge(width = 0.8), vjust = -0.6)
+					geom_bar(stat="identity",aes(colour=name,fill=name), position = "dodge", width = 0.8, alpha = 0.3) +
+					xlab("") +
+					ylab("Number of peaks") +
+					ggtitle("Peak count") +
+					theme(legend.position="none",
+								panel.grid.major = element_blank(),
+								panel.grid.minor = element_blank(),
+								panel.background = element_blank(),
+								axis.text.y = element_text(colour="black"),
+								axis.text.x= element_text(colour="black",face="bold"),
+								axis.line.x = element_line(size = 1, colour = "black", linetype = "solid"),
+								axis.line.y = element_line(size = 1, colour = "black", linetype = "solid")) +
+					geom_text(aes(label = count, x = name, y = count), position = position_dodge(width = 0.8), vjust = -0.6)
 print(plot)
 
 ## VIOLIN PLOTS
