@@ -7,10 +7,10 @@
 ################################################
 
 ## DIFFERENTIAL ANALYSIS, SCATTERPLOTS AND PCA FOR SAMPLES IN FEATURECOUNTS FILE
-		## - FIRST SIX COLUMNS OF FEATURECOUNTS_FILE SHOULD BE INTERVAL INFO. REMAINDER OF COLUMNS SHOULD BE SAMPLES-SPECIFIC COUNTS.
-		## - SAMPLE NAMES HAVE TO END IN "_R1" REPRESENTING REPLICATE ID. LAST 3 CHARACTERS OF SAMPLE NAME WILL BE TRIMMED TO OBTAIN GROUP ID FOR DESEQ2 COMPARISONS.
-		## - BAM_SUFFIX IS PORTION OF FILENAME AFTER SAMPLE NAME IN FEATURECOUNTS COLUMN SAMPLE NAMES E.G. ".rmDup.bam" if "DRUG_R1.rmDup.bam"
-		## - PACKAGES BELOW NEED TO BE AVAILABLE TO LOAD WHEN RUNNING R
+    ## - FIRST SIX COLUMNS OF FEATURECOUNTS_FILE SHOULD BE INTERVAL INFO. REMAINDER OF COLUMNS SHOULD BE SAMPLES-SPECIFIC COUNTS.
+    ## - SAMPLE NAMES HAVE TO END IN "_R1" REPRESENTING REPLICATE ID. LAST 3 CHARACTERS OF SAMPLE NAME WILL BE TRIMMED TO OBTAIN GROUP ID FOR DESEQ2 COMPARISONS.
+    ## - BAM_SUFFIX IS PORTION OF FILENAME AFTER SAMPLE NAME IN FEATURECOUNTS COLUMN SAMPLE NAMES E.G. ".rmDup.bam" if "DRUG_R1.rmDup.bam"
+    ## - PACKAGES BELOW NEED TO BE AVAILABLE TO LOAD WHEN RUNNING R
 
 ################################################
 ################################################
@@ -52,7 +52,7 @@ if (is.null(opt$bam_suffix)){
 
 ################################################
 ################################################
-## READ IN COUNTS FILE												##
+## READ IN COUNTS FILE                        ##
 ################################################
 ################################################
 
@@ -65,7 +65,7 @@ count.table <- count.table[,7:ncol(count.table),drop=FALSE]
 
 ################################################
 ################################################
-## RUN DESEQ2																	##
+## RUN DESEQ2                                 ##
 ################################################
 ################################################
 
@@ -93,7 +93,7 @@ if (file.exists(DDSFile) == FALSE) {
 
 ################################################
 ################################################
-## PLOT QC  																	##
+## PLOT QC                                    ##
 ################################################
 ################################################
 
@@ -134,7 +134,7 @@ if (file.exists(PlotFile) == FALSE) {
 
 ################################################
 ################################################
-## SAVE SIZE FACTORS  												##
+## SAVE SIZE FACTORS                          ##
 ################################################
 ################################################
 
@@ -158,7 +158,7 @@ if (file.exists(NormFactorsFile) == FALSE) {
 
 ################################################
 ################################################
-## WRITE LOG FILE   													##
+## WRITE LOG FILE                             ##
 ################################################
 ################################################
 
@@ -172,7 +172,7 @@ if (file.exists(LogFile) == FALSE) {
 
 ################################################
 ################################################
-## LOOP THROUGH COMPARISONS    								##
+## LOOP THROUGH COMPARISONS                   ##
 ################################################
 ################################################
 
@@ -281,7 +281,7 @@ if (file.exists(ResultsFile) == FALSE) {
 
 ################################################
 ################################################
-## R SESSION INFO															##
+## R SESSION INFO                             ##
 ################################################
 ################################################
 
