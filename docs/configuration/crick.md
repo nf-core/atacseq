@@ -23,12 +23,12 @@ If for some reason the pipeline fails to run you can resume it by adding `-resum
 All of the intermediate files required to run the pipeline will be stored in the `work/` directory. It is recommended to delete this directory after the pipeline has finished successfully because it can get quite large, and all of the main output files will be saved in the `results/` directory anyway. If you wish to keep the `work/` directory for traceability then another solution would be to just delete the largest files. You can execute the commands below from **within** the `work/` directory:  
 
 ```
-find ./ -type f -name *.fq.gz -exec rm -rf {} \;
-find ./ -type f -name *.sai -exec rm -rf {} \;
-find ./ -type f -name *.sam -exec rm -rf {} \;
-find ./ -type f -name *.bam -exec rm -rf {} \;
-find ./ -type f -name *.bedGraph -exec rm -rf {} \;
-find ./ -type f -name *.bigWig -exec rm -rf {} \;
+find ./ -type f -name *.fq.gz -exec rm -f {} \;
+find ./ -type f -name *.sai -exec rm -f {} \;
+find ./ -type f -name *.sam -exec rm -f {} \;
+find ./ -type f -name *.bam -exec rm -f {} \;
+find ./ -type f -name *.bedGraph -exec rm -f {} \;
+find ./ -type f -name *.bigWig -exec rm -f {} \;
 ```
 
 >NB: You will not be able to `-resume` the pipeline if you delete the `work/` directory because it contains all of the necessary intermediate files. Please make sure you delete it after the pipeline has finished successfully.
