@@ -1189,7 +1189,7 @@ process replicate_macs_consensus_deseq {
     file "*vs*/*.bed" into replicate_macs_consensus_deseq_comp_bed
     file "*.tsv" into replicate_macs_consensus_deseq_mqc
 
-    when: params.macs_gsize && multiple_samples
+    when: params.macs_gsize && multiple_samples && replicates_exist
 
     script:
     prefix="consensus_peaks.mRp"
@@ -1394,7 +1394,7 @@ process sample_macs {
                                           sample_macs_peaks_igv
     file "*_mqc.tsv" into sample_macs_peak_mqc
 
-    when: !skipMergeBySample && params.macs_gsize && replicates_exist
+    when: !skipMergeBySample && replicates_exist && params.macs_gsize
 
     script:
     prefix="${name}.mSm"
@@ -1433,7 +1433,7 @@ process sample_macs_annotate {
     output:
     file "*.txt" into sample_macs_annotate
 
-    when: !skipMergeBySample && params.macs_gsize && replicates_exist
+    when: !skipMergeBySample && replicates_exist && params.macs_gsize
 
     script:
     prefix="${name}.mSm"
@@ -1461,7 +1461,7 @@ process sample_macs_qc {
    file "*.{txt,pdf}" into sample_macs_qc
    file "*.tsv" into sample_macs_qc_mqc
 
-   when: params.macs_gsize
+   when: !skipMergeBySample && replicates_exist && params.macs_gsize
 
    script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
    suffix='mSm'
@@ -1495,7 +1495,7 @@ process sample_macs_consensus {
     file "*.saf" into sample_macs_consensus_saf
     file "*.intersect.{txt,plot.pdf}" into sample_macs_consensus_intersect
 
-    when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
+    when: !skipMergeBySample && replicates_exist && params.macs_gsize && multiple_samples
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     suffix='mSm'
@@ -1539,7 +1539,7 @@ process sample_macs_consensus_annotate {
     output:
     file "*.annotatePeaks.txt" into sample_macs_consensus_annotate
 
-    when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
+    when: !skipMergeBySample && replicates_exist && params.macs_gsize && multiple_samples
 
     script:
     prefix="consensus_peaks.mSm"
@@ -1576,7 +1576,7 @@ process sample_macs_consensus_deseq {
     file "*vs*/*.bed" into sample_macs_consensus_deseq_comp_bed
     file "*.tsv" into sample_macs_consensus_deseq_mqc
 
-    when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
+    when: !skipMergeBySample && replicates_exist && params.macs_gsize && multiple_samples
 
     script:
     prefix="consensus_peaks.mSm"

@@ -43,9 +43,9 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
     * annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
     * create consensus peakset across all samples and create tabular file to aid in the filtering of the data ([`BEDTools`](https://github.com/arq5x/bedtools2/))
     * count reads in consensus peaks from replicate-level alignments ([`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/))
-    * differential binding analysis, PCA and clustering ([`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html))
+    * differential accessibility analysis, PCA and clustering ([`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html))
 7. Create IGV session file containing bigWig tracks, peaks and differential sites for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
-8. Present QC for raw read, alignment, peak-calling and differential binding results ([`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
+8. Present QC for raw read, alignment, peak-calling and differential accessibility results ([`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
 
 ### Documentation
 The nf-core/atacseq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
