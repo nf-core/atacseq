@@ -8,14 +8,11 @@
 * [Reproducibility](#reproducibility)
 * [Main arguments](#main-arguments)
     * [`-profile`](#-profile-single-dash)
-        * [`standard`](#standard)
+        * [`awsbatch`](#awsbatch)
+        * [`conda`](#conda)
         * [`docker`](#docker)
         * [`singularity`](#singularity)
-        * [`conda`](#conda)
-        * [`awsbatch`](#awsbatch)
-        * [`crick`](#crick)
         * [`test`](#test)
-        * [`none`](#none)
     * [`--design`](#--design)
 * [Generic arguments](#generic-arguments)
     * [`--singleEnd`](#--singleEnd)
@@ -31,6 +28,7 @@
     * [`--macs_gsize`](#--macs_gsize)
     * [`--blacklist`](#--blacklist)
     * [`--saveReference`](#--saveReference)
+    * [`--igenomesIgnore`](#--igenomesignore)
 * [Adapter trimming](#adapter-trimming)
     * [`--skipTrimming`](#--skipTrimming)
     * [`--saveTrimmed`](#--saveTrimmed)
@@ -53,10 +51,11 @@
     * [`-name`](#-name-single-dash)
     * [`-resume`](#-resume-single-dash)
     * [`-c`](#-c-single-dash)
+    * [`--custom_config_version`](#--custom_config_version)
     * [`--max_memory`](#--max_memory)
     * [`--max_time`](#--max_time)
     * [`--max_cpus`](#--max_cpus)
-    * [`--plaintext_emails`](#--plaintext_emails)
+    * [`--plaintext_email`](#--plaintext_email)
     * [`--multiqc_config`](#--multiqc_config)
 
 ## General Nextflow info
@@ -104,28 +103,22 @@ This version number will be logged in reports when you run the pipeline, so that
 ### `-profile`
 Use this parameter to choose a configuration profile. Profiles can give configuration presets for different compute environments. Note that multiple profiles can be loaded, for example: `-profile standard,docker` - the order of arguments is important!
 
-* `standard`
-    * The default profile, used if `-profile` is not specified at all.
-    * Runs locally and expects all software to be installed and available on the `PATH`.
+If `-profile` is not specified at all the pipeline will be run locally and expects all software to be installed and available on the `PATH`.
+
+* `awsbatch`
+    * A generic configuration profile to be used with AWS Batch.
+* `conda`
+    * A generic configuration profile to be used with [conda](https://conda.io/docs/)
+    * Pulls most software from [Bioconda](https://bioconda.github.io/)
 * `docker`
     * A generic configuration profile to be used with [Docker](http://docker.com/)
     * Pulls software from dockerhub: [`nfcore/atacseq`](http://hub.docker.com/r/nfcore/atacseq/)
 * `singularity`
     * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
     * Pulls software from singularity-hub
-* `conda`
-    * A generic configuration profile to be used with [conda](https://conda.io/docs/)
-    * Pulls most software from [Bioconda](https://bioconda.github.io/)
-* `awsbatch`
-    * A generic configuration profile to be used with AWS Batch.
-* `crick`
-    * Designed to use Singularity on the CAMP HPC system at [The Francis Crick Institute](https://www.crick.ac.uk/)
-    * See [`docs/configuration/crick.md`](configuration/crick.md)
 * `test`
     * A profile with a complete configuration for automated testing
     * Includes links to test data so needs no other parameters
-* `none`
-    * No configuration at all. Useful if you want to build your own config from scratch and want to avoid loading in the default `base` config profile (not recommended).
 
 ### `--design`
 You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location.
@@ -178,7 +171,7 @@ The pipeline config files come bundled with paths to the illumina iGenomes refer
 ### `--genome` (using iGenomes)
 There are 31 different species supported in the iGenomes references. To run the pipeline, you must specify which to use with the `--genome` flag.
 
-You can find the keys to specify the genomes in the [`igenomes.config`](../conf/igenomes.config). Common genomes that are supported are:
+You can find the keys to specify the genomes in the [`iGenomes config file`](../conf/igenomes.config). Common genomes that are supported are:
 
 * Human
   * `--genome GRCh37`
@@ -251,6 +244,9 @@ If provided, alignments that overlap with the regions in this file will be filte
 ### `--saveReference`
 Supply this parameter to save any generated reference genome files such as the BWA index to your results folder. These can then be used for future pipeline runs, reducing processing times.
 
+### `--igenomesIgnore`
+Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`.
+
 ## Adapter trimming
 The pipeline accepts a number of parameters to change how the trimming is done, according to your data type.
 You can specify custom trimming parameters as follows:
@@ -292,7 +288,11 @@ By default, intermediate BAM files will not be saved. The final BAM files create
 Each step in the pipeline has a default set of requirements for number of CPUs, memory and time. For most of the steps in the pipeline, if the job exits with an error code of `143` (exceeded requested resources) it will automatically resubmit with higher requests (2 x original, then 3 x original). If it still fails after three times then the pipeline is stopped.
 
 ### Custom resource requests
-Wherever process-specific requirements are set in the pipeline, the default value can be changed by creating a custom config file. See the files in [`conf`](../conf) for examples.
+Wherever process-specific requirements are set in the pipeline, the default value can be changed by creating a custom config file. See the files hosted at [`nf-core/configs`](https://github.com/nf-core/configs/tree/master/conf) for examples.
+
+If you are likely to be running `nf-core` pipelines regularly it may be a good idea to request that your custom config file is uploaded to the `nf-core/configs` git repository. Before you do this please can you test that the config file works with your pipeline of choice using the `-c` parameter (see definition below). You can then create a pull request to the `nf-core/configs` repository with the addition of your config file, associated documentation file (see examples in [`nf-core/configs/docs`](https://github.com/nf-core/configs/tree/master/docs)), and amending [`nfcore_custom.config`](https://github.com/nf-core/configs/blob/master/nfcore_custom.config) to include your custom profile.
+
+If you have any questions or issues please send us a message on [`Slack`](https://nf-core-invite.herokuapp.com/).
 
 ## AWS Batch specific parameters
 Running the pipeline on AWS Batch requires a couple of specific parameters to be set according to your AWS Batch configuration. Please use the `-awsbatch` profile and then specify all of the following parameters.
@@ -330,10 +330,14 @@ Specify the path to a specific config file (this is a core NextFlow command).
 
 **NB:** Single hyphen (core Nextflow option)
 
-Note - you can use this to override defaults. For example, you can specify a config file using `-c` that contains the following:
+Note - you can use this to override pipeline defaults.
 
-```nextflow
-process.$multiqc.module = []
+### `--custom_config_version`
+Provide git commit id for custom Institutional configs hosted at `nf-core/configs`. This was implemented for reproducibility purposes. Default is set to `master`.
+
+```bash
+## Download and use config file with following git commid id
+--custom_config_version d52db660777c4bf36546ddb188ec530c3ada1b96
 ```
 
 ### `--max_memory`
