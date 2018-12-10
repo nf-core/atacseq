@@ -14,7 +14,6 @@ To start using the nf-core/atacseq pipeline, follow the steps below:
 4. [Reference genomes](#4-reference-genomes)
 5. [Appendices](#5-appendices)
     * [Running on UPPMAX](#running-on-uppmax)
-    * [Running at the Crick](#running-at-the-crick)
 
 ## 1) Install NextFlow
 Nextflow runs on most POSIX systems (Linux, Mac OSX etc). It can be installed by running the following commands:
@@ -119,7 +118,3 @@ Note that you will need to specify your UPPMAX project ID when running a pipelin
 ```nextflow
 params.project = 'project_ID' // eg. b2017123
 ```
-
-#### Running at the Crick
-
-See [`docs/configuration/crick.md`](configuration/crick.md)
