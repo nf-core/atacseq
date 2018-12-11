@@ -404,6 +404,7 @@ if(!params.bed12){
     }
 }
 
+
 /*
  * PREPROCESSING - Prepare genome intervals for filtering
  */
@@ -740,8 +741,8 @@ process filter_bam {
     input:
     set val(name), file(bam) from markdup_bam_filter
     file bed from genome_filter_regions.collect()
-    file bamtools_filter_se_config from bamtools_filter_se_config_ch
-    file bamtools_filter_pe_config from bamtools_filter_pe_config_ch
+    file bamtools_filter_se_config from bamtools_filter_se_config_ch.collect()
+    file bamtools_filter_pe_config from bamtools_filter_pe_config_ch.collect()
 
     output:
     set val(name), file("*.{bam,bam.bai}") into filter_bam
@@ -770,6 +771,7 @@ process filter_bam {
     $name_sort_bam
     """
 }
+
 
 /*
  * STEP 4.4 remove orphan reads from paired-end BAM
@@ -996,8 +998,8 @@ process replicate_macs {
 
     input:
     set val(name), file(bam), file(flagstat) from merge_replicate_bam_macs.join(merge_replicate_flagstat_macs, by: [0])
-    file replicate_peak_count_header from replicate_peak_count_header_ch
-    file replicate_frip_score_header from replicate_frip_score_header_ch
+    file replicate_peak_count_header from replicate_peak_count_header_ch.collect()
+    file replicate_frip_score_header from replicate_frip_score_header_ch.collect()
 
     output:
     file "*.{bed,xls,gappedPeak}" into replicate_macs_output
@@ -1068,7 +1070,7 @@ process replicate_macs_qc {
    input:
    file peaks from replicate_macs_peaks_qc.collect{ it[1] }
    file annos from replicate_macs_annotate.collect()
-   file replicate_peak_annotation_header from replicate_peak_annotation_header_ch
+   file replicate_peak_annotation_header from replicate_peak_annotation_header_ch.collect()
 
    output:
    file "*.{txt,pdf}" into replicate_macs_qc
@@ -1082,11 +1084,13 @@ process replicate_macs_qc {
    """
    plot_macs_qc.r -i ${peaks.join(',')} \\
                   -s ${peaks.join(',').replaceAll(".${suffix}_peaks${peakext}","")} \\
-                  -o ./ -p macs_peak.${suffix}
+                  -o ./ \\
+                  -p macs_peak.${suffix}
 
    plot_homer_annotatepeaks.r -i ${annos.join(',')} \\
                               -s ${annos.join(',').replaceAll(".${suffix}_peaks.annotatePeaks.txt","")} \\
-                              -o ./ -p macs_annotatePeaks.${suffix}
+                              -o ./ \\
+                              -p macs_annotatePeaks.${suffix}
 
    cat $replicate_peak_annotation_header macs_annotatePeaks.${suffix}.summary.txt > macs_annotatePeaks.${suffix}.summary_mqc.tsv
    """
@@ -1146,8 +1150,8 @@ process replicate_macs_consensus_annotate {
     input:
     file bed from replicate_macs_consensus_bed
     file bool from replicate_macs_consensus_bool
-    file fasta from fasta_replicate_macs_consensus_annotate.collect()
-    file gtf from gtf_replicate_macs_consensus_annotate.collect()
+    file fasta from fasta_replicate_macs_consensus_annotate
+    file gtf from gtf_replicate_macs_consensus_annotate
 
     output:
     file "*.annotatePeaks.txt" into replicate_macs_consensus_annotate
@@ -1177,8 +1181,8 @@ process replicate_macs_consensus_deseq {
     input:
     file bams from replicate_name_bam_replicate_counts.collect{ it[1] }
     file saf from replicate_macs_consensus_saf.collect()
-    file replicate_deseq2_pca_header from replicate_deseq2_pca_header_ch
-    file replicate_deseq2_clustering_header from replicate_deseq2_clustering_header_ch
+    file replicate_deseq2_pca_header from replicate_deseq2_pca_header_ch.collect()
+    file replicate_deseq2_clustering_header from replicate_deseq2_clustering_header_ch.collect()
 
     output:
     file "*featureCounts.txt" into replicate_macs_consensus_counts
@@ -1383,8 +1387,8 @@ process sample_macs {
 
     input:
     set val(name), file(bam), file(flagstat) from merge_sample_bam_macs.join(merge_sample_flagstat_macs, by: [0])
-    file sample_peak_count_header from sample_peak_count_header_ch
-    file sample_frip_score_header from sample_frip_score_header_ch
+    file sample_peak_count_header from sample_peak_count_header_ch.collect()
+    file sample_frip_score_header from sample_frip_score_header_ch.collect()
 
     output:
     file "*.{bed,xls,gappedPeak}" into sample_macs_output
@@ -1455,7 +1459,7 @@ process sample_macs_qc {
    input:
    file peaks from sample_macs_peaks_qc.collect{ it[1] }
    file annos from sample_macs_annotate.collect()
-   file sample_peak_annotation_header from sample_peak_annotation_header_ch
+   file sample_peak_annotation_header from sample_peak_annotation_header_ch.collect()
 
    output:
    file "*.{txt,pdf}" into sample_macs_qc
@@ -1469,11 +1473,13 @@ process sample_macs_qc {
    """
    plot_macs_qc.r -i ${peaks.join(',')} \\
                   -s ${peaks.join(',').replaceAll(".${suffix}_peaks${peakext}","")} \\
-                  -o ./ -p macs_peak.${suffix}
+                  -o ./ \\
+                  -p macs_peak.${suffix}
 
    plot_homer_annotatepeaks.r -i ${annos.join(',')} \\
                               -s ${annos.join(',').replaceAll(".${suffix}_peaks.annotatePeaks.txt","")} \\
-                              -o ./ -p macs_annotatePeaks.${suffix}
+                              -o ./ \\
+                              -p macs_annotatePeaks.${suffix}
 
    cat $sample_peak_annotation_header macs_annotatePeaks.${suffix}.summary.txt > macs_annotatePeaks.${suffix}.summary_mqc.tsv
    """
@@ -1533,8 +1539,8 @@ process sample_macs_consensus_annotate {
     input:
     file bed from sample_macs_consensus_bed
     file bool from sample_macs_consensus_bool
-    file fasta from fasta_sample_macs_consensus_annotate.collect()
-    file gtf from gtf_sample_macs_consensus_annotate.collect()
+    file fasta from fasta_sample_macs_consensus_annotate
+    file gtf from gtf_sample_macs_consensus_annotate
 
     output:
     file "*.annotatePeaks.txt" into sample_macs_consensus_annotate
@@ -1564,8 +1570,8 @@ process sample_macs_consensus_deseq {
     input:
     file bams from replicate_name_bam_sample_counts.collect{ it[1] }
     file saf from sample_macs_consensus_saf.collect()
-    file sample_deseq2_pca_header from sample_deseq2_pca_header_ch
-    file sample_deseq2_clustering_header from sample_deseq2_clustering_header_ch
+    file sample_deseq2_pca_header from sample_deseq2_pca_header_ch.collect()
+    file sample_deseq2_clustering_header from sample_deseq2_clustering_header_ch.collect()
 
     output:
     file "*featureCounts.txt" into sample_macs_consensus_counts
@@ -1663,7 +1669,7 @@ process multiqc {
     publishDir "${params.outdir}/multiqc", mode: 'copy'
 
     input:
-    file multiqc_config from multiqc_config_ch
+    file multiqc_config from multiqc_config_ch.collect()
     file ('fastqc/*') from fastqc_reports_mqc.collect()
     file ('trimgalore/*') from trimgalore_results_mqc.collect()
     file ('trimgalore/fastqc/*') from trimgalore_fastqc_reports_mqc.collect()
