@@ -42,7 +42,8 @@ def helpMessage() {
       --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 0
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
-      --bwa_index                   Path to BWA index
+      --bwa_index_dir               Directory containing BWA index
+      --bwa_index_base              Basename for BWA index. Default: genome.fa
       --bed12                       Path to bed12 file
       --mito_name                   Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out
 
@@ -105,7 +106,7 @@ if (params.genomes && params.genome && !params.genomes.containsKey(params.genome
 
 // Configurable variables
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
-params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
+params.bwa_index_dir = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
 params.bed12 = params.genome ? params.genomes[ params.genome ].bed12 ?: false : false
 params.mito_name = params.genome ? params.genomes[ params.genome ].mito_name ?: false : false
@@ -174,10 +175,10 @@ if( params.gtf ){
     exit 1, "GTF annotation file not specified!"
 }
 
-if( params.bwa_index ){
+if( params.bwa_index_dir ){
     Channel
-        .fromPath("${params.bwa_index}/*.{amb,ann,bwt,pac,sa}", checkIfExists: true)
-        .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index}" }
+        .fromPath(params.bwa_index_dir, checkIfExists: true)
+        .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index_dir}" }
         .into { bwa_index_read1;
                 bwa_index_read2;
                 bwa_index_sai_to_sam }
@@ -293,7 +294,8 @@ summary['Run Name'] = custom_runName ?: workflow.runName
 summary['Genome']                 = params.genome ? params.genome : 'Not supplied'
 summary['Data Type']              = params.singleEnd ? 'Single-End' : 'Paired-End'
 summary['Design File']            = params.design
-if(params.bwa_index)  summary['BWA Index'] = params.bwa_index ? params.bwa_index : 'Not supplied'
+if(params.bwa_index_dir)  summary['BWA Index Directory'] = params.bwa_index_dir ? params.bwa_index_dir : 'Not supplied'
+if(params.bwa_index_dir)  summary['BWA Index Base'] = params.bwa_index_base ? params.bwa_index_base : 'Not supplied'
 summary['Fasta Ref']              = params.fasta
 summary['GTF File']               = params.gtf
 summary['BED12 File']             = params.bed12 ? params.bed12 : 'Not supplied'
@@ -360,23 +362,24 @@ if (!params.macs_gsize){
 /*
  * PREPROCESSING - Build BWA index
  */
-if(!params.bwa_index){
+if(!params.bwa_index_dir){
     process makeBWAindex {
         tag "$fasta"
-        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome/BWAIndex" : params.outdir },
+        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
 
         input:
         file fasta from fasta_bwa_index
 
         output:
-        file "*" into bwa_index_read1,
-                      bwa_index_read2,
-                      bwa_index_sai_to_sam
+        file "BWAIndex" into bwa_index_read1,
+                             bwa_index_read2,
+                             bwa_index_sai_to_sam
 
         script:
         """
         bwa index -a bwtsw $fasta
+        mkdir BWAIndex && mv ${fasta}* BWAIndex
         """
     }
 }
@@ -547,7 +550,7 @@ process bwa_aln_read1 {
 
     input:
     set val(name), file(reads) from trimmed_reads_aln_1
-    file index from bwa_index_read1.collect()
+    file index from bwa_index_read1.first()
 
     output:
     set val(name), file("*.sai") into sai_read1
@@ -555,7 +558,7 @@ process bwa_aln_read1 {
     script:
     sainame = params.singleEnd ? "${name}.sai" : "${name}_1.sai"
     """
-    bwa aln -t $task.cpus ${index[0].toString()[0..-5]} ${reads[0]} > $sainame
+    bwa aln -t $task.cpus ${index}/${params.bwa_index_base} ${reads[0]} > $sainame
     """
 }
 
@@ -570,14 +573,14 @@ if(params.singleEnd){
 
         input:
         set val(name), file(reads) from trimmed_reads_aln_2
-        file index from bwa_index_read2.collect()
+        file index from bwa_index_read2.first()
 
         output:
         set val(name), file("*.sai") into sai_read2
 
         script:
         """
-        bwa aln -t $task.cpus ${index[0].toString()[0..-5]} ${reads[1]} > ${name}_2.sai
+        bwa aln -t $task.cpus ${index}/${params.bwa_index_base} ${reads[1]} > ${name}_2.sai
         """
     }
     sai_to_sam = trimmed_reads_sai_to_sam.join(sai_read1, by: [0])
@@ -593,7 +596,7 @@ process bwa_sai_to_sam {
 
     input:
     set val(name), file(fastqs), file(sais) from sai_to_sam
-    file index from bwa_index_sai_to_sam.collect()
+    file index from bwa_index_sai_to_sam.first()
 
     output:
     set val(name), file("*.sam") into bwa_sam
@@ -602,7 +605,7 @@ process bwa_sai_to_sam {
     command = params.singleEnd ? "bwa samse" : "bwa sampe"
     rg="\'@RG\\tID:${name}\\tSM:${name.toString().subSequence(0, name.length() - 3)}\\tPL:illumina\\tLB:1\\tPU:1\'"
     """
-    $command -r $rg ${index[0].toString()[0..-5]} $sais $fastqs > ${name}.sam
+    $command -r $rg ${index}/${params.bwa_index_base} $sais $fastqs > ${name}.sam
     """
 }
 
