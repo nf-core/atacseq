@@ -26,14 +26,14 @@ def helpMessage() {
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run nf-core/atacseq --design design.csv --genome GRCh37 -profile standard,docker
+    nextflow run nf-core/atacseq --design design.csv --genome GRCh37 -profile docker
 
     Mandatory arguments:
       --design                      Comma-separted file containing information about the samples in the experiment (see docs/usage.md)
       --fasta                       Path to Fasta reference. Not mandatory when using reference in iGenomes config via --genome
       --gtf                         Path to GTF file in Ensembl format. Not mandatory when using reference in iGenomes config via --genome
       -profile                      Configuration profile to use. Can use multiple (comma separated)
-                                    Available: standard, conda, docker, singularity, awsbatch, test
+                                    Available: conda, docker, singularity, awsbatch, test
 
     Generic
       --genome                      Name of iGenomes reference
