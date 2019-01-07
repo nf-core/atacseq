@@ -22,7 +22,8 @@
     * [`--genome`](#--genome)
     * [`--fasta`](#--fasta)
     * [`--gtf`](#--gtf)
-    * [`--bwa_index`](#--bwa_index)
+    * [`--bwa_index_dir`](#--bwa_index_dir)
+    * [`--bwa_index_base`](#--bwa_index_base)
     * [`--bed12`](#--bed12)
     * [`--mito_name`](#--mito_name)
     * [`--macs_gsize`](#--macs_gsize)
@@ -70,7 +71,7 @@ NXF_OPTS='-Xms1g -Xmx4g'
 ## Running the pipeline
 The typical command for running the pipeline is as follows:
 ```bash
-nextflow run nf-core/atacseq --design design.csv --genome GRCh37 -profile standard,docker
+nextflow run nf-core/atacseq --design design.csv --genome GRCh37 -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
@@ -101,7 +102,7 @@ This version number will be logged in reports when you run the pipeline, so that
 ## Main arguments
 
 ### `-profile`
-Use this parameter to choose a configuration profile. Profiles can give configuration presets for different compute environments. Note that multiple profiles can be loaded, for example: `-profile standard,docker` - the order of arguments is important!
+Use this parameter to choose a configuration profile. Profiles can give configuration presets for different compute environments. Note that multiple profiles can be loaded, for example: `-profile docker` - the order of arguments is important!
 
 If `-profile` is not specified at all the pipeline will be run locally and expects all software to be installed and available on the `PATH`.
 
@@ -211,10 +212,16 @@ The full path to GTF file for annotating peaks (*mandatory* if `--genome` is not
 --gtf '[path to GTF file]'
 ```
 
-### `--bwa_index`
-If you prefer, you can specify the full path to an existing BWA index for your reference genome when you run the pipeline.
+### `--bwa_index_dir`
+Directory containing an existing BWA index for your reference genome.
 ```bash
---bwa_index '[path to BWA index]'
+--bwa_index_dir '[directory containing BWA index]'
+```
+
+### `--bwa_index_base`
+Base file name for an existing BWA index for your reference genome. Default: `genome.fa`.
+```bash
+--bwa_index_base '[basename of BWA index]'
 ```
 
 ### `--bed12`
