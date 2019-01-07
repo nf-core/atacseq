@@ -333,6 +333,9 @@ summary['Working dir']            = workflow.workDir
 summary['Output dir']             = params.outdir
 summary['Script dir']             = workflow.projectDir
 summary['Config Profile']         = workflow.profile
+params.config_profile_description ? summary['Config Profile Description'] = params.config_profile_description
+params.config_profile_contact ? summary['Config Profile Contact'] = params.config_profile_contact
+params.config_profile_url ? summary['Config Profile URL'] = params.config_profile_url
 if(workflow.profile == 'awsbatch'){
    summary['AWS Region']          = params.awsregion
    summary['AWS Queue']           = params.awsqueue
@@ -951,8 +954,8 @@ process replicate_bigwig {
     """
     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
-    genomeCoverageBed -ibam ${bam[0]} -bg -trackline -scale \$SCALE_FACTOR $pe_fragment $extend >  ${prefix}.bedGraph
-    wigToBigWig -clip ${prefix}.bedGraph $sizes ${prefix}.bigWig
+    genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -k1,1 -k2,2n >  ${prefix}.bedGraph
+    bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
     """
 }
 
@@ -1338,8 +1341,8 @@ process sample_bigwig {
     """
     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
-    genomeCoverageBed -ibam ${bam[0]} -bg -trackline -scale \$SCALE_FACTOR $pe_fragment $extend >  ${prefix}.bedGraph
-    wigToBigWig -clip ${prefix}.bedGraph $sizes ${prefix}.bigWig
+    genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -k1,1 -k2,2n >  ${prefix}.bedGraph
+    bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
     """
 }
 
