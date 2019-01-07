@@ -302,7 +302,7 @@ summary['BED12 File']             = params.bed12 ? params.bed12 : 'Not supplied'
 if(params.blacklist) summary['Blacklist BED'] = params.blacklist
 summary['Mitochondrial Contig']   = params.mito_name ? params.mito_name : 'Not supplied'
 summary['MACS Genome Size']       = params.macs_gsize ? params.macs_gsize : 'Not supplied'
-if(params.macs_gsize)  summary['MACS narrow peaks'] = params.narrowPeak ? 'Yes' : 'No'
+if(params.macs_gsize)  summary['MACS Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
 if( params.skipTrimming ){
     summary['Trimming Step'] = 'Skipped'
 } else {
@@ -322,28 +322,26 @@ summary['Save Intermeds']         = params.saveAlignedIntermediates ? 'Yes' : 'N
 summary['Max Memory']             = params.max_memory
 summary['Max CPUs']               = params.max_cpus
 summary['Max Time']               = params.max_time
-summary['Output dir']             = params.outdir
-summary['Working dir']            = workflow.workDir
+summary['Output Dir']             = params.outdir
+summary['Working Dir']            = workflow.workDir
 summary['Container Engine']       = workflow.containerEngine
 if(workflow.containerEngine) summary['Container'] = workflow.container
-summary['Current home']           = "$HOME"
-summary['Current user']           = "$USER"
-summary['Current path']           = "$PWD"
-summary['Working dir']            = workflow.workDir
-summary['Output dir']             = params.outdir
-summary['Script dir']             = workflow.projectDir
+summary['Current Home']           = "$HOME"
+summary['Current User']           = "$USER"
+summary['Current Path']           = "$PWD"
+summary['Working Dir']            = workflow.workDir
+summary['Output Dir']             = params.outdir
+summary['Script Dir']             = workflow.projectDir
 summary['Config Profile']         = workflow.profile
-if(params.config_profile_description){
-  summary['Config Profile Description'] = params.config_profile_description
-  summary['Config Profile Contact']     = params.config_profile_contact
-  summary['Config Profile URL']         = params.config_profile_url
-}
+if(params.config_profile_description) summary['Config Description'] = params.config_profile_description
+if(params.config_profile_contact)     summary['Config Contact']     = params.config_profile_contact
+if(params.config_profile_url)         summary['Config URL']         = params.config_profile_url
 if(workflow.profile == 'awsbatch'){
    summary['AWS Region']          = params.awsregion
    summary['AWS Queue']           = params.awsqueue
 }
 if(params.email) summary['E-mail Address'] = params.email
-log.info summary.collect { k,v -> "${k.padRight(23)}: $v" }.join("\n")
+log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
 log.info "========================================="
 
 // Show a big warning message if we're not running MACS
