@@ -1,7 +1,7 @@
 FROM nfcore/base
 
-MAINTAINER Harshil Patel <harshil.patel@crick.ac.uk>
 LABEL authors="harshil.patel@crick.ac.uk" \
+    maintainer="harshil.patel@crick.ac.uk" \
     description="Docker image containing all requirements for the nfcore/atacseq pipeline"
 
 COPY environment.yml /

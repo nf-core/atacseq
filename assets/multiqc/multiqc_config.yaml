@@ -7,6 +7,7 @@ skip_generalstats: true
 
 fn_clean_exts:
     - 'fastq.gz'
+    - '_trimmed'
     - '_val'
     - 'sorted.bam'
     - 'mkD'
@@ -27,6 +28,7 @@ module_order:
         target: ''
         path_filters:
             - '*val*_fastqc.zip'
+            - '*trimmed_fastqc.zip'
     - samtools:
         name: 'SAMTools (library-level; unfiltered)'
         info: 'This section of the report shows SAMTools results at the library-level before read filtering.'

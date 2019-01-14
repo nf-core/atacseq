@@ -26,14 +26,14 @@ def helpMessage() {
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run nf-core/atacseq --design design.csv --genome GRCh37 -profile standard,docker
+    nextflow run nf-core/atacseq --design design.csv --genome GRCh37 -profile docker
 
     Mandatory arguments:
       --design                      Comma-separted file containing information about the samples in the experiment (see docs/usage.md)
       --fasta                       Path to Fasta reference. Not mandatory when using reference in iGenomes config via --genome
       --gtf                         Path to GTF file in Ensembl format. Not mandatory when using reference in iGenomes config via --genome
       -profile                      Configuration profile to use. Can use multiple (comma separated)
-                                    Available: standard, conda, docker, singularity, awsbatch, test, crick
+                                    Available: conda, docker, singularity, awsbatch, test
 
     Generic
       --genome                      Name of iGenomes reference
@@ -42,7 +42,8 @@ def helpMessage() {
       --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 0
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
-      --bwa_index                   Path to BWA index
+      --bwa_index_dir               Directory containing BWA index
+      --bwa_index_base              Basename for BWA index. Default: genome.fa
       --bed12                       Path to bed12 file
       --mito_name                   Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out
 
@@ -105,7 +106,7 @@ if (params.genomes && params.genome && !params.genomes.containsKey(params.genome
 
 // Configurable variables
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
-params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
+params.bwa_index_dir = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
 params.bed12 = params.genome ? params.genomes[ params.genome ].bed12 ?: false : false
 params.mito_name = params.genome ? params.genomes[ params.genome ].mito_name ?: false : false
@@ -123,23 +124,23 @@ if( !(workflow.runName ==~ /[a-z]+_[a-z]+/) ){
 /* --          CONFIG FILES                    -- */
 ////////////////////////////////////////////////////
 
-multiqc_config = file(params.multiqc_config)
-bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
-bamtools_filter_se_config = file(params.bamtools_filter_se_config)
-output_docs = file("$baseDir/docs/output.md")
+multiqc_config_ch = Channel.fromPath(params.multiqc_config)
+bamtools_filter_pe_config_ch = Channel.fromPath(params.bamtools_filter_pe_config)
+bamtools_filter_se_config_ch = Channel.fromPath(params.bamtools_filter_se_config)
+output_docs_ch = Channel.fromPath("$baseDir/docs/output.md")
 
 // Header files for MultiQC custom-content
-replicate_peak_count_header = file("$baseDir/assets/multiqc/replicate_peak_count_header.txt")
-replicate_frip_score_header = file("$baseDir/assets/multiqc/replicate_frip_score_header.txt")
-replicate_peak_annotation_header = file("$baseDir/assets/multiqc/replicate_peak_annotation_header.txt")
-replicate_deseq2_pca_header = file("$baseDir/assets/multiqc/replicate_deseq2_pca_header.txt")
-replicate_deseq2_clustering_header = file("$baseDir/assets/multiqc/replicate_deseq2_clustering_header.txt")
+replicate_peak_count_header_ch = Channel.fromPath("$baseDir/assets/multiqc/replicate_peak_count_header.txt")
+replicate_frip_score_header_ch = Channel.fromPath("$baseDir/assets/multiqc/replicate_frip_score_header.txt")
+replicate_peak_annotation_header_ch = Channel.fromPath("$baseDir/assets/multiqc/replicate_peak_annotation_header.txt")
+replicate_deseq2_pca_header_ch = Channel.fromPath("$baseDir/assets/multiqc/replicate_deseq2_pca_header.txt")
+replicate_deseq2_clustering_header_ch = Channel.fromPath("$baseDir/assets/multiqc/replicate_deseq2_clustering_header.txt")
 
-sample_peak_count_header = file("$baseDir/assets/multiqc/sample_peak_count_header.txt")
-sample_frip_score_header = file("$baseDir/assets/multiqc/sample_frip_score_header.txt")
-sample_peak_annotation_header = file("$baseDir/assets/multiqc/sample_peak_annotation_header.txt")
-sample_deseq2_pca_header = file("$baseDir/assets/multiqc/sample_deseq2_pca_header.txt")
-sample_deseq2_clustering_header = file("$baseDir/assets/multiqc/sample_deseq2_clustering_header.txt")
+sample_peak_count_header_ch = Channel.fromPath("$baseDir/assets/multiqc/sample_peak_count_header.txt")
+sample_frip_score_header_ch = Channel.fromPath("$baseDir/assets/multiqc/sample_frip_score_header.txt")
+sample_peak_annotation_header_ch = Channel.fromPath("$baseDir/assets/multiqc/sample_peak_annotation_header.txt")
+sample_deseq2_pca_header_ch = Channel.fromPath("$baseDir/assets/multiqc/sample_deseq2_pca_header.txt")
+sample_deseq2_clustering_header_ch = Channel.fromPath("$baseDir/assets/multiqc/sample_deseq2_clustering_header.txt")
 
 ////////////////////////////////////////////////////
 /* --          VALIDATE INPUTS                 -- */
@@ -174,10 +175,10 @@ if( params.gtf ){
     exit 1, "GTF annotation file not specified!"
 }
 
-if( params.bwa_index ){
+if( params.bwa_index_dir ){
     Channel
-        .fromPath("${params.bwa_index}/*.{amb,ann,bwt,pac,sa}", checkIfExists: true)
-        .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index}" }
+        .fromPath(params.bwa_index_dir, checkIfExists: true)
+        .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index_dir}" }
         .into { bwa_index_read1;
                 bwa_index_read2;
                 bwa_index_sai_to_sam }
@@ -293,14 +294,15 @@ summary['Run Name'] = custom_runName ?: workflow.runName
 summary['Genome']                 = params.genome ? params.genome : 'Not supplied'
 summary['Data Type']              = params.singleEnd ? 'Single-End' : 'Paired-End'
 summary['Design File']            = params.design
-if(params.bwa_index)  summary['BWA Index'] = params.bwa_index ? params.bwa_index : 'Not supplied'
+if(params.bwa_index_dir)  summary['BWA Index Directory'] = params.bwa_index_dir ? params.bwa_index_dir : 'Not supplied'
+if(params.bwa_index_dir)  summary['BWA Index Base'] = params.bwa_index_base ? params.bwa_index_base : 'Not supplied'
 summary['Fasta Ref']              = params.fasta
 summary['GTF File']               = params.gtf
 summary['BED12 File']             = params.bed12 ? params.bed12 : 'Not supplied'
 if(params.blacklist) summary['Blacklist BED'] = params.blacklist
 summary['Mitochondrial Contig']   = params.mito_name ? params.mito_name : 'Not supplied'
 summary['MACS Genome Size']       = params.macs_gsize ? params.macs_gsize : 'Not supplied'
-if(params.macs_gsize)  summary['MACS narrow peaks'] = params.narrowPeak ? 'Yes' : 'No'
+if(params.macs_gsize)  summary['MACS Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
 if( params.skipTrimming ){
     summary['Trimming Step'] = 'Skipped'
 } else {
@@ -320,23 +322,26 @@ summary['Save Intermeds']         = params.saveAlignedIntermediates ? 'Yes' : 'N
 summary['Max Memory']             = params.max_memory
 summary['Max CPUs']               = params.max_cpus
 summary['Max Time']               = params.max_time
-summary['Output dir']             = params.outdir
-summary['Working dir']            = workflow.workDir
+summary['Output Dir']             = params.outdir
+summary['Working Dir']            = workflow.workDir
 summary['Container Engine']       = workflow.containerEngine
 if(workflow.containerEngine) summary['Container'] = workflow.container
-summary['Current home']           = "$HOME"
-summary['Current user']           = "$USER"
-summary['Current path']           = "$PWD"
-summary['Working dir']            = workflow.workDir
-summary['Output dir']             = params.outdir
-summary['Script dir']             = workflow.projectDir
+summary['Current Home']           = "$HOME"
+summary['Current User']           = "$USER"
+summary['Current Path']           = "$PWD"
+summary['Working Dir']            = workflow.workDir
+summary['Output Dir']             = params.outdir
+summary['Script Dir']             = workflow.projectDir
 summary['Config Profile']         = workflow.profile
+if(params.config_profile_description) summary['Config Description'] = params.config_profile_description
+if(params.config_profile_contact)     summary['Config Contact']     = params.config_profile_contact
+if(params.config_profile_url)         summary['Config URL']         = params.config_profile_url
 if(workflow.profile == 'awsbatch'){
    summary['AWS Region']          = params.awsregion
    summary['AWS Queue']           = params.awsqueue
 }
 if(params.email) summary['E-mail Address'] = params.email
-log.info summary.collect { k,v -> "${k.padRight(23)}: $v" }.join("\n")
+log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
 log.info "========================================="
 
 // Show a big warning message if we're not running MACS
@@ -360,23 +365,24 @@ if (!params.macs_gsize){
 /*
  * PREPROCESSING - Build BWA index
  */
-if(!params.bwa_index){
+if(!params.bwa_index_dir){
     process makeBWAindex {
         tag "$fasta"
-        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome/BWAIndex" : params.outdir },
+        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
 
         input:
         file fasta from fasta_bwa_index
 
         output:
-        file "*" into bwa_index_read1,
-                      bwa_index_read2,
-                      bwa_index_sai_to_sam
+        file "BWAIndex" into bwa_index_read1,
+                             bwa_index_read2,
+                             bwa_index_sai_to_sam
 
         script:
         """
         bwa index -a bwtsw $fasta
+        mkdir BWAIndex && mv ${fasta}* BWAIndex
         """
     }
 }
@@ -403,6 +409,7 @@ if(!params.bed12){
         """
     }
 }
+
 
 /*
  * PREPROCESSING - Prepare genome intervals for filtering
@@ -546,7 +553,7 @@ process bwa_aln_read1 {
 
     input:
     set val(name), file(reads) from trimmed_reads_aln_1
-    file index from bwa_index_read1.collect()
+    file index from bwa_index_read1.first()
 
     output:
     set val(name), file("*.sai") into sai_read1
@@ -554,7 +561,7 @@ process bwa_aln_read1 {
     script:
     sainame = params.singleEnd ? "${name}.sai" : "${name}_1.sai"
     """
-    bwa aln -t $task.cpus ${index[0].toString()[0..-5]} ${reads[0]} > $sainame
+    bwa aln -t $task.cpus ${index}/${params.bwa_index_base} ${reads[0]} > $sainame
     """
 }
 
@@ -569,14 +576,14 @@ if(params.singleEnd){
 
         input:
         set val(name), file(reads) from trimmed_reads_aln_2
-        file index from bwa_index_read2.collect()
+        file index from bwa_index_read2.first()
 
         output:
         set val(name), file("*.sai") into sai_read2
 
         script:
         """
-        bwa aln -t $task.cpus ${index[0].toString()[0..-5]} ${reads[1]} > ${name}_2.sai
+        bwa aln -t $task.cpus ${index}/${params.bwa_index_base} ${reads[1]} > ${name}_2.sai
         """
     }
     sai_to_sam = trimmed_reads_sai_to_sam.join(sai_read1, by: [0])
@@ -592,7 +599,7 @@ process bwa_sai_to_sam {
 
     input:
     set val(name), file(fastqs), file(sais) from sai_to_sam
-    file index from bwa_index_sai_to_sam.collect()
+    file index from bwa_index_sai_to_sam.first()
 
     output:
     set val(name), file("*.sam") into bwa_sam
@@ -601,7 +608,7 @@ process bwa_sai_to_sam {
     command = params.singleEnd ? "bwa samse" : "bwa sampe"
     rg="\'@RG\\tID:${name}\\tSM:${name.toString().subSequence(0, name.length() - 3)}\\tPL:illumina\\tLB:1\\tPU:1\'"
     """
-    $command -r $rg ${index[0].toString()[0..-5]} $sais $fastqs > ${name}.sam
+    $command -r $rg ${index}/${params.bwa_index_base} $sais $fastqs > ${name}.sam
     """
 }
 
@@ -740,8 +747,8 @@ process filter_bam {
     input:
     set val(name), file(bam) from markdup_bam_filter
     file bed from genome_filter_regions.collect()
-    file bamtools_filter_se_config
-    file bamtools_filter_pe_config
+    file bamtools_filter_se_config from bamtools_filter_se_config_ch.collect()
+    file bamtools_filter_pe_config from bamtools_filter_pe_config_ch.collect()
 
     output:
     set val(name), file("*.{bam,bam.bai}") into filter_bam
@@ -770,6 +777,7 @@ process filter_bam {
     $name_sort_bam
     """
 }
+
 
 /*
  * STEP 4.4 remove orphan reads from paired-end BAM
@@ -946,8 +954,8 @@ process replicate_bigwig {
     """
     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
-    genomeCoverageBed -ibam ${bam[0]} -bg -trackline -scale \$SCALE_FACTOR $pe_fragment $extend >  ${prefix}.bedGraph
-    wigToBigWig -clip ${prefix}.bedGraph $sizes ${prefix}.bigWig
+    genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -k1,1 -k2,2n >  ${prefix}.bedGraph
+    bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
     """
 }
 
@@ -996,8 +1004,8 @@ process replicate_macs {
 
     input:
     set val(name), file(bam), file(flagstat) from merge_replicate_bam_macs.join(merge_replicate_flagstat_macs, by: [0])
-    file replicate_peak_count_header
-    file replicate_frip_score_header
+    file replicate_peak_count_header from replicate_peak_count_header_ch.collect()
+    file replicate_frip_score_header from replicate_frip_score_header_ch.collect()
 
     output:
     file "*.{bed,xls,gappedPeak}" into replicate_macs_output
@@ -1068,7 +1076,7 @@ process replicate_macs_qc {
    input:
    file peaks from replicate_macs_peaks_qc.collect{ it[1] }
    file annos from replicate_macs_annotate.collect()
-   file replicate_peak_annotation_header
+   file replicate_peak_annotation_header from replicate_peak_annotation_header_ch.collect()
 
    output:
    file "*.{txt,pdf}" into replicate_macs_qc
@@ -1082,11 +1090,13 @@ process replicate_macs_qc {
    """
    plot_macs_qc.r -i ${peaks.join(',')} \\
                   -s ${peaks.join(',').replaceAll(".${suffix}_peaks${peakext}","")} \\
-                  -o ./ -p macs_peak.${suffix}
+                  -o ./ \\
+                  -p macs_peak.${suffix}
 
    plot_homer_annotatepeaks.r -i ${annos.join(',')} \\
                               -s ${annos.join(',').replaceAll(".${suffix}_peaks.annotatePeaks.txt","")} \\
-                              -o ./ -p macs_annotatePeaks.${suffix}
+                              -o ./ \\
+                              -p macs_annotatePeaks.${suffix}
 
    cat $replicate_peak_annotation_header macs_annotatePeaks.${suffix}.summary.txt > macs_annotatePeaks.${suffix}.summary_mqc.tsv
    """
@@ -1146,8 +1156,8 @@ process replicate_macs_consensus_annotate {
     input:
     file bed from replicate_macs_consensus_bed
     file bool from replicate_macs_consensus_bool
-    file fasta from fasta_replicate_macs_consensus_annotate.collect()
-    file gtf from gtf_replicate_macs_consensus_annotate.collect()
+    file fasta from fasta_replicate_macs_consensus_annotate
+    file gtf from gtf_replicate_macs_consensus_annotate
 
     output:
     file "*.annotatePeaks.txt" into replicate_macs_consensus_annotate
@@ -1177,8 +1187,8 @@ process replicate_macs_consensus_deseq {
     input:
     file bams from replicate_name_bam_replicate_counts.collect{ it[1] }
     file saf from replicate_macs_consensus_saf.collect()
-    file replicate_deseq2_pca_header
-    file replicate_deseq2_clustering_header
+    file replicate_deseq2_pca_header from replicate_deseq2_pca_header_ch.collect()
+    file replicate_deseq2_clustering_header from replicate_deseq2_clustering_header_ch.collect()
 
     output:
     file "*featureCounts.txt" into replicate_macs_consensus_counts
@@ -1189,7 +1199,7 @@ process replicate_macs_consensus_deseq {
     file "*vs*/*.bed" into replicate_macs_consensus_deseq_comp_bed
     file "*.tsv" into replicate_macs_consensus_deseq_mqc
 
-    when: params.macs_gsize && multiple_samples
+    when: params.macs_gsize && multiple_samples && replicates_exist
 
     script:
     prefix="consensus_peaks.mRp"
@@ -1331,8 +1341,8 @@ process sample_bigwig {
     """
     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
-    genomeCoverageBed -ibam ${bam[0]} -bg -trackline -scale \$SCALE_FACTOR $pe_fragment $extend >  ${prefix}.bedGraph
-    wigToBigWig -clip ${prefix}.bedGraph $sizes ${prefix}.bigWig
+    genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -k1,1 -k2,2n >  ${prefix}.bedGraph
+    bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
     """
 }
 
@@ -1383,8 +1393,8 @@ process sample_macs {
 
     input:
     set val(name), file(bam), file(flagstat) from merge_sample_bam_macs.join(merge_sample_flagstat_macs, by: [0])
-    file sample_peak_count_header
-    file sample_frip_score_header
+    file sample_peak_count_header from sample_peak_count_header_ch.collect()
+    file sample_frip_score_header from sample_frip_score_header_ch.collect()
 
     output:
     file "*.{bed,xls,gappedPeak}" into sample_macs_output
@@ -1394,7 +1404,7 @@ process sample_macs {
                                           sample_macs_peaks_igv
     file "*_mqc.tsv" into sample_macs_peak_mqc
 
-    when: !skipMergeBySample && params.macs_gsize && replicates_exist
+    when: !skipMergeBySample && replicates_exist && params.macs_gsize
 
     script:
     prefix="${name}.mSm"
@@ -1433,7 +1443,7 @@ process sample_macs_annotate {
     output:
     file "*.txt" into sample_macs_annotate
 
-    when: !skipMergeBySample && params.macs_gsize && replicates_exist
+    when: !skipMergeBySample && replicates_exist && params.macs_gsize
 
     script:
     prefix="${name}.mSm"
@@ -1455,13 +1465,13 @@ process sample_macs_qc {
    input:
    file peaks from sample_macs_peaks_qc.collect{ it[1] }
    file annos from sample_macs_annotate.collect()
-   file sample_peak_annotation_header
+   file sample_peak_annotation_header from sample_peak_annotation_header_ch.collect()
 
    output:
    file "*.{txt,pdf}" into sample_macs_qc
    file "*.tsv" into sample_macs_qc_mqc
 
-   when: params.macs_gsize
+   when: !skipMergeBySample && replicates_exist && params.macs_gsize
 
    script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
    suffix='mSm'
@@ -1469,11 +1479,13 @@ process sample_macs_qc {
    """
    plot_macs_qc.r -i ${peaks.join(',')} \\
                   -s ${peaks.join(',').replaceAll(".${suffix}_peaks${peakext}","")} \\
-                  -o ./ -p macs_peak.${suffix}
+                  -o ./ \\
+                  -p macs_peak.${suffix}
 
    plot_homer_annotatepeaks.r -i ${annos.join(',')} \\
                               -s ${annos.join(',').replaceAll(".${suffix}_peaks.annotatePeaks.txt","")} \\
-                              -o ./ -p macs_annotatePeaks.${suffix}
+                              -o ./ \\
+                              -p macs_annotatePeaks.${suffix}
 
    cat $sample_peak_annotation_header macs_annotatePeaks.${suffix}.summary.txt > macs_annotatePeaks.${suffix}.summary_mqc.tsv
    """
@@ -1495,7 +1507,7 @@ process sample_macs_consensus {
     file "*.saf" into sample_macs_consensus_saf
     file "*.intersect.{txt,plot.pdf}" into sample_macs_consensus_intersect
 
-    when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
+    when: !skipMergeBySample && replicates_exist && params.macs_gsize && multiple_samples
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     suffix='mSm'
@@ -1533,13 +1545,13 @@ process sample_macs_consensus_annotate {
     input:
     file bed from sample_macs_consensus_bed
     file bool from sample_macs_consensus_bool
-    file fasta from fasta_sample_macs_consensus_annotate.collect()
-    file gtf from gtf_sample_macs_consensus_annotate.collect()
+    file fasta from fasta_sample_macs_consensus_annotate
+    file gtf from gtf_sample_macs_consensus_annotate
 
     output:
     file "*.annotatePeaks.txt" into sample_macs_consensus_annotate
 
-    when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
+    when: !skipMergeBySample && replicates_exist && params.macs_gsize && multiple_samples
 
     script:
     prefix="consensus_peaks.mSm"
@@ -1564,8 +1576,8 @@ process sample_macs_consensus_deseq {
     input:
     file bams from replicate_name_bam_sample_counts.collect{ it[1] }
     file saf from sample_macs_consensus_saf.collect()
-    file sample_deseq2_pca_header
-    file sample_deseq2_clustering_header
+    file sample_deseq2_pca_header from sample_deseq2_pca_header_ch.collect()
+    file sample_deseq2_clustering_header from sample_deseq2_clustering_header_ch.collect()
 
     output:
     file "*featureCounts.txt" into sample_macs_consensus_counts
@@ -1576,7 +1588,7 @@ process sample_macs_consensus_deseq {
     file "*vs*/*.bed" into sample_macs_consensus_deseq_comp_bed
     file "*.tsv" into sample_macs_consensus_deseq_mqc
 
-    when: !skipMergeBySample && params.macs_gsize && replicates_exist && multiple_samples
+    when: !skipMergeBySample && replicates_exist && params.macs_gsize && multiple_samples
 
     script:
     prefix="consensus_peaks.mSm"
@@ -1663,7 +1675,7 @@ process multiqc {
     publishDir "${params.outdir}/multiqc", mode: 'copy'
 
     input:
-    file multiqc_config
+    file multiqc_config from multiqc_config_ch.collect()
     file ('fastqc/*') from fastqc_reports_mqc.collect()
     file ('trimgalore/*') from trimgalore_results_mqc.collect()
     file ('trimgalore/fastqc/*') from trimgalore_fastqc_reports_mqc.collect()
@@ -1750,7 +1762,7 @@ process output_documentation {
     publishDir "${params.outdir}/Documentation", mode: 'copy'
 
     input:
-    file output_docs
+    file output_docs from output_docs_ch
 
     output:
     file "results_description.html"
