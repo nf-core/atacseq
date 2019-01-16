@@ -5,7 +5,7 @@ INPUT_DIR=$1	## Path to input directory
 FILE_GROUP=$2 	## File group identified
 
 ## CONSENSUS PEAKS
-find -L $INPUT_DIR -type f -iname "consensus*$FILE_GROUP*" | cut -c 2- | awk -v OFS='\t' '{ print "RESULTS_DIR"$1, "0.0.0" }'
+find -L $INPUT_DIR -type f -iname "consensus*$FILE_GROUP*" | cut -c 2- | awk -v OFS='\t' '{ print "RESULTS_DIR"$1, "0,0,0" }'
 
 ## DIFFERENTIAL INTERVALS FOR FDR <= 0.01
 for fpath in $(find -L $INPUT_DIR -type f -iname "*$FILE_GROUP*" | grep "FDR" | grep -Ev "FC2|FDR0.05" | sort | cut -c 2-)
@@ -19,4 +19,3 @@ for fpath in $(find -L $INPUT_DIR -type f -iname "*$FILE_GROUP*" | grep "FDR" | 
 
 ## PEAK AND BIGWIG FILES AT SAMPLE-LEVEL
 find -L $INPUT_DIR -type f -iname "*$FILE_GROUP*" | grep -Ev "consensus|FDR" | sort | cut -c 2- | awk -v OFS='\t' '{ print "RESULTS_DIR"$1, "0,0,178" }'
-
