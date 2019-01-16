@@ -209,8 +209,8 @@ File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.m
         * `R_sessionInfo.log` file containing information about R, the OS and attached or loaded packages.
     * `bwa/replicate/macs2/consensus/<COMPARISON>/`  
         * `*.results.txt` spreadsheet containing comparison-specific DESeq2 output for differential accessibility results across all peaks.   
-        * Subset of above file for peaks that pass FDR <= 0.01 (`*FDR0.01.results.txt`), FDR <= 0.01 and fold-change >= 2 (`*FDR0.01.FC2.results.txt`), FDR <= 0.05 (`*FDR0.05.results.txt`) and FDR <= 0.05 and fold-change >= 2 (`*FDR0.05.FC2.results.txt`).  
-        * BED files for peaks that pass FDR <= 0.01 (`*FDR0.01.results.bed`), FDR <= 0.01 and fold-change >= 2 (`*FDR0.01.FC2.results.bed`), FDR <= 0.05 (`*FDR0.05.results.bed`) and FDR <= 0.05 and fold-change >= 2 (`*FDR0.05.FC2.results.bed`).
+        * Subset of above file for peaks that pass FDR <= 0.01 (`*FDR0.01.results.txt`) and FDR <= 0.05 (`*FDR0.05.results.txt`).  
+        * BED files for peaks that pass FDR <= 0.01 (`*FDR0.01.results.bed`) and FDR <= 0.05 (`*FDR0.05.results.bed`).
         * MA, Volcano, clustering and scatterplots at FDR <= 0.01 and FDR <= 0.05: `*deseq2.plots.pdf`.  
     * `bwa/replicate/macs2/consensus/sizeFactors/`  
       Files containing DESeq2 sizeFactors per sample: `*.txt` and `*.RData`.
