@@ -115,22 +115,7 @@ File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.m
     * `bwa/replicate/bigwig/`  
       Normalised `*.bigWig` files scaled to 1 million mapped reads.
 
-3. **TSS meta-profiles**
-
-    *Software*:  
-    [deepTools](https://deeptools.readthedocs.io/en/develop/)  
-
-    *Description*:  
-    Transcription start site (TSS) enrichment is another QC measure which is useful to ATAC-seq datasets. In theory, the open chromatin regions denoted by ATAC-seq signal should be enriched within the promoter regions of genes.
-
-    *Output directories*:
-    * `bwa/replicate/deeptools/`  
-      TSS meta-profile `*.png` plot for coverage across all genes. Generated with deepTools *computeMatrix* and *plotProfile* commands.
-
-    *Plots*:  
-    [deepTools - TSS meta-profile plot](images/deeptools_tss_plot.png)
-
-4. **Call peaks**
+3. **Call peaks**
 
     *Software*:  
     [MACS2](https://github.com/taoliu/MACS), [HOMER](http://homer.ucsd.edu/homer/download.html), [R](https://www.r-project.org/)
@@ -161,7 +146,7 @@ File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.m
     [MultiQC - MACS2 peaks FRiP score plot](images/mqc_frip_score_plot.png)  
     [MultiQC - HOMER annotatePeaks peak to genomic feature ratio plot](images/mqc_annotatePeaks_feature_percentage_plot.png)  
 
-5. **Create consensus set of peaks**
+4. **Create consensus set of peaks**
 
     *Software*:  
     [BEDTools](https://github.com/arq5x/bedtools2/)
@@ -185,7 +170,7 @@ File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.m
     *Plots*:  
     [R - UpSetR peak intersection plot](images/r_upsetr_intersect_plot.png)
 
-6. **Read counting and differential accessibility analysis**
+5. **Read counting and differential accessibility analysis**
 
     *Software*:  
     [featureCounts](http://bioinf.wehi.edu.au/featureCounts/), [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html), [R](https://www.r-project.org/),

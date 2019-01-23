@@ -189,9 +189,7 @@ if( params.gene_bed ){
     Channel
         .fromPath(params.gene_bed, checkIfExists: true)
         .ifEmpty { exit 1, "Gene BED annotation file not found: ${params.gene_bed}" }
-        .into { gene_to_tss_bed;
-                gene_bed_replicate_deeptools;
-                gene_bed_sample_deeptools }
+        .set { gene_to_tss_bed }
 }
 
 if( params.tss_bed ){
@@ -410,9 +408,7 @@ if(!params.gene_bed){
         file gtf from gtf_gene_bed
 
         output:
-        file "*.bed" into gene_to_tss_bed,
-                          gene_bed_replicate_deeptools,
-                          gene_bed_sample_deeptools
+        file "*.bed" into gene_to_tss_bed
 
         script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
         """
@@ -978,8 +974,7 @@ process replicate_bigwig {
     file sizes from genome_replicate_bigwig.collect()
 
     output:
-    file "*.bigWig" into replicate_bigwig,
-                         replicate_bigwig_igv
+    file "*.bigWig" into replicate_bigwig_igv
     file "*.txt" into replicate_bigwig_scale
 
     script:
@@ -995,39 +990,7 @@ process replicate_bigwig {
 }
 
 /*
- * STEP 5.4 generate TSS profiles with deeptools
- */
-process replicate_tss_plot {
-    publishDir "${params.outdir}/bwa/replicate/deeptools", mode: 'copy'
-
-    input:
-    file bigwigs from replicate_bigwig.collect()
-    file bed from gene_bed_replicate_deeptools.collect()
-
-    output:
-    file "*.png" into replicate_tss_plot
-
-    script:
-    suffix='mRp'
-    prefix="plotProfile.${suffix}"
-    """
-    computeMatrix reference-point \\
-                  -R $bed \\
-                  -S ${bigwigs.collect{it.toString()}.sort().join(' ')} \\
-                  --samplesLabel ${bigwigs.collect{it.toString()}.sort().join(' ').replaceAll(".${suffix}.bigWig","")} \\
-                  -out ${prefix}.TSS.mat.gz \\
-                  --referencePoint TSS \\
-                  -a 3000 \\
-                  -b 3000 \\
-                  -p $task.cpus
-
-    plotProfile -m ${prefix}.TSS.mat.gz \\
-                -out ${prefix}.TSS.png
-    """
-}
-
-/*
- * STEP 5.5.1 Call peaks with MACS2 and calculate FRiP score
+ * STEP 5.4.1 Call peaks with MACS2 and calculate FRiP score
  */
 process replicate_macs {
     tag "$name"
@@ -1076,7 +1039,7 @@ process replicate_macs {
 }
 
 /*
- * STEP 5.5.2 annotate peaks with homer
+ * STEP 5.4.2 annotate peaks with homer
  */
 process replicate_macs_annotate {
     tag "$name"
@@ -1104,7 +1067,7 @@ process replicate_macs_annotate {
 }
 
 /*
- * STEP 5.5.3 aggregated qc plots for peaks, frip and annotation
+ * STEP 5.4.3 aggregated qc plots for peaks, frip and annotation
  */
 process replicate_macs_qc {
    publishDir "${params.outdir}/bwa/replicate/macs/qc", mode: 'copy'
@@ -1139,7 +1102,7 @@ process replicate_macs_qc {
 }
 
 // /*
-//  * STEP 5.6.1 run ataqv on each sample BAM and corresponding peaks
+//  * STEP 5.5.1 run ataqv on each sample BAM and corresponding peaks
 //  */
 // process replicate_ataqv {
 //    publishDir "${params.outdir}/bwa/replicate/ataqv", mode: 'copy'
@@ -1169,7 +1132,7 @@ process replicate_macs_qc {
 // }
 
 // /*
-//  * STEP 5.6.2 run ataqv mkarv on each json output to render web app
+//  * STEP 5.5.2 run ataqv mkarv on each json output to render web app
 //  */
 // process replicate_ataqv_mkarv {
 //    publishDir "${params.outdir}/bwa/replicate/ataqv/html", mode: 'copy'
@@ -1190,7 +1153,7 @@ process replicate_macs_qc {
 // }
 
 /*
- * STEP 5.7.1 consensus peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
+ * STEP 5.6.1 consensus peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
  */
 process replicate_macs_consensus {
     publishDir "${params.outdir}/bwa/replicate/macs/consensus", mode: 'copy'
@@ -1235,7 +1198,7 @@ process replicate_macs_consensus {
 }
 
 /*
- * STEP 5.7.2 annotate consensus peaks with homer, and add annotation to boolean output file
+ * STEP 5.6.2 annotate consensus peaks with homer, and add annotation to boolean output file
  */
 process replicate_macs_consensus_annotate {
     publishDir "${params.outdir}/bwa/replicate/macs/consensus", mode: 'copy'
@@ -1266,7 +1229,7 @@ process replicate_macs_consensus_annotate {
 }
 
 /*
- * STEP 5.7.3 count reads in consensus peaks with featurecounts and perform differential analysis
+ * STEP 5.6.3 count reads in consensus peaks with featurecounts and perform differential analysis
  */
 process replicate_macs_consensus_deseq {
     publishDir "${params.outdir}/bwa/replicate/macs/consensus/deseq2", mode: 'copy'
@@ -1415,8 +1378,7 @@ process sample_bigwig {
     file sizes from genome_sample_bigwig.collect()
 
     output:
-    file "*.bigWig" into sample_bigwig,
-                         sample_bigwig_igv
+    file "*.bigWig" into sample_bigwig_igv
     file "*.txt" into sample_bigwig_scale
 
     when: !skipMergeBySample && replicates_exist
@@ -1434,41 +1396,7 @@ process sample_bigwig {
 }
 
 /*
- * STEP 6.3 generate TSS profiles with deeptools
- */
-process sample_tss_plot {
-    publishDir "${params.outdir}/bwa/sample/deeptools", mode: 'copy'
-
-    input:
-    file bigwigs from sample_bigwig.collect()
-    file bed from gene_bed_sample_deeptools.collect()
-
-    output:
-    file "*.png" into sample_tss_plot
-
-    when: !skipMergeBySample && replicates_exist
-
-    script:
-    suffix='mSm'
-    prefix="plotProfile.${suffix}"
-    """
-    computeMatrix reference-point \\
-                  -R $bed \\
-                  -S ${bigwigs.collect{it.toString()}.sort().join(' ')} \\
-                  --samplesLabel ${bigwigs.collect{it.toString()}.sort().join(' ').replaceAll(".${suffix}.bigWig","")} \\
-                  -out ${prefix}.TSS.mat.gz \\
-                  --referencePoint TSS \\
-                  -a 3000 \\
-                  -b 3000 \\
-                  -p $task.cpus
-
-    plotProfile -m ${prefix}.TSS.mat.gz \\
-                -out ${prefix}.TSS.png
-    """
-}
-
-/*
- * STEP 6.4.1 Call peaks with MACS2 and calculate FRiP score
+ * STEP 6.3.1 Call peaks with MACS2 and calculate FRiP score
  */
 process sample_macs {
     tag "$name"
@@ -1516,7 +1444,7 @@ process sample_macs {
 }
 
 /*
- * STEP 6.4.2 annotate peaks with homer
+ * STEP 6.3.2 annotate peaks with homer
  */
 process sample_macs_annotate {
     tag "$name"
@@ -1544,7 +1472,7 @@ process sample_macs_annotate {
 }
 
 /*
- * STEP 6.4.3 aggregated qc plots for peaks, frip and annotation
+ * STEP 6.3.3 aggregated qc plots for peaks, frip and annotation
  */
 process sample_macs_qc {
    publishDir "${params.outdir}/bwa/sample/macs/qc", mode: 'copy'
@@ -1579,7 +1507,7 @@ process sample_macs_qc {
 }
 
 /*
- * STEP 6.5.1 consensus peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
+ * STEP 6.4.1 consensus peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
  */
 process sample_macs_consensus {
     publishDir "${params.outdir}/bwa/sample/macs/consensus", mode: 'copy'
@@ -1624,7 +1552,7 @@ process sample_macs_consensus {
 }
 
 /*
- * STEP 6.5.2 annotate consensus peaks with homer, and add annotation to boolean output file
+ * STEP 6.4.2 annotate consensus peaks with homer, and add annotation to boolean output file
  */
 process sample_macs_consensus_annotate {
     publishDir "${params.outdir}/bwa/sample/macs/consensus", mode: 'copy'
@@ -1655,7 +1583,7 @@ process sample_macs_consensus_annotate {
 }
 
 /*
- * STEP 6.5.3 count reads in consensus peaks with featurecounts
+ * STEP 6.4.3 count reads in consensus peaks with featurecounts
  */
 process sample_macs_consensus_deseq {
     publishDir "${params.outdir}/bwa/sample/macs/consensus/deseq2", mode: 'copy'
@@ -1750,7 +1678,6 @@ process get_software_versions {
     touch v_homer.txt
     #ataqv --version > v_ataqv.txt
     echo \$(featureCounts -v 2>&1) > v_featurecounts.txt
-    echo \$(computeMatrix --version 2>&1) > v_deeptools.txt
     multiqc --version > v_multiqc.txt
     scrape_software_versions.py > software_versions_mqc.yaml
     """

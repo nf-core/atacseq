@@ -38,7 +38,6 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
     * re-mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
     * remove duplicate reads ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
     * create normalised bigWig files scaled to 1 million mapped reads ([`BEDTools`](https://github.com/arq5x/bedtools2/), [`wigToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
-    * generate TSS meta-profiles across all genes ([`deepTools`](https://deeptools.readthedocs.io/en/develop/))
     * call narrow/broad peaks ([`MACS2`](https://github.com/taoliu/MACS))
     * annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
     * generate ATAC-seq specific QC html report ([`ataqv`](https://github.com/ParkerLab/ataqv); *replicate-level only*)
