@@ -48,7 +48,7 @@ def helpMessage() {
       --tss_bed                     Path to BED file containing transcription start sites (used by ataqv)
       --mito_name                   Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out
 
-      --macs_gsize                  Effective genome size parameter required by MACS2. If using igenomes config, values have only been provided when --genome is set as GRCh37, GRCm38, hg19, mm10, BDGP6 and WBcel235
+      --macs_gsize                  Effective genome size parameter required by MACS2. If using iGenomes config, values have only been provided when --genome is set as GRCh37, GRCm38, hg19, mm10, BDGP6 and WBcel235
       --blacklist                   Path to blacklist regions (.BED format), used for filtering alignments
       --saveReference               Save the generated reference files in the Results directory
 
@@ -396,7 +396,7 @@ if(!params.bwa_index_dir){
 }
 
 /*
- * PREPROCESSING - Build Gene BED file
+ * PREPROCESSING - Generate gene BED file
  */
 if(!params.gene_bed){
     process makeGeneBED {
@@ -418,7 +418,7 @@ if(!params.gene_bed){
 }
 
 /*
- * PREPROCESSING - Build TSS BED file
+ * PREPROCESSING - Generate TSS BED file
  */
 if(!params.tss_bed){
     process makeTSSBED {
@@ -576,7 +576,7 @@ if(params.skipTrimming){
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 3.1 - align read 1 with bwa
+ * STEP 3.1 - Align read 1 with bwa
  */
 process bwa_aln_read1 {
     tag "$name"
@@ -596,7 +596,7 @@ process bwa_aln_read1 {
 }
 
 /*
- * STEP 3.2 - align read 2 with bwa
+ * STEP 3.2 - Align read 2 with bwa
  */
 if(params.singleEnd){
     sai_to_sam = trimmed_reads_sai_to_sam.join(sai_read1, by: [0])
@@ -622,7 +622,7 @@ if(params.singleEnd){
 }
 
 /*
- * STEP 3.3 - convert .sai to .sam
+ * STEP 3.3 - Convert .sai to .sam
  */
 process bwa_sai_to_sam {
     tag "$name"
@@ -643,7 +643,7 @@ process bwa_sai_to_sam {
 }
 
 /*
- * STEP 3.4 - convert .sam to coordinate sorted .bam
+ * STEP 3.4 - Convert .sam to coordinate sorted .bam
  */
 process bwa_bam {
     tag "$name"
@@ -679,7 +679,7 @@ process bwa_bam {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 4.1 - picard mark duplicates at library-level
+ * STEP 4.1 - Picard MarkDuplicates at library-level
  */
 process markdup {
     tag "$name"
@@ -725,7 +725,7 @@ process markdup {
 }
 
 /*
- * STEP 4.2 picard collectmultiplemetrics at library-level
+ * STEP 4.2 Picard CollectMultipleMetrics at library-level
  */
 process markdup_collectmetrics {
     tag "$name"
@@ -763,7 +763,7 @@ process markdup_collectmetrics {
 }
 
 /*
- * STEP 4.3 filter bam
+ * STEP 4.3 Filter BAM file at library-level
  */
 process filter_bam {
     tag "$name"
@@ -810,7 +810,7 @@ process filter_bam {
 
 
 /*
- * STEP 4.4 remove orphan reads from paired-end BAM
+ * STEP 4.4 Remove orphan reads from paired-end BAM file
  */
 if(params.singleEnd){
     filter_bam.into { rm_orphan_bam_replicate;
@@ -853,7 +853,7 @@ if(params.singleEnd){
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 5.1 merge bam files for all libraries from same replicate
+ * STEP 5.1 Merge BAM files for all libraries from same replicate
  */
 rm_orphan_bam_replicate.map { it -> [ it[0].toString().subSequence(0, it[0].length() - 3), it[1] ] }
                        .groupTuple(by: [0])
@@ -925,7 +925,7 @@ process merge_replicate {
 }
 
 /*
- * STEP 5.2 sort paired-end merged bam file by name for featurecounts
+ * STEP 5.2 Sort paired-end merged BAM file by name for featureCounts
  */
 if(params.singleEnd){
     merge_replicate_bam.into { replicate_name_bam_replicate_counts;
@@ -1039,7 +1039,7 @@ process replicate_macs {
 }
 
 /*
- * STEP 5.4.2 annotate peaks with homer
+ * STEP 5.4.2 Annotate peaks with HOMER
  */
 process replicate_macs_annotate {
     tag "$name"
@@ -1067,7 +1067,7 @@ process replicate_macs_annotate {
 }
 
 /*
- * STEP 5.4.3 aggregated qc plots for peaks, frip and annotation
+ * STEP 5.4.3 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
 process replicate_macs_qc {
    publishDir "${params.outdir}/bwa/replicate/macs/qc", mode: 'copy'
@@ -1102,7 +1102,7 @@ process replicate_macs_qc {
 }
 
 // /*
-//  * STEP 5.5.1 run ataqv on each sample BAM and corresponding peaks
+//  * STEP 5.5.1 Run ataqv on BAM file and corresponding peaks
 //  */
 // process replicate_ataqv {
 //    publishDir "${params.outdir}/bwa/replicate/ataqv", mode: 'copy'
@@ -1132,7 +1132,7 @@ process replicate_macs_qc {
 // }
 
 // /*
-//  * STEP 5.5.2 run ataqv mkarv on each json output to render web app
+//  * STEP 5.5.2 run ataqv mkarv on all JSON files to render web app
 //  */
 // process replicate_ataqv_mkarv {
 //    publishDir "${params.outdir}/bwa/replicate/ataqv/html", mode: 'copy'
@@ -1153,7 +1153,7 @@ process replicate_macs_qc {
 // }
 
 /*
- * STEP 5.6.1 consensus peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
+ * STEP 5.6.1 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
 process replicate_macs_consensus {
     publishDir "${params.outdir}/bwa/replicate/macs/consensus", mode: 'copy'
@@ -1198,7 +1198,7 @@ process replicate_macs_consensus {
 }
 
 /*
- * STEP 5.6.2 annotate consensus peaks with homer, and add annotation to boolean output file
+ * STEP 5.6.2 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
 process replicate_macs_consensus_annotate {
     publishDir "${params.outdir}/bwa/replicate/macs/consensus", mode: 'copy'
@@ -1229,7 +1229,7 @@ process replicate_macs_consensus_annotate {
 }
 
 /*
- * STEP 5.6.3 count reads in consensus peaks with featurecounts and perform differential analysis
+ * STEP 5.6.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
  */
 process replicate_macs_consensus_deseq {
     publishDir "${params.outdir}/bwa/replicate/macs/consensus/deseq2", mode: 'copy'
@@ -1282,7 +1282,7 @@ process replicate_macs_consensus_deseq {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 6.1 merge bam files for all libraries from same sample
+ * STEP 6.1 Merge BAM files for all libraries from same sample
  */
 rm_orphan_bam_sample.map { it -> [ it[0].toString().subSequence(0, it[0].length() - 6), it[1] ] }
                     .groupTuple(by: [0])
@@ -1444,7 +1444,7 @@ process sample_macs {
 }
 
 /*
- * STEP 6.3.2 annotate peaks with homer
+ * STEP 6.3.2 Annotate peaks with HOMER
  */
 process sample_macs_annotate {
     tag "$name"
@@ -1472,7 +1472,7 @@ process sample_macs_annotate {
 }
 
 /*
- * STEP 6.3.3 aggregated qc plots for peaks, frip and annotation
+ * STEP 6.3.3 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
 process sample_macs_qc {
    publishDir "${params.outdir}/bwa/sample/macs/qc", mode: 'copy'
@@ -1507,7 +1507,7 @@ process sample_macs_qc {
 }
 
 /*
- * STEP 6.4.1 consensus peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
+ * STEP 6.4.1 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
 process sample_macs_consensus {
     publishDir "${params.outdir}/bwa/sample/macs/consensus", mode: 'copy'
@@ -1552,7 +1552,7 @@ process sample_macs_consensus {
 }
 
 /*
- * STEP 6.4.2 annotate consensus peaks with homer, and add annotation to boolean output file
+ * STEP 6.4.2 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
 process sample_macs_consensus_annotate {
     publishDir "${params.outdir}/bwa/sample/macs/consensus", mode: 'copy'
@@ -1583,7 +1583,7 @@ process sample_macs_consensus_annotate {
 }
 
 /*
- * STEP 6.4.3 count reads in consensus peaks with featurecounts
+ * STEP 6.4.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
  */
 process sample_macs_consensus_deseq {
     publishDir "${params.outdir}/bwa/sample/macs/consensus/deseq2", mode: 'copy'
@@ -1771,7 +1771,7 @@ process igv {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 9 - Output Description HTML
+ * STEP 9 - Output description HTML
  */
 process output_documentation {
     publishDir "${params.outdir}/Documentation", mode: 'copy'
