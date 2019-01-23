@@ -17,6 +17,7 @@ regexes = {
     'Pysam': ['v_pysam.txt', r"(\S+)"],
     'MACS2': ['v_macs2.txt', r"macs2 (\S+)"],
     'HOMER': ['v_homer.txt', r"(\S+)"],
+    'ataqv': ['v_ataqv.txt', r"(\S+)"],
     'featureCounts': ['v_featurecounts.txt', r"featureCounts v(\S+)"],
     'deepTools': ['v_deeptools.txt', r"computeMatrix (\S+)"],
     'MultiQC': ['v_multiqc.txt', r"multiqc, version (\S+)"],
@@ -36,6 +37,7 @@ results['R'] = '<span style="color:#999999;\">N/A</span>'
 results['Pysam'] = '<span style="color:#999999;\">N/A</span>'
 results['MACS2'] = '<span style="color:#999999;\">N/A</span>'
 results['HOMER'] = '<span style="color:#999999;\">N/A</span>'
+results['ataqv'] = '<span style="color:#999999;\">N/A</span>'
 results['featureCounts'] = '<span style="color:#999999;\">N/A</span>'
 results['deepTools'] = '<span style="color:#999999;\">N/A</span>'
 results['MultiQC'] = '<span style="color:#999999;\">N/A</span>'

@@ -44,7 +44,8 @@ def helpMessage() {
     References                      If not specified in the configuration file or you wish to overwrite any of the references
       --bwa_index_dir               Directory containing BWA index
       --bwa_index_base              Basename for BWA index. Default: genome.fa
-      --bed12                       Path to bed12 file
+      --gene_bed                    Path to BED file containing gene intervals
+      --tss_bed                     Path to BED file containing transcription start sites (used by ataqv)
       --mito_name                   Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out
 
       --macs_gsize                  Effective genome size parameter required by MACS2. If using igenomes config, values have only been provided when --genome is set as GRCh37, GRCm38, hg19, mm10, BDGP6 and WBcel235
@@ -108,7 +109,7 @@ if (params.genomes && params.genome && !params.genomes.containsKey(params.genome
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
 params.bwa_index_dir = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
-params.bed12 = params.genome ? params.genomes[ params.genome ].bed12 ?: false : false
+params.gene_bed = params.genome ? params.genomes[ params.genome ].gene_bed ?: false : false
 params.mito_name = params.genome ? params.genomes[ params.genome ].mito_name ?: false : false
 params.macs_gsize = params.genome ? params.genomes[ params.genome ].macs_gsize ?: false : false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
@@ -166,7 +167,7 @@ if( params.gtf ){
     Channel
         .fromPath(params.gtf, checkIfExists: true)
         .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
-        .into { gtf_makeBED12;
+        .into { gtf_gene_bed;
                 gtf_replicate_macs_annotate;
                 gtf_replicate_macs_consensus_annotate;
                 gtf_sample_macs_annotate;
@@ -184,12 +185,20 @@ if( params.bwa_index_dir ){
                 bwa_index_sai_to_sam }
 }
 
-if( params.bed12 ){
+if( params.gene_bed ){
     Channel
-        .fromPath(params.bed12, checkIfExists: true)
-        .ifEmpty { exit 1, "BED12 annotation file not found: ${params.bed12}" }
-        .into { bed12_replicate_deeptools;
-                bed12_sample_deeptools }
+        .fromPath(params.gene_bed, checkIfExists: true)
+        .ifEmpty { exit 1, "Gene BED annotation file not found: ${params.gene_bed}" }
+        .into { gene_to_tss_bed;
+                gene_bed_replicate_deeptools;
+                gene_bed_sample_deeptools }
+}
+
+if( params.tss_bed ){
+    Channel
+        .fromPath(params.tss_bed, checkIfExists: true)
+        .ifEmpty { exit 1, "TSS BED annotation file not found: ${params.tss_bed}" }
+        .set { tss_bed_ataqv }
 }
 
 if ( params.blacklist ) {
@@ -298,7 +307,8 @@ if(params.bwa_index_dir)  summary['BWA Index Directory'] = params.bwa_index_dir 
 if(params.bwa_index_dir)  summary['BWA Index Base'] = params.bwa_index_base ? params.bwa_index_base : 'Not supplied'
 summary['Fasta Ref']              = params.fasta
 summary['GTF File']               = params.gtf
-summary['BED12 File']             = params.bed12 ? params.bed12 : 'Not supplied'
+summary['Gene BED File']          = params.gene_bed ? params.gene_bed : 'Not supplied'
+summary['TSS BED File']           = params.tss_bed ? params.tss_bed : 'Not supplied'
 if(params.blacklist) summary['Blacklist BED'] = params.blacklist
 summary['Mitochondrial Contig']   = params.mito_name ? params.mito_name : 'Not supplied'
 summary['MACS Genome Size']       = params.macs_gsize ? params.macs_gsize : 'Not supplied'
@@ -388,20 +398,21 @@ if(!params.bwa_index_dir){
 }
 
 /*
- * PREPROCESSING - Build BED12 file
+ * PREPROCESSING - Build Gene BED file
  */
-if(!params.bed12){
-    process makeBED12 {
+if(!params.gene_bed){
+    process makeGeneBED {
         tag "$gtf"
         publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
 
         input:
-        file gtf from gtf_makeBED12
+        file gtf from gtf_gene_bed
 
         output:
-        file "*.bed" into bed12_replicate_deeptools,
-                          bed12_sample_deeptools
+        file "*.bed" into gene_to_tss_bed,
+                          gene_bed_replicate_deeptools,
+                          gene_bed_sample_deeptools
 
         script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
         """
@@ -410,6 +421,27 @@ if(!params.bed12){
     }
 }
 
+/*
+ * PREPROCESSING - Build TSS BED file
+ */
+if(!params.tss_bed){
+    process makeTSSBED {
+        tag "$bed"
+        publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
+                   saveAs: { params.saveReference ? it : null }, mode: 'copy'
+
+        input:
+        file bed from gene_to_tss_bed
+
+        output:
+        file "*.bed" into tss_bed_ataqv
+
+        script:
+        """
+        cat $bed | awk -v FS='\t' -v OFS='\t' '{ if(\$6=="+") \$3=\$2+1; else \$2=\$3-1; print \$1, \$2, \$3, \$4, \$5, \$6;}' > ${bed.baseName}.tss.bed
+        """
+    }
+}
 
 /*
  * PREPROCESSING - Prepare genome intervals for filtering
@@ -424,6 +456,7 @@ process makeGenomeFilter {
 
     output:
     file "*.fai" into genome_fai                          // FAI INDEX FOR REFERENCE GENOME
+    file "*.txt" into genome_autosomes                    // TEXT FILE CONTAINING LISTING OF AUTOSOMAL CHROMOSOMES FOR ATAQV
     file "*.bed" into genome_filter_regions               // BED FILE WITHOUT BLACKLIST REGIONS & MITOCHONDRIAL CONTIG FOR FILTERING
     file "*.sizes" into genome_replicate_bigwig,          // CHROMOSOME SIZES FILE FOR BEDTOOLS
                         genome_sample_bigwig
@@ -434,6 +467,7 @@ process makeGenomeFilter {
     mito_filter = params.keepMito ? "" : name_filter
     """
     samtools faidx $fasta
+    get_autosomes.py ${fasta}.fai ${fasta}.autosomes.txt
     cut -f 1,2 ${fasta}.fai > ${fasta}.sizes
     $blacklist_filter $mito_filter > ${fasta}.includable.bed
     """
@@ -845,7 +879,8 @@ process merge_replicate {
     output:
     set val(name), file("*${prefix}.sorted.{bam,bam.bai}") into merge_replicate_bam,
                                                                 merge_replicate_bam_bigwig,
-                                                                merge_replicate_bam_macs
+                                                                merge_replicate_bam_macs,
+                                                                merge_replicate_bam_ataqv
     set val(name), file("*.flagstat") into merge_replicate_flagstat_mqc,
                                            merge_replicate_flagstat_bigwig,
                                            merge_replicate_flagstat_macs
@@ -967,7 +1002,7 @@ process replicate_tss_plot {
 
     input:
     file bigwigs from replicate_bigwig.collect()
-    file bed from bed12_replicate_deeptools.collect()
+    file bed from gene_bed_replicate_deeptools.collect()
 
     output:
     file "*.png" into replicate_tss_plot
@@ -1011,6 +1046,7 @@ process replicate_macs {
     file "*.{bed,xls,gappedPeak}" into replicate_macs_output
     set val(name), file("*$peakext") into replicate_macs_peaks_homer,
                                           replicate_macs_peaks_qc,
+                                          replicate_macs_peaks_ataqv,
                                           replicate_macs_peaks_consensus,
                                           replicate_macs_peaks_igv
     file "*_mqc.tsv" into replicate_macs_peak_mqc
@@ -1102,8 +1138,59 @@ process replicate_macs_qc {
    """
 }
 
+// /*
+//  * STEP 5.6.1 run ataqv on each sample BAM and corresponding peaks
+//  */
+// process replicate_ataqv {
+//    publishDir "${params.outdir}/bwa/replicate/ataqv", mode: 'copy'
+//
+//    input:
+//    set val(name), file(bam), file(peak) from merge_replicate_bam_ataqv.join(replicate_macs_peaks_ataqv, by: [0])
+//    file autosomes from genome_autosomes.collect()
+//
+//    output:
+//    file "*.json" into ataqv_metrics
+//
+//    script:
+//    peak_param = params.macs_gsize ? "--peak-file ${peak}" : ""
+//    tss_param = params.tss_bed ? "--tss-file ${params.tss_bed}" : ""
+//    mito_param = params.mito_name ? "--mitochondrial-reference-name ${params.mito_name}" : ""
+//    """
+//    ataqv --threads $task.cpus \\
+//          $peak_param  \\
+//          $tss_param \\
+//          --metrics-file  ${name}.ataqv.json \\
+//          --name $name \\
+//          --ignore-read-groups \\
+//          --autosomal-reference-file $autosomes \\
+//          $mito_param \\
+//          $bam
+//    """
+// }
+
+// /*
+//  * STEP 5.6.2 run ataqv mkarv on each json output to render web app
+//  */
+// process replicate_ataqv_mkarv {
+//    publishDir "${params.outdir}/bwa/replicate/ataqv/html", mode: 'copy'
+//
+//    input:
+//    file json from ataqv_metrics.collect()
+//
+//    output:
+//    file "html/*" into ataqv_mkarv
+//
+//    script:
+//    """
+//    mkarv --concurrency $task.cpus \\
+//          --force \\
+//          ./html/ \\
+//          ${json.join(' ')}
+//    """
+// }
+
 /*
- * STEP 5.5.4 consensus peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
+ * STEP 5.7.1 consensus peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
  */
 process replicate_macs_consensus {
     publishDir "${params.outdir}/bwa/replicate/macs/consensus", mode: 'copy'
@@ -1148,7 +1235,7 @@ process replicate_macs_consensus {
 }
 
 /*
- * STEP 5.5.5 annotate consensus peaks with homer, and add annotation to boolean output file
+ * STEP 5.7.2 annotate consensus peaks with homer, and add annotation to boolean output file
  */
 process replicate_macs_consensus_annotate {
     publishDir "${params.outdir}/bwa/replicate/macs/consensus", mode: 'copy'
@@ -1179,7 +1266,7 @@ process replicate_macs_consensus_annotate {
 }
 
 /*
- * STEP 5.5.6 count reads in consensus peaks with featurecounts
+ * STEP 5.7.3 count reads in consensus peaks with featurecounts and perform differential analysis
  */
 process replicate_macs_consensus_deseq {
     publishDir "${params.outdir}/bwa/replicate/macs/consensus/deseq2", mode: 'copy'
@@ -1354,7 +1441,7 @@ process sample_tss_plot {
 
     input:
     file bigwigs from sample_bigwig.collect()
-    file bed from bed12_sample_deeptools.collect()
+    file bed from gene_bed_sample_deeptools.collect()
 
     output:
     file "*.png" into sample_tss_plot
@@ -1492,7 +1579,7 @@ process sample_macs_qc {
 }
 
 /*
- * STEP 6.4.4 consensus peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
+ * STEP 6.5.1 consensus peaks across samples, create boolean filtering file, saf file for featurecounts and UpSetR plot for intersection
  */
 process sample_macs_consensus {
     publishDir "${params.outdir}/bwa/sample/macs/consensus", mode: 'copy'
@@ -1537,7 +1624,7 @@ process sample_macs_consensus {
 }
 
 /*
- * STEP 6.4.5 annotate consensus peaks with homer, and add annotation to boolean output file
+ * STEP 6.5.2 annotate consensus peaks with homer, and add annotation to boolean output file
  */
 process sample_macs_consensus_annotate {
     publishDir "${params.outdir}/bwa/sample/macs/consensus", mode: 'copy'
@@ -1568,7 +1655,7 @@ process sample_macs_consensus_annotate {
 }
 
 /*
- * STEP 6.4.6 count reads in consensus peaks with featurecounts
+ * STEP 6.5.3 count reads in consensus peaks with featurecounts
  */
 process sample_macs_consensus_deseq {
     publishDir "${params.outdir}/bwa/sample/macs/consensus/deseq2", mode: 'copy'
@@ -1661,6 +1748,7 @@ process get_software_versions {
     python -c "import pysam; print(pysam.__version__)" > v_pysam.txt
     echo \$(macs2 --version 2>&1) > v_macs2.txt
     touch v_homer.txt
+    #ataqv --version > v_ataqv.txt
     echo \$(featureCounts -v 2>&1) > v_featurecounts.txt
     echo \$(computeMatrix --version 2>&1) > v_deeptools.txt
     multiqc --version > v_multiqc.txt

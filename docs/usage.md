@@ -24,7 +24,8 @@
     * [`--gtf`](#--gtf)
     * [`--bwa_index_dir`](#--bwa_index_dir)
     * [`--bwa_index_base`](#--bwa_index_base)
-    * [`--bed12`](#--bed12)
+    * [`--gene_bed`](#--gene_bed)
+    * [`--tss_bed`](#--tss_bed)
     * [`--mito_name`](#--mito_name)
     * [`--macs_gsize`](#--macs_gsize)
     * [`--blacklist`](#--blacklist)
@@ -224,10 +225,16 @@ Base file name for an existing BWA index for your reference genome. Default: `ge
 --bwa_index_base '[basename of BWA index]'
 ```
 
-### `--bed12`
-The full path to BED12 file for TSS profile plots. This will be created from the GTF file if it isnt specified.
+### `--gene_bed`
+The full path to BED file for genome-wide gene intervals. This will be created from the GTF file if it isnt specified.
 ```bash
---bed12 '[path to BED12 file]'
+--gene_bed '[path to gene BED file]'
+```
+
+### `--tss_bed`
+The full path to BED file for genome-wide transcription start sites. This will be created from the gene BED file if it isnt specified.
+```bash
+--tss_bed '[path to tss BED file]'
 ```
 
 ### `--macs_gsize`
