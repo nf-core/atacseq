@@ -1,8 +1,8 @@
 name: nf-core-atacseq-1.0dev
 channels:
-  - defaults
-  - bioconda
   - conda-forge
+  - bioconda
+  - defaults
 dependencies:
     ## conda-forge packages
     - conda-forge::r-optparse=1.6.0
@@ -26,7 +26,7 @@ dependencies:
     - ucsc-bedgraphtobigwig=366
     - macs2=2.1.2
     - homer=4.9.1
-    #- ataqv=1.0.0
+    - ataqv=1.0.0
     - subread=1.6.3
     - multiqc=1.7
     - bioconda::bioconductor-deseq2=1.20.0
