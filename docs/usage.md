@@ -38,7 +38,7 @@
     * [`--keepMito`](#--keepMito)
     * [`--keepDups`](#--keepDups)
     * [`--keepMultiMap`](#--keepMultiMap)
-    * [`--skipMergeBySample`](#--skipMergeBySample)
+    * [`--skipMergeReplicates`](#--skipMergeReplicates)
     * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
 * [Job resources](#job-resources)
 * [Automatic resubmission](#automatic-resubmission)
@@ -292,8 +292,8 @@ Duplicate reads are not filtered from alignments.
 ### `--keepMultiMap`
 Reads mapping to multiple locations in the genome are not filtered from alignments.
 
-### `--skipMergeBySample`
-Do not perform alignment merging and downstream analysis at the sample-level i.e. only do this at the replicate-level.
+### `--skipMergeReplicates`
+Do not perform alignment merging and downstream analysis of replicates from the same condition i.e. only do this at the library-level.
 
 ### `--saveAlignedIntermediates`
 By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also copy out BAM files from BWA and sorting/filtering steps.

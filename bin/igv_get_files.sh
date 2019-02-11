@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ## ARGUMENTS
-INPUT_DIR=$1	## Path to input directory
+INPUT_DIR=$1	  ## Path to input directory
 FILE_GROUP=$2 	## File group identified
 
 ## CONSENSUS PEAKS
@@ -17,5 +17,5 @@ for fpath in $(find -L $INPUT_DIR -type f -iname "*$FILE_GROUP*" | grep "FDR" | 
         awk -v var="$opath" -v OFS='\t' 'BEGIN {print var, "255,0,0"}'
     done
 
-## PEAK AND BIGWIG FILES AT SAMPLE-LEVEL
+## PEAK AND BIGWIG FILES AT MERGED REPLICATE-LEVEL
 find -L $INPUT_DIR -type f -iname "*$FILE_GROUP*" | grep -Ev "consensus|FDR" | sort | cut -c 2- | awk -v OFS='\t' '{ print "RESULTS_DIR"$1, "0,0,178" }'
