@@ -12,8 +12,8 @@ fn_clean_exts:
     - 'sorted.bam'
     - 'mkD'
     - 'clN'
+    - 'mLb'
     - 'mRp'
-    - 'mSm'
 
 module_order:
     - fastqc:
@@ -48,22 +48,22 @@ module_order:
         name: 'SAMTools (replicate-level)'
         info: 'This section of the report shows SAMTools results at the replicate-level after removal of duplicate reads.'
         path_filters:
-            - '*mRp.sorted.bam*'
+            - '*mLb.sorted.bam*'
     - samtools:
         name: 'SAMTools (sample-level)'
         info: 'This section of the report shows SAMTools results at the sample-level after removal of duplicate reads.'
         path_filters:
-            - '*mSm.sorted.bam*'
+            - '*mRp.sorted.bam*'
     - featureCounts:
         name: 'featureCounts (replicate-level)'
         info: 'This section of the report shows featureCounts results for the number of reads assigned to replicate-level merged peaks.'
         path_filters:
-            - '*mRp.featureCounts*'
+            - '*mLb.featureCounts*'
     - featureCounts:
         name: 'featureCounts (sample-level)'
         info: 'This section of the report shows featureCounts results for the number of reads assigned to sample-level merged peaks.'
         path_filters:
-            - '*mSm.featureCounts*'
+            - '*mRp.featureCounts*'
 
 report_section_order:
     replicate_peak_count:

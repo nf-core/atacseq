@@ -188,14 +188,14 @@ if( params.bwa_index_dir ){
 
 if( params.gene_bed ){
     gene_bed = Channel
-                  .fromPath(params.gene_bed, checkIfExists: true)
-                  .ifEmpty { exit 1, "Gene BED annotation file not found: ${params.gene_bed}" }
+        .fromPath(params.gene_bed, checkIfExists: true)
+        .ifEmpty { exit 1, "Gene BED annotation file not found: ${params.gene_bed}" }
 }
 
 if( params.tss_bed ){
     tss_bed = Channel
-                  .fromPath(params.tss_bed, checkIfExists: true)
-                  .ifEmpty { exit 1, "TSS BED annotation file not found: ${params.tss_bed}" }
+        .fromPath(params.tss_bed, checkIfExists: true)
+        .ifEmpty { exit 1, "TSS BED annotation file not found: ${params.tss_bed}" }
 }
 
 if ( params.blacklist ) {
@@ -285,58 +285,58 @@ if( workflow.profile == 'awsbatch') {
 // Header log info
 log.info nfcoreHeader()
 def summary = [:]
-summary['Pipeline Name']          = 'nf-core/atacseq'
-summary['Pipeline Version']       = workflow.manifest.version
-summary['Run Name'] = custom_runName ?: workflow.runName
-summary['Genome']                 = params.genome ? params.genome : 'Not supplied'
-summary['Data Type']              = params.singleEnd ? 'Single-End' : 'Paired-End'
-summary['Design File']            = params.design
+summary['Pipeline Name']              = 'nf-core/atacseq'
+summary['Pipeline Version']           = workflow.manifest.version
+summary['Run Name']                   = custom_runName ?: workflow.runName
+summary['Genome']                     = params.genome ? params.genome : 'Not supplied'
+summary['Data Type']                  = params.singleEnd ? 'Single-End' : 'Paired-End'
+summary['Design File']                = params.design
 if(params.bwa_index_dir)  summary['BWA Index Directory'] = params.bwa_index_dir ? params.bwa_index_dir : 'Not supplied'
 if(params.bwa_index_dir)  summary['BWA Index Base'] = params.bwa_index_base ? params.bwa_index_base : 'Not supplied'
-summary['Fasta Ref']              = params.fasta
-summary['GTF File']               = params.gtf
-summary['Gene BED File']          = params.gene_bed ? params.gene_bed : 'Not supplied'
-summary['TSS BED File']           = params.tss_bed ? params.tss_bed : 'Not supplied'
+summary['Fasta Ref']                  = params.fasta
+summary['GTF File']                   = params.gtf
+summary['Gene BED File']              = params.gene_bed ? params.gene_bed : 'Not supplied'
+summary['TSS BED File']               = params.tss_bed ? params.tss_bed : 'Not supplied'
 if(params.blacklist) summary['Blacklist BED'] = params.blacklist
-summary['Mitochondrial Contig']   = params.mito_name ? params.mito_name : 'Not supplied'
-summary['MACS Genome Size']       = params.macs_gsize ? params.macs_gsize : 'Not supplied'
+summary['Mitochondrial Contig']       = params.mito_name ? params.mito_name : 'Not supplied'
+summary['MACS Genome Size']           = params.macs_gsize ? params.macs_gsize : 'Not supplied'
 if(params.macs_gsize)  summary['MACS Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
 if( params.skipTrimming ){
-    summary['Trimming Step'] = 'Skipped'
+    summary['Trimming Step']          = 'Skipped'
 } else {
-    summary['Trim R1']    = "$params.clip_r1 bp"
-    summary['Trim R2']    = "$params.clip_r2 bp"
-    summary["Trim 3' R1"] = "$params.three_prime_clip_r1 bp"
-    summary["Trim 3' R2"] = "$params.three_prime_clip_r2 bp"
+    summary['Trim R1']                = "$params.clip_r1 bp"
+    summary['Trim R2']                = "$params.clip_r2 bp"
+    summary["Trim 3' R1"]             = "$params.three_prime_clip_r1 bp"
+    summary["Trim 3' R2"]             = "$params.three_prime_clip_r2 bp"
 }
-summary['Fragment Size']          = "$params.fragment_size bp"
-summary['Keep Mitochondrial']     = params.keepMito ? 'Yes' : 'No'
-summary['Keep Duplicates']        = params.keepDups ? 'Yes' : 'No'
-summary['Keep Multi-mapped']      = params.keepMultiMap ? 'Yes' : 'No'
+summary['Fragment Size']              = "$params.fragment_size bp"
+summary['Keep Mitochondrial']         = params.keepMito ? 'Yes' : 'No'
+summary['Keep Duplicates']            = params.keepDups ? 'Yes' : 'No'
+summary['Keep Multi-mapped']          = params.keepMultiMap ? 'Yes' : 'No'
 summary['Merged Replicate Analysis']  = params.skipMergeReplicates ? 'No' : 'Yes'
-summary['Save Reference']         = params.saveReference ? 'Yes' : 'No'
-summary['Save Trimmed']           = params.saveTrimmed ? 'Yes' : 'No'
-summary['Save Intermeds']         = params.saveAlignedIntermediates ? 'Yes' : 'No'
-summary['Max Memory']             = params.max_memory
-summary['Max CPUs']               = params.max_cpus
-summary['Max Time']               = params.max_time
-summary['Output Dir']             = params.outdir
-summary['Working Dir']            = workflow.workDir
-summary['Container Engine']       = workflow.containerEngine
+summary['Save Reference']             = params.saveReference ? 'Yes' : 'No'
+summary['Save Trimmed']               = params.saveTrimmed ? 'Yes' : 'No'
+summary['Save Intermeds']             = params.saveAlignedIntermediates ? 'Yes' : 'No'
+summary['Max Memory']                 = params.max_memory
+summary['Max CPUs']                   = params.max_cpus
+summary['Max Time']                   = params.max_time
+summary['Output Dir']                 = params.outdir
+summary['Working Dir']                = workflow.workDir
+summary['Container Engine']           = workflow.containerEngine
 if(workflow.containerEngine) summary['Container'] = workflow.container
-summary['Current Home']           = "$HOME"
-summary['Current User']           = "$USER"
-summary['Current Path']           = "$PWD"
-summary['Working Dir']            = workflow.workDir
-summary['Output Dir']             = params.outdir
-summary['Script Dir']             = workflow.projectDir
-summary['Config Profile']         = workflow.profile
+summary['Current Home']               = "$HOME"
+summary['Current User']               = "$USER"
+summary['Current Path']               = "$PWD"
+summary['Working Dir']                = workflow.workDir
+summary['Output Dir']                 = params.outdir
+summary['Script Dir']                 = workflow.projectDir
+summary['Config Profile']             = workflow.profile
 if(params.config_profile_description) summary['Config Description'] = params.config_profile_description
 if(params.config_profile_contact)     summary['Config Contact']     = params.config_profile_contact
 if(params.config_profile_url)         summary['Config URL']         = params.config_profile_url
 if(workflow.profile == 'awsbatch'){
-   summary['AWS Region']          = params.awsregion
-   summary['AWS Queue']           = params.awsqueue
+   summary['AWS Region']              = params.awsregion
+   summary['AWS Queue']               = params.awsqueue
 }
 if(params.email) summary['E-mail Address'] = params.email
 log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
@@ -366,6 +366,7 @@ if (!params.macs_gsize){
 if(!params.bwa_index_dir){
     process makeBWAindex {
         tag "$fasta"
+        label 'process_big'
         publishDir path: { params.saveReference ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveReference ? it : null }, mode: 'copy'
 
@@ -441,11 +442,11 @@ process makeGenomeFilter {
     file fasta from fasta_genome_filter
 
     output:
-    file "*.fai" into genome_fai                            // FAI INDEX FOR REFERENCE GENOME
-    file "*.txt" into genome_autosomes                      // TEXT FILE CONTAINING LISTING OF AUTOSOMAL CHROMOSOMES FOR ATAQV
-    file "*.bed" into genome_filter_regions                 // BED FILE WITHOUT BLACKLIST REGIONS & MITOCHONDRIAL CONTIG FOR FILTERING
-    file "*.sizes" into genome_mlib_bigwig,        // CHROMOSOME SIZES FILE FOR BEDTOOLS
-                        genome_mrep_bigwig
+    file "*.fai" into genome_fai                    // FAI INDEX FOR REFERENCE GENOME
+    file "*.txt" into genome_autosomes              // TEXT FILE CONTAINING LISTING OF AUTOSOMAL CHROMOSOMES FOR ATAQV
+    file "*.bed" into genome_filter_regions         // BED FILE WITHOUT BLACKLIST REGIONS & MITOCHONDRIAL CONTIG FOR FILTERING
+    file "*.sizes" into genome_sizes_mlib_bigwig,   // CHROMOSOME SIZES FILE FOR BEDTOOLS
+                        genome_sizes_mrep_bigwig
 
     script:
     blacklist_filter = params.blacklist ? "sortBed -i ${params.blacklist} -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
@@ -472,6 +473,7 @@ process makeGenomeFilter {
  */
 process fastqc {
     tag "$name"
+    label 'process_medium'
     publishDir "${params.outdir}/fastqc", mode: 'copy',
         saveAs: {filename -> filename.endsWith(".zip") ? "zips/$filename" : "$filename"}
 
@@ -518,6 +520,7 @@ if(params.skipTrimming){
 } else {
     process trim_galore {
         tag "$name"
+        label 'process_long'
         publishDir "${params.outdir}/trim_galore", mode: 'copy',
             saveAs: {filename ->
                 if (filename.endsWith(".html")) "fastqc/$filename"
@@ -570,6 +573,7 @@ if(params.skipTrimming){
  */
 process bwa_aln_read1 {
     tag "$name"
+    label 'process_medium'
 
     input:
     set val(name), file(reads) from trimmed_reads_aln_1
@@ -593,6 +597,7 @@ if(params.singleEnd){
 } else {
     process bwa_aln_read2 {
         tag "$name"
+        label 'process_medium'
 
         input:
         set val(name), file(reads) from trimmed_reads_aln_2
@@ -616,6 +621,7 @@ if(params.singleEnd){
  */
 process bwa_sai_to_sam {
     tag "$name"
+    label 'process_extra_long'
 
     input:
     set val(name), file(fastqs), file(sais) from sai_to_sam
@@ -637,6 +643,7 @@ process bwa_sai_to_sam {
  */
 process bwa_bam {
     tag "$name"
+    label 'process_medium'
     publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
         saveAs: { filename ->
             if (params.saveAlignedIntermediates) {
@@ -673,6 +680,7 @@ process bwa_bam {
  */
 process markdup {
     tag "$name"
+    label 'process_medium'
     publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
         saveAs: { filename ->
             if (filename.endsWith(".flagstat")) "flagstat/$filename"
@@ -720,6 +728,7 @@ process markdup {
  */
 process markdup_collectmetrics {
     tag "$name"
+    label 'process_long'
     publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
         saveAs: { filename ->
             if (filename.endsWith("_metrics")) "picard_metrics/$filename"
@@ -753,280 +762,286 @@ process markdup_collectmetrics {
     """
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                    MERGE LIBRARY BAM                                -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 5.1 Merge BAM files for all libraries from same replicate
- */
-
-markdup_bam_mlib.map { it -> [ it[0].toString().subSequence(0, it[0].length() - 3), it[1] ] }
-                .groupTuple(by: [0])
-                .map { it ->  [ it[0], it[1].flatten() ] }
-                .set { markdup_bam_mlib }
-
-process merge_library {
-    tag "$name"
-    publishDir "${params.outdir}/bwa/mergeLibrary", mode: 'copy',
-        saveAs: {filename ->
-                    if (filename.endsWith(".flagstat")) "flagstat/$filename"
-                    else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
-                    else filename
-                }
-
-    input:
-    set val(name), file(bams) from markdup_bam_mlib
-
-    output:
-    set val(name), file("*${prefix}.sorted.{bam,bam.bai}") into mlib_bam,
-                                                                mlib_bam_ataqv
-    set val(name), file("*.flagstat") into mlib_flagstat_mqc
-    file "*.txt" into mlib_metrics_mqc
-
-    script:
-    prefix="${name}.mLb"
-    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    if( !task.memory ){
-        log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
-        avail_mem = 3
-    } else {
-        avail_mem = task.memory.toGiga()
-    }
-    if (bam_files.size() > 1) {
-        """
-        picard -Xmx${avail_mem}g MergeSamFiles \\
-               ${'INPUT='+bam_files.join(' INPUT=')} \\
-               OUTPUT=${name}.sorted.bam \\
-               SORT_ORDER=coordinate \\
-               VALIDATION_STRINGENCY=LENIENT \\
-               TMP_DIR=tmp
-        samtools index ${name}.sorted.bam
-
-        picard -Xmx${avail_mem}g MarkDuplicates \\
-               INPUT=${name}.sorted.bam \\
-               OUTPUT=${prefix}.sorted.bam \\
-               ASSUME_SORTED=true \\
-               REMOVE_DUPLICATES=false \\
-               METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt \\
-               VALIDATION_STRINGENCY=LENIENT \\
-               TMP_DIR=tmp
-
-        samtools index ${prefix}.sorted.bam
-        samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-        """
-    } else {
-      """
-      ln -s ${bams[0]} ${prefix}.sorted.bam
-      ln -s ${bams[1]} ${prefix}.sorted.bam.bai
-      touch ${prefix}.MarkDuplicates.metrics.txt
-      samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-      """
-    }
-}
-
-/*
- * STEP 5.2 Filter BAM file at merged library-level
- */
-process merge_library_filter {
-    tag "$name"
-    publishDir path: "${params.outdir}/bwa/mergeLibrary", mode: 'copy',
-        saveAs: { filename ->
-            if (params.singleEnd || params.saveAlignedIntermediates) {
-                if (filename.endsWith(".flagstat")) "flagstat/$filename"
-                else filename }
-            }
-
-    input:
-    set val(name), file(bam) from mlib_bam
-    file bed from genome_filter_regions.collect()
-    file bamtools_filter_se_config from bamtools_filter_se_config_ch.collect()
-    file bamtools_filter_pe_config from bamtools_filter_pe_config_ch.collect()
-
-    output:
-    set val(name), file("*.{bam,bam.bai}") into mlib_filter_bam
-    file "*.flagstat" into mlib_filter_flagstat
-
-    script:
-    prefix = params.singleEnd ? "${name}.mLb.clN" : "${name}.mLb.flT"
-    filter_params = params.singleEnd ? "-F 0x004 -F 0x0100" : "-f 0x001 -F 0x004 -F 0x0008 -F 0x0100"
-    dup_params = params.keepDups ? "" : "-F 0x0400"
-    multimap_params = params.keepMultiMap ? "" : "-q 1"
-    bamtools_filter_config = params.singleEnd ? bamtools_filter_se_config : bamtools_filter_pe_config
-    name_sort_bam = params.singleEnd ? "" : "samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${prefix}.sorted.bam"
-    """
-    samtools view \\
-             $filter_params \\
-             $dup_params \\
-             $multimap_params \\
-             -L $bed \\
-             -b ${bam[0]} \\
-             | bamtools filter \\
-                        -out ${prefix}.sorted.bam \\
-                        -script $bamtools_filter_config
-
-    samtools index ${prefix}.sorted.bam
-    samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-    $name_sort_bam
-    """
-}
-
-/*
- * STEP 5.3 Remove orphan reads from paired-end BAM file
- */
-if(params.singleEnd){
-    mlib_filter_bam.into { mlib_rm_orphan_bam_bigwig;
-                           mlib_rm_orphan_bam_macs;
-                           mlib_rm_orphan_bam_mrep;
-                           mlib_rm_orphan_bam_by_name_mlib_counts;
-                           mlib_rm_orphan_bam_by_name_mrep_counts }
-    mlib_filter_flagstat.into { mlib_rm_orphan_flagstat_bigwig;
-                                mlib_rm_orphan_flagstat_macs;
-                                mlib_rm_orphan_flagstat_mqc }
-} else {
-    process merge_library_rm_orphan {
-        tag "$name"
-        publishDir path: "${params.outdir}/bwa/mergeLibrary", mode: 'copy',
-            saveAs: { filename ->
-                if (filename.endsWith(".flagstat")) "flagstat/$filename"
-                else filename
-            }
-
-        input:
-        set val(name), file(bam) from mlib_filter_bam
-
-        output:
-        set val(name), file("*.sorted.{bam,bam.bai}") into mlib_rm_orphan_bam_by_name,
-                                                           mlib_rm_orphan_bam_bigwig,
-                                                           mlib_rm_orphan_bam_macs,
-                                                           mlib_rm_orphan_bam_mrep
-        file "*.flagstat" into mlib_rm_orphan_flagstat_bigwig,
-                               mlib_rm_orphan_flagstat_macs,
-                               mlib_rm_orphan_flagstat_mqc
-
-        script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
-        prefix="${name}.mLb.clN"
-        """
-        bampe_rm_orphan.py ${bam[0]} ${prefix}.bam --only_fr_pairs
-        samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $prefix ${prefix}.bam
-        samtools index ${prefix}.sorted.bam
-        samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-        """
-    }
-
-    /*
-     * STEP 5.4 Sort paired-end merged BAM file by name for featureCounts
-     */
-    process merge_library_name_bam {
-        tag "$name"
-
-        input:
-        set val(name), file(bam) from mlib_rm_orphan_bam_by_name
-
-        output:
-        set val(name), file("*.bam") into mlib_rm_orphan_bam_by_name_mlib_counts,
-                                          mlib_rm_orphan_bam_by_name_mrep_counts
-
-        script:
-        prefix="${name}.mLb.clN"
-        """
-        samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${bam[0]}
-        """
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                 MERGE LIBRARY BAM POST-ANALYSIS                     -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 5.3 Read depth normalised bigWig
- */
-process merge_library_bigwig {
-    tag "$name"
-    publishDir "${params.outdir}/bwa/mergeLibrary/bigwig", mode: 'copy',
-        saveAs: {filename ->
-                    if (filename.endsWith(".txt")) "scale/$filename"
-                    else if (filename.endsWith(".bigWig")) "$filename"
-                    else null
-                }
-
-    input:
-    set val(name), file(bam), file(flagstat) from mlib_rm_orphan_bam_bigwig.join(mlib_rm_orphan_flagstat_bigwig, by: [0])
-    file sizes from genome_mlib_bigwig.collect()
-
-    output:
-    file "*.bigWig" into mlib_bigwig_igv
-    file "*.txt" into mlib_bigwig_scale
-
-    script:
-    prefix="${name}.mLb"
-    pe_fragment = params.singleEnd ? "" : "-pc"
-    extend = (params.singleEnd && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
-    """
-    SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
-    echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
-    genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -k1,1 -k2,2n >  ${prefix}.bedGraph
-    bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
-    """
-}
-
-/*
- * STEP 5.4.1 Call peaks with MACS2 and calculate FRiP score
- */
-process merge_library_macs {
-    tag "$name"
-    publishDir "${params.outdir}/bwa/mergeLibrary/macs", mode: 'copy',
-        saveAs: {filename ->
-                    if (filename.endsWith(".tsv")) "qc/$filename"
-                    else filename
-                }
-
-    input:
-    set val(name), file(bam), file(flagstat) from mlib_rm_orphan_bam_macs.join(mlib_rm_orphan_flagstat_macs, by: [0])
-    file mlib_peak_count_header from mlib_peak_count_header_ch.collect()
-    file mlib_frip_score_header from mlib_frip_score_header_ch.collect()
-
-    output:
-    file "*.{bed,xls,gappedPeak}" into mlib_macs_output
-    set val(name), file("*$peakext") into mlib_macs_peaks_homer,
-                                          mlib_macs_peaks_qc,
-                                          mlib_macs_peaks_ataqv,
-                                          mlib_macs_peaks_consensus,
-                                          mlib_macs_peaks_igv
-    file "*_mqc.tsv" into mlib_macs_peak_mqc
-
-    when: params.macs_gsize
-
-    script:
-    prefix="${name}.mLb"
-    peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
-    broad = params.narrowPeak ? '' : "--broad"
-    format = params.singleEnd ? "BAM" : "BAMPE"
-    """
-    macs2 callpeak \\
-         -t ${bam[0]} \\
-         $broad \\
-         -f $format \\
-         -g ${params.macs_gsize} \\
-         -n ${prefix} \\
-         --keep-dup all \\
-         --nomodel
-
-    cat ${prefix}_peaks${peakext} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $mlib_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
-
-    READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks${peakext} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
-    grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' | cat $mlib_frip_score_header - > ${prefix}_peaks.FRiP_mqc.tsv
-    """
-}
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                    MERGE LIBRARY BAM                                -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * STEP 5.1 Merge BAM files for all libraries from same replicate
+//  */
+//
+// markdup_bam_mlib.map { it -> [ it[0].toString().subSequence(0, it[0].length() - 3), it[1] ] }
+//                 .groupTuple(by: [0])
+//                 .map { it ->  [ it[0], it[1].flatten() ] }
+//                 .set { markdup_bam_mlib }
+//
+// process merge_library {
+//     tag "$name"
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergeLibrary", mode: 'copy',
+//         saveAs: {filename ->
+//                     if (filename.endsWith(".flagstat")) "flagstat/$filename"
+//                     else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
+//                     else filename
+//                 }
+//
+//     input:
+//     set val(name), file(bams) from markdup_bam_mlib
+//
+//     output:
+//     set val(name), file("*${prefix}.sorted.{bam,bam.bai}") into mlib_bam,
+//                                                                 mlib_bam_ataqv
+//     set val(name), file("*.flagstat") into mlib_flagstat_mqc
+//     file "*.txt" into mlib_metrics_mqc
+//
+//     script:
+//     prefix="${name}.mLb"
+//     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+//     if( !task.memory ){
+//         log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
+//         avail_mem = 3
+//     } else {
+//         avail_mem = task.memory.toGiga()
+//     }
+//     if (bam_files.size() > 1) {
+//         """
+//         picard -Xmx${avail_mem}g MergeSamFiles \\
+//                ${'INPUT='+bam_files.join(' INPUT=')} \\
+//                OUTPUT=${name}.sorted.bam \\
+//                SORT_ORDER=coordinate \\
+//                VALIDATION_STRINGENCY=LENIENT \\
+//                TMP_DIR=tmp
+//         samtools index ${name}.sorted.bam
+//
+//         picard -Xmx${avail_mem}g MarkDuplicates \\
+//                INPUT=${name}.sorted.bam \\
+//                OUTPUT=${prefix}.sorted.bam \\
+//                ASSUME_SORTED=true \\
+//                REMOVE_DUPLICATES=false \\
+//                METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt \\
+//                VALIDATION_STRINGENCY=LENIENT \\
+//                TMP_DIR=tmp
+//
+//         samtools index ${prefix}.sorted.bam
+//         samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+//         """
+//     } else {
+//       """
+//       ln -s ${bams[0]} ${prefix}.sorted.bam
+//       ln -s ${bams[1]} ${prefix}.sorted.bam.bai
+//       touch ${prefix}.MarkDuplicates.metrics.txt
+//       samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+//       """
+//     }
+// }
+//
+// /*
+//  * STEP 5.2 Filter BAM file at merged library-level
+//  */
+// process merge_library_filter {
+//     tag "$name"
+//     label 'process_medium'
+//     publishDir path: "${params.outdir}/bwa/mergeLibrary", mode: 'copy',
+//         saveAs: { filename ->
+//             if (params.singleEnd || params.saveAlignedIntermediates) {
+//                 if (filename.endsWith(".flagstat")) "flagstat/$filename"
+//                 else filename }
+//             }
+//
+//     input:
+//     set val(name), file(bam) from mlib_bam
+//     file bed from genome_filter_regions.collect()
+//     file bamtools_filter_se_config from bamtools_filter_se_config_ch.collect()
+//     file bamtools_filter_pe_config from bamtools_filter_pe_config_ch.collect()
+//
+//     output:
+//     set val(name), file("*.{bam,bam.bai}") into mlib_filter_bam
+//     file "*.flagstat" into mlib_filter_flagstat
+//
+//     script:
+//     prefix = params.singleEnd ? "${name}.mLb.clN" : "${name}.mLb.flT"
+//     filter_params = params.singleEnd ? "-F 0x004 -F 0x0100" : "-f 0x001 -F 0x004 -F 0x0008 -F 0x0100"
+//     dup_params = params.keepDups ? "" : "-F 0x0400"
+//     multimap_params = params.keepMultiMap ? "" : "-q 1"
+//     bamtools_filter_config = params.singleEnd ? bamtools_filter_se_config : bamtools_filter_pe_config
+//     name_sort_bam = params.singleEnd ? "" : "samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${prefix}.sorted.bam"
+//     """
+//     samtools view \\
+//              $filter_params \\
+//              $dup_params \\
+//              $multimap_params \\
+//              -L $bed \\
+//              -b ${bam[0]} \\
+//              | bamtools filter \\
+//                         -out ${prefix}.sorted.bam \\
+//                         -script $bamtools_filter_config
+//
+//     samtools index ${prefix}.sorted.bam
+//     samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+//     $name_sort_bam
+//     """
+// }
+//
+// /*
+//  * STEP 5.3 Remove orphan reads from paired-end BAM file
+//  */
+// if(params.singleEnd){
+//     mlib_filter_bam.into { mlib_rm_orphan_bam_bigwig;
+//                            mlib_rm_orphan_bam_macs;
+//                            mlib_rm_orphan_bam_mrep;
+//                            mlib_rm_orphan_bam_by_name_mlib_counts;
+//                            mlib_rm_orphan_bam_by_name_mrep_counts }
+//     mlib_filter_flagstat.into { mlib_rm_orphan_flagstat_bigwig;
+//                                 mlib_rm_orphan_flagstat_macs;
+//                                 mlib_rm_orphan_flagstat_mqc }
+// } else {
+//     process merge_library_rm_orphan {
+//         tag "$name"
+//         label 'process_medium'
+//         publishDir path: "${params.outdir}/bwa/mergeLibrary", mode: 'copy',
+//             saveAs: { filename ->
+//                 if (filename.endsWith(".flagstat")) "flagstat/$filename"
+//                 else filename
+//             }
+//
+//         input:
+//         set val(name), file(bam) from mlib_filter_bam
+//
+//         output:
+//         set val(name), file("*.sorted.{bam,bam.bai}") into mlib_rm_orphan_bam_by_name,
+//                                                            mlib_rm_orphan_bam_bigwig,
+//                                                            mlib_rm_orphan_bam_macs,
+//                                                            mlib_rm_orphan_bam_mrep
+//         file "*.flagstat" into mlib_rm_orphan_flagstat_bigwig,
+//                                mlib_rm_orphan_flagstat_macs,
+//                                mlib_rm_orphan_flagstat_mqc
+//
+//         script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
+//         prefix="${name}.mLb.clN"
+//         """
+//         bampe_rm_orphan.py ${bam[0]} ${prefix}.bam --only_fr_pairs
+//         samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $prefix ${prefix}.bam
+//         samtools index ${prefix}.sorted.bam
+//         samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+//         """
+//     }
+//
+//     /*
+//      * STEP 5.4 Sort paired-end merged BAM file by name for featureCounts
+//      */
+//     process merge_library_name_bam {
+//         tag "$name"
+//         label 'process_medium'
+//
+//         input:
+//         set val(name), file(bam) from mlib_rm_orphan_bam_by_name
+//
+//         output:
+//         set val(name), file("*.bam") into mlib_rm_orphan_bam_by_name_mlib_counts,
+//                                           mlib_rm_orphan_bam_by_name_mrep_counts
+//
+//         script:
+//         prefix="${name}.mLb.clN"
+//         """
+//         samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${bam[0]}
+//         """
+//     }
+// }
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                 MERGE LIBRARY BAM POST-ANALYSIS                     -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * STEP 5.3 Read depth normalised bigWig
+//  */
+// process merge_library_bigwig {
+//     tag "$name"
+//     label 'process_long'
+//     publishDir "${params.outdir}/bwa/mergeLibrary/bigwig", mode: 'copy',
+//         saveAs: {filename ->
+//                     if (filename.endsWith(".txt")) "scale/$filename"
+//                     else if (filename.endsWith(".bigWig")) "$filename"
+//                     else null
+//                 }
+//
+//     input:
+//     set val(name), file(bam), file(flagstat) from mlib_rm_orphan_bam_bigwig.join(mlib_rm_orphan_flagstat_bigwig, by: [0])
+//     file sizes from genome_sizes_mlib_bigwig.collect()
+//
+//     output:
+//     file "*.bigWig" into mlib_bigwig_igv
+//     file "*.txt" into mlib_bigwig_scale
+//
+//     script:
+//     prefix="${name}.mLb"
+//     pe_fragment = params.singleEnd ? "" : "-pc"
+//     extend = (params.singleEnd && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
+//     """
+//     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
+//     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
+//     genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -k1,1 -k2,2n >  ${prefix}.bedGraph
+//     bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
+//     """
+// }
+//
+// /*
+//  * STEP 5.4.1 Call peaks with MACS2 and calculate FRiP score
+//  */
+// process merge_library_macs {
+//     tag "$name"
+//     label 'process_long'
+//     publishDir "${params.outdir}/bwa/mergeLibrary/macs", mode: 'copy',
+//         saveAs: {filename ->
+//                     if (filename.endsWith(".tsv")) "qc/$filename"
+//                     else filename
+//                 }
+//
+//     input:
+//     set val(name), file(bam), file(flagstat) from mlib_rm_orphan_bam_macs.join(mlib_rm_orphan_flagstat_macs, by: [0])
+//     file mlib_peak_count_header from mlib_peak_count_header_ch.collect()
+//     file mlib_frip_score_header from mlib_frip_score_header_ch.collect()
+//
+//     output:
+//     file "*.{bed,xls,gappedPeak}" into mlib_macs_output
+//     set val(name), file("*$peakext") into mlib_macs_peaks_homer,
+//                                           mlib_macs_peaks_qc,
+//                                           mlib_macs_peaks_ataqv,
+//                                           mlib_macs_peaks_consensus,
+//                                           mlib_macs_peaks_igv
+//     file "*_mqc.tsv" into mlib_macs_peak_mqc
+//
+//     when: params.macs_gsize
+//
+//     script:
+//     prefix="${name}.mLb"
+//     peakext = params.narrowPeak ? ".narrowPeak" : ".broadPeak"
+//     broad = params.narrowPeak ? '' : "--broad"
+//     format = params.singleEnd ? "BAM" : "BAMPE"
+//     """
+//     macs2 callpeak \\
+//          -t ${bam[0]} \\
+//          $broad \\
+//          -f $format \\
+//          -g ${params.macs_gsize} \\
+//          -n ${prefix} \\
+//          --keep-dup all \\
+//          --nomodel
+//
+//     cat ${prefix}_peaks${peakext} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $mlib_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
+//
+//     READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks${peakext} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
+//     grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' | cat $mlib_frip_score_header - > ${prefix}_peaks.FRiP_mqc.tsv
+//     """
+// }
 //
 // /*
 //  * STEP 5.4.2 Annotate peaks with HOMER
@@ -1095,6 +1110,8 @@ process merge_library_macs {
 //  * STEP 5.5.1 Run ataqv on BAM file and corresponding peaks
 //  */
 // process merge_library_ataqv {
+//    tag "$name"
+//    label 'process_medium'
 //    publishDir "${params.outdir}/bwa/mergeLibrary/ataqv", mode: 'copy'
 //
 //    input:
@@ -1125,6 +1142,7 @@ process merge_library_macs {
 //  * STEP 5.5.2 run ataqv mkarv on all JSON files to render web app
 //  */
 // process merge_library_ataqv_mkarv {
+//    label 'process_medium'
 //    publishDir "${params.outdir}/bwa/mergeLibrary/ataqv/html", mode: 'copy'
 //
 //    input:
@@ -1222,6 +1240,7 @@ process merge_library_macs {
 //  * STEP 5.6.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
 //  */
 // process merge_library_macs_consensus_deseq {
+//     label 'process_medium'
 //     publishDir "${params.outdir}/bwa/mergeLibrary/macs/consensus/deseq2", mode: 'copy'
 //
 //     input:
@@ -1281,6 +1300,7 @@ process merge_library_macs {
 //
 // process merge_replicate {
 //     tag "$name"
+//     label 'process_medium'
 //     publishDir "${params.outdir}/bwa/mergeReplicate", mode: 'copy',
 //         saveAs: {filename ->
 //                     if (filename.endsWith(".flagstat")) "flagstat/$filename"
@@ -1355,6 +1375,7 @@ process merge_library_macs {
 //  */
 // process merge_replicate_bigwig {
 //     tag "$name"
+//     label 'process_long'
 //     publishDir "${params.outdir}/bwa/mergeReplicate/bigwig", mode: 'copy',
 //         saveAs: {filename ->
 //                     if (filename.endsWith(".txt")) "scale/$filename"
@@ -1364,7 +1385,7 @@ process merge_library_macs {
 //
 //     input:
 //     set val(name), file(bam), file(flagstat) from mrep_bam_bigwig.join(mrep_flagstat_bigwig, by: [0])
-//     file sizes from genome_mrep_bigwig.collect()
+//     file sizes from genome_sizes_mrep_bigwig.collect()
 //
 //     output:
 //     file "*.bigWig" into mrep_bigwig_igv
@@ -1389,6 +1410,7 @@ process merge_library_macs {
 //  */
 // process merge_replicate_macs {
 //     tag "$name"
+//     label 'process_long'
 //     publishDir "${params.outdir}/bwa/mergeReplicate/macs", mode: 'copy',
 //         saveAs: {filename ->
 //                     if (filename.endsWith(".tsv")) "qc/$filename"
@@ -1575,6 +1597,7 @@ process merge_library_macs {
 //  * STEP 6.4.3 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
 //  */
 // process merge_replicate_macs_consensus_deseq {
+//     label 'process_medium'
 //     publishDir "${params.outdir}/bwa/mergeReplicate/macs/consensus/deseq2", mode: 'copy'
 //
 //     input:
