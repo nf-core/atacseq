@@ -5,6 +5,7 @@ channels:
   - defaults
 dependencies:
     ## conda-forge packages
+    - conda-forge::r-base=3.5.1
     - conda-forge::r-optparse=1.6.0
     - conda-forge::r-rcolorbrewer=1.1_2
     - conda-forge::r-ggplot2=3.1.0
@@ -18,6 +19,7 @@ dependencies:
     - fastqc=0.11.8
     - trim-galore=0.5.0
     - bwa=0.7.17
+    - bowtie2=2.3.4.3
     - samtools=1.9
     - picard=2.18.26
     - bamtools=2.5.1
@@ -29,5 +31,6 @@ dependencies:
     - ataqv=1.0.0
     - subread=1.6.3
     - multiqc=1.7
+    #- bioconda::idr=2.0.4.2
     - bioconda::bioconductor-deseq2=1.22.1
     - bioconda::bioconductor-vsn=3.50.0

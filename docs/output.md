@@ -85,7 +85,7 @@ File names in the resulting directory (i.e. `bwa/library/`) will have the '`.mkD
 
 The library-level alignments associated with any given replicate are merged and subsequently used for the downstream analyses.
 
-File names in the resulting directory (i.e. `bwa/mergeLibrary/`) will have the '`.mLb.`' suffix to denote **m**erging at the **R**e**p**licate-level.
+File names in the resulting directory (i.e. `bwa/mergeLibrary/`) will have the '`.mLb.`' suffix to denote **m**erging at the **L**i**b**rary-level.
 
 1. **Alignment merging, duplicate marking and removal**
 

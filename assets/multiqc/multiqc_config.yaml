@@ -30,30 +30,40 @@ module_order:
             - '*val*_fastqc.zip'
             - '*trimmed_fastqc.zip'
     - samtools:
-        name: 'SAMTools (library-level; unfiltered)'
-        info: 'This section of the report shows SAMTools results at the library-level before read filtering.'
+        name: 'SAMTools (library)'
+        info: 'This section of the report shows SAMTools results for individual libraries.'
         path_filters:
             - '*mkD.sorted.bam*'
     - picard:
-        name: 'Picard (library-level; unfiltered)'
-        info: 'This section of the report shows picard results at the library-level before read filtering.'
+        name: 'Picard (library)'
+        info: 'This section of the report shows picard results for individual libraries.'
         path_filters:
             - '*mkD.*'
     - samtools:
-        name: 'SAMTools (library-level; filtered)'
-        info: 'This section of the report shows SAMTools results at the library-level after read filtering.'
+        name: 'SAMTools (merged library; unfiltered)'
+        info: 'This section of the report shows SAMTools results after merging libraries and before filtering.'
         path_filters:
-            - '*clN.sorted.bam*'
+            - '*mLb.mkD.sorted.bam*'
     - samtools:
-        name: 'SAMTools (replicate-level)'
-        info: 'This section of the report shows SAMTools results at the replicate-level after removal of duplicate reads.'
+        name: 'SAMTools (merged library; filtered)'
+        info: 'This section of the report shows SAMTools results after merging libraries and after filtering.'
         path_filters:
-            - '*mLb.sorted.bam*'
+            - '*mLb.clN.sorted.bam*'
+    - picard:
+        name: 'Picard (merged library; filtered)'
+        info: 'This section of the report shows picard results after merging libraries and after filtering.'
+        path_filters:
+            - '*mLb*'
     - samtools:
-        name: 'SAMTools (sample-level)'
-        info: 'This section of the report shows SAMTools results at the sample-level after removal of duplicate reads.'
+        name: 'SAMTools (merged replicate; filtered)'
+        info: 'This section of the report shows SAMTools results after merging replicates and before filtering.'
         path_filters:
-            - '*mRp.sorted.bam*'
+            - '*mRp.clN*'
+    - picard:
+        name: 'Picard (merged replicate; filtered)'
+        info: 'This section of the report shows picard results after merging libraries and before filtering.'
+        path_filters:
+            - '*mRp.clN*'
     - featureCounts:
         name: 'featureCounts (replicate-level)'
         info: 'This section of the report shows featureCounts results for the number of reads assigned to replicate-level merged peaks.'
