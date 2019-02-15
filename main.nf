@@ -215,7 +215,7 @@ if( params.design ){
             .fromPath(params.design, checkIfExists: true)
             .ifEmpty { exit 1, "Samples design file not found: ${params.design}" }
             .splitCsv(header:true, sep:',')
-            .map { row -> [ [row.sample,"R"+row.replicate].join("_"),
+            .map { row -> [ [row.group,"R"+row.replicate].join("_"),
                             [file(row.fastq_1)] ] }
             .groupTuple(by: [0])
             .map { group -> (1..group[1].size()).collect { value -> [ [ group[0],value ].join("_T"), group[1][value-1] ] } }
@@ -231,7 +231,7 @@ if( params.design ){
           .fromPath(params.design, checkIfExists: true)
           .ifEmpty { exit 1, "Samples design file not found: ${params.design}" }
           .splitCsv(header:true, sep:',')
-          .map { row -> [ [row.sample,"R"+row.replicate].join("_"),
+          .map { row -> [ [row.group,"R"+row.replicate].join("_"),
                           [file(row.fastq_1), file(row.fastq_2)] ] }
           .groupTuple(by: [0])
           .map { group -> (1..group[1].size()).collect { value -> [ [ group[0],value ].join("_T"), group[1][value-1] ] } }
@@ -667,9 +667,10 @@ process sort_bam {
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
         saveAs: { filename ->
-            if (filename.endsWith(".flagstat")) "flagstat/$filename"
-            else if (filename.endsWith(".idxstats")) "idxstats/$filename"
-            else params.saveAlignedIntermediates ? filename : null
+            if (params.saveAlignedIntermediates) {
+                if (filename.endsWith(".flagstat")) "flagstat/$filename"
+                else if (filename.endsWith(".idxstats")) "idxstats/$filename"
+                else filename }
         }
 
     input:
@@ -677,7 +678,7 @@ process sort_bam {
 
     output:
     set val(name), file("*.sorted.{bam,bam.bai}") into sort_bam_mlib
-    file "*.flagstat" into sort_bam_flagstat_mqc
+    file "*.{flagstat,idxstats}" into sort_bam_flagstat_mqc
 
     script:
     """
@@ -708,12 +709,12 @@ process merge_library {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergeLibrary", mode: 'copy',
-    saveAs: { filename ->
-        if (filename.endsWith(".flagstat")) "flagstat/$filename"
-        else if (filename.endsWith(".idxstats")) "idxstats/$filename"
-        else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
-        else params.saveAlignedIntermediates ? filename : null
-    }
+        saveAs: { filename ->
+            if (filename.endsWith(".flagstat")) "flagstat/$filename"
+            else if (filename.endsWith(".idxstats")) "idxstats/$filename"
+            else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
+            else params.saveAlignedIntermediates ? filename : null
+        }
 
     input:
     set val(name), file(bams) from sort_bam_mlib
@@ -841,7 +842,9 @@ if(params.singleEnd){
         publishDir path: "${params.outdir}/bwa/mergeLibrary", mode: 'copy',
             saveAs: { filename ->
                 if (filename.endsWith(".flagstat")) "flagstat/$filename"
-                else filename
+                else if (filename.endsWith(".sorted.bam")) filename
+                else if (filename.endsWith(".sorted.bam.bai")) filename
+                else null
             }
 
         input:
@@ -883,7 +886,7 @@ if(params.singleEnd){
 process merge_library_collectmetrics {
     tag "$name"
     label 'process_medium'
-    publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
+    publishDir path: "${params.outdir}/bwa/mergeLibrary", mode: 'copy',
         saveAs: { filename ->
             if (filename.endsWith("_metrics")) "picard_metrics/$filename"
             else if (filename.endsWith(".pdf")) "picard_metrics/pdf/$filename"
@@ -1232,13 +1235,13 @@ process merge_library_ataqv_mkarv {
 
    script:
    """
-   git clone https://github.com/ParkerLab/ataqv.git
    mkarv --concurrency $task.cpus \\
          --force \\
-         -t ./ataqv/src/web/ \\
          ./html/ \\
          ${json.join(' ')}
    """
+   //git clone https://github.com/ParkerLab/ataqv.git
+   //-t ./ataqv/src/web/ \\
 }
 
 ///////////////////////////////////////////////////////////////////////////////
