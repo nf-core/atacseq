@@ -654,7 +654,7 @@ if(!params.bwa_aln){
         rg="\'@RG\\tID:${name}\\tSM:${name.toString().subSequence(0, name.length() - 3)}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
         """
         $command -r $rg ${index}/${params.bwa_index_base} $sais $fastqs > ${name}.sam
-        samtools view -@ $task.cpus -b -h -O BAM -o ${name}.bam $sam
+        samtools view -@ $task.cpus -b -h -O BAM -o ${name}.bam ${name}.sam
         """
     }
 }
