@@ -17,5 +17,5 @@ for fpath in $(find -L $INPUT_DIR -type f -iname "*$FILE_GROUP*" | grep "FDR" | 
         awk -v var="$opath" -v OFS='\t' 'BEGIN {print var, "255,0,0"}'
     done
 
-## PEAK AND BIGWIG FILES AT MERGED REPLICATE-LEVEL
+## PEAK AND BIGWIG FILES
 find -L $INPUT_DIR -type f -iname "*$FILE_GROUP*" | grep -Ev "consensus|FDR" | sort | cut -c 2- | awk -v OFS='\t' '{ print "RESULTS_DIR"$1, "0,0,178" }'
