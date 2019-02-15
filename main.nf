@@ -665,13 +665,13 @@ if(!params.bwa_aln){
 process sort_bam {
     tag "$name"
     label 'process_medium'
-    publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
-        saveAs: { filename ->
-            if (params.saveAlignedIntermediates) {
-                if (filename.endsWith(".flagstat")) "flagstat/$filename"
-                else if (filename.endsWith(".idxstats")) "idxstats/$filename"
-                else filename }
-        }
+    if (params.saveAlignedIntermediates) {
+        publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
+            saveAs: { filename ->
+                    if (filename.endsWith(".flagstat")) "flagstat/$filename"
+                    else if (filename.endsWith(".idxstats")) "idxstats/$filename"
+                    else filename }
+    }
 
     input:
     set val(name), file(bam) from bwa_bam
@@ -1237,11 +1237,9 @@ process merge_library_ataqv_mkarv {
    """
    mkarv --concurrency $task.cpus \\
          --force \\
-         ./html/ \\
+         ./ \\
          ${json.join(' ')}
    """
-   //git clone https://github.com/ParkerLab/ataqv.git
-   //-t ./ataqv/src/web/ \\
 }
 
 ///////////////////////////////////////////////////////////////////////////////
