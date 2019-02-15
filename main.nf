@@ -640,7 +640,7 @@ if(!params.bwa_aln){
 
     process bwa_sai_to_bam {
         tag "$name"
-        label 'process_extra_long'
+        label 'process_medium'
 
         input:
         set val(name), file(fastqs), file(sais) from sai_to_sam
@@ -1225,19 +1225,19 @@ process merge_library_ataqv {
  */
 process merge_library_ataqv_mkarv {
    label 'process_medium'
-   publishDir "${params.outdir}/bwa/mergeLibrary/ataqv/html", mode: 'copy'
+   publishDir "${params.outdir}/bwa/mergeLibrary/ataqv", mode: 'copy'
 
    input:
    file json from mlib_ataqv.collect()
 
    output:
-   file "html/*" into mlib_ataqv_mkarv
+   file "html" into mlib_ataqv_mkarv
 
    script:
    """
    mkarv --concurrency $task.cpus \\
          --force \\
-         ./ \\
+         ./html/ \\
          ${json.join(' ')}
    """
 }
