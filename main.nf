@@ -667,23 +667,24 @@ process sort_bam {
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
         saveAs: { filename ->
-            if (params.saveAlignedIntermediates) {
-                if (filename.endsWith(".flagstat")) "flagstat/$filename"
-                else filename }
-            }
+            if (filename.endsWith(".flagstat")) "flagstat/$filename"
+            else if (filename.endsWith(".idxstats")) "idxstats/$filename"
+            else params.saveAlignedIntermediates ? filename : null
+        }
 
     input:
     set val(name), file(bam) from bwa_bam
 
     output:
     set val(name), file("*.sorted.{bam,bam.bai}") into sort_bam_mlib
-    file "*.flagstat" into sort_bam_flagstat
+    file "*.flagstat" into sort_bam_flagstat_mqc
 
     script:
     """
     samtools sort -@ $task.cpus -o ${name}.sorted.bam -T $name $bam
     samtools index ${name}.sorted.bam
     samtools flagstat ${name}.sorted.bam > ${name}.sorted.bam.flagstat
+    samtools idxstats ${name}.sorted.bam > ${name}.sorted.bam.idxstats
     """
 }
 
@@ -778,7 +779,7 @@ process merge_library {
  */
 process merge_library_filter {
     tag "$name"
-    cache false
+
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergeLibrary", mode: 'copy',
         saveAs: { filename ->
@@ -1664,6 +1665,8 @@ process multiqc {
     file ('fastqc/*') from fastqc_reports_mqc.collect()
     file ('trimgalore/*') from trimgalore_results_mqc.collect()
     file ('trimgalore/fastqc/*') from trimgalore_fastqc_reports_mqc.collect()
+
+    file ('alignment/library/*') from sort_bam_flagstat_mqc.collect()
 
     file ('alignment/mergeLibrary/*') from mlib_bam_stats_mqc.collect()
     file ('alignment/mergeLibrary/*') from mlib_rm_orphan_flagstat_mqc.collect{it[1]}

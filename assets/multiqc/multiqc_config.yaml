@@ -33,12 +33,7 @@ module_order:
         name: 'SAMTools (library)'
         info: 'This section of the report shows SAMTools results for individual libraries.'
         path_filters:
-            - '*mkD.sorted.bam*'
-    - picard:
-        name: 'Picard (library)'
-        info: 'This section of the report shows picard results for individual libraries.'
-        path_filters:
-            - '*mkD.*'
+            - '*sorted.bam*'
     - samtools:
         name: 'SAMTools (merged library; unfiltered)'
         info: 'This section of the report shows SAMTools results after merging libraries and before filtering.'
@@ -65,36 +60,36 @@ module_order:
         path_filters:
             - '*mRp.clN*'
     - featureCounts:
-        name: 'featureCounts (replicate-level)'
-        info: 'This section of the report shows featureCounts results for the number of reads assigned to replicate-level merged peaks.'
+        name: 'featureCounts (merged library)'
+        info: 'This section of the report shows featureCounts results for the number of reads assigned to merged library consensus peaks.'
         path_filters:
-            - '*mLb.featureCounts*'
+            - '*mLb.clN.featureCounts*'
     - featureCounts:
-        name: 'featureCounts (sample-level)'
-        info: 'This section of the report shows featureCounts results for the number of reads assigned to sample-level merged peaks.'
+        name: 'featureCounts (merged replicate)'
+        info: 'This section of the report shows featureCounts results for the number of reads assigned to merged replicate consensus peaks.'
         path_filters:
-            - '*mRp.featureCounts*'
+            - '*mRp.clN.featureCounts*'
 
 report_section_order:
-    replicate_peak_count:
+    mlib_peak_count:
         order: -1000
-    sample_peak_count:
+    mrep_peak_count:
         order: -1100
-    replicate_frip_score:
+    mlib_frip_score:
         order: -1200
-    sample_frip_score:
+    mrep_frip_score:
         order: -1300
-    replicate_peak_annotation:
+    mlib_peak_annotation:
         order: -1400
-    sample_peak_annotation:
+    mrep_peak_annotation:
         order: -1500
-    replicate_deseq2_pca:
+    mlib_deseq2_pca:
         order: -1600
-    sample_deseq2_pca:
+    mrep_deseq2_pca:
         order: -1700
-    replicate_deseq2_clustering:
+    mlib_deseq2_clustering:
         order: -1800
-    sample_deseq2_clustering:
+    mrep_deseq2_clustering:
         order: -1900
     nf-core_atacseq-software-versions:
         order: -2000
