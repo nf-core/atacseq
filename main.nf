@@ -577,7 +577,7 @@ if(params.skipTrimming){
 if(!params.bwa_aln){
     process bwa_mem {
         tag "$name"
-        label 'process_medium'
+        label 'process_big'
 
         input:
         set val(name), file(reads) from trimmed_reads_aln_1
@@ -598,7 +598,7 @@ if(!params.bwa_aln){
      */
     process bwa_aln_read1 {
         tag "$name"
-        label 'process_medium'
+        label 'process_big'
 
         input:
         set val(name), file(reads) from trimmed_reads_aln_1
@@ -619,7 +619,7 @@ if(!params.bwa_aln){
     } else {
         process bwa_aln_read2 {
             tag "$name"
-            label 'process_medium'
+            label 'process_big'
 
             input:
             set val(name), file(reads) from trimmed_reads_aln_2
@@ -640,7 +640,7 @@ if(!params.bwa_aln){
 
     process bwa_sai_to_bam {
         tag "$name"
-        label 'process_medium'
+        label 'process_extra_long'
 
         input:
         set val(name), file(fastqs), file(sais) from sai_to_sam
