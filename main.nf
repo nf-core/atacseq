@@ -1034,6 +1034,7 @@ process merge_library_macs_annotate {
  * STEP 4.5.3 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
 process merge_library_macs_qc {
+   label "process_medium"
    publishDir "${params.outdir}/bwa/mergeLibrary/macs/qc", mode: 'copy'
 
    input:
@@ -1446,6 +1447,7 @@ process merge_replicate_macs_annotate {
  * STEP 5.2.4 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
 process merge_replicate_macs_qc {
+   label "process_medium"
    publishDir "${params.outdir}/bwa/mergeReplicate/macs/qc", mode: 'copy'
 
    input:
@@ -1580,7 +1582,7 @@ process merge_replicate_macs_consensus_deseq {
     script:
     prefix="consensus_peaks.mRp.clN"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    bam_ext = params.singleEnd ? ".mRp.clN.sorted.bam" : ".mRp.clN.bam"
+    bam_ext = params.singleEnd ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
     pe_params = params.singleEnd ? '' : "-p --donotsort"
     """
     featureCounts -F SAF \\
