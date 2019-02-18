@@ -1,10 +1,11 @@
 name: nf-core-atacseq-1.0dev
 channels:
-  - defaults
-  - bioconda
   - conda-forge
+  - bioconda
+  - defaults
 dependencies:
     ## conda-forge packages
+    - conda-forge::r-base=3.4.1
     - conda-forge::r-optparse=1.6.0
     - conda-forge::r-rcolorbrewer=1.1_2
     - conda-forge::r-ggplot2=3.1.0
@@ -19,15 +20,15 @@ dependencies:
     - trim-galore=0.5.0
     - bwa=0.7.17
     - samtools=1.9
-    - picard=2.18.15
+    - picard=2.18.26
     - bamtools=2.5.1
-    - pysam=0.15.1
+    - pysam=0.15.2
     - bedtools=2.27.1
     - ucsc-bedgraphtobigwig=366
-    - deeptools=3.1.3
     - macs2=2.1.2
     - homer=4.9.1
-    - subread=1.6.2
-    - multiqc=1.6
+    - ataqv=1.0.0
+    - subread=1.6.3
+    - multiqc=1.7
     - bioconda::bioconductor-deseq2=1.20.0
     - bioconda::bioconductor-vsn=3.46.0

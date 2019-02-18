@@ -24,7 +24,8 @@
     * [`--gtf`](#--gtf)
     * [`--bwa_index_dir`](#--bwa_index_dir)
     * [`--bwa_index_base`](#--bwa_index_base)
-    * [`--bed12`](#--bed12)
+    * [`--gene_bed`](#--gene_bed)
+    * [`--tss_bed`](#--tss_bed)
     * [`--mito_name`](#--mito_name)
     * [`--macs_gsize`](#--macs_gsize)
     * [`--blacklist`](#--blacklist)
@@ -37,7 +38,7 @@
     * [`--keepMito`](#--keepMito)
     * [`--keepDups`](#--keepDups)
     * [`--keepMultiMap`](#--keepMultiMap)
-    * [`--skipMergeBySample`](#--skipMergeBySample)
+    * [`--skipMergeReplicates`](#--skipMergeReplicates)
     * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
 * [Job resources](#job-resources)
 * [Automatic resubmission](#automatic-resubmission)
@@ -57,6 +58,7 @@
     * [`--max_time`](#--max_time)
     * [`--max_cpus`](#--max_cpus)
     * [`--plaintext_email`](#--plaintext_email)
+    * [`--monochrome_logs`](#--monochrome_logs)
     * [`--multiqc_config`](#--multiqc_config)
 
 ## General Nextflow info
@@ -131,7 +133,7 @@ You will need to create a design file with information about the samples in your
 It has to be a comma-separated file with 4 columns, and a header row as shown in the example below:
 
 ```bash
-sample,replicate,fastq_1,fastq_2
+group,replicate,fastq_1,fastq_2
 control,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
 control,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
 treatment,1,AEG588A3_S5_L003_R1_001.fastq.gz,AEG588A3_S5_L003_R2_001.fastq.gz
@@ -139,12 +141,12 @@ treatment,2,AEG588A4_S3_L002_R1_001.fastq.gz,AEG588A4_S3_L002_R2_001.fastq.gz
 treatment,2,AEG588A5_S4_L002_R1_001.fastq.gz,AEG588A5_S4_L002_R2_001.fastq.gz
 ```
 
-| Column      | Description                                                                                   |
-|-------------|-----------------------------------------------------------------------------------------------|
-| `sample`    | Group identifier for sample.                                                                  |
-| `replicate` | Integer representing replicate number. Must start from 1..<number of replicates>              |
-| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz". |
-| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz". |
+| Column      | Description                                                                                                 |
+|-------------|-------------------------------------------------------------------------------------------------------------|
+| `group`     | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
+| `replicate` | Integer representing replicate number. Must start from 1..<number of replicates>                            |
+| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz".               |
+| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz".               |
 
 If you have sequenced the same library more than once you just provide this as a separate entry in the design file with the same replicate identifier. The alignments will be performed separately, and subsequently merged before further analysis.
 
@@ -224,10 +226,16 @@ Base file name for an existing BWA index for your reference genome. Default: `ge
 --bwa_index_base '[basename of BWA index]'
 ```
 
-### `--bed12`
-The full path to BED12 file for TSS profile plots. This will be created from the GTF file if it isnt specified.
+### `--gene_bed`
+The full path to BED file for genome-wide gene intervals. This will be created from the GTF file if it isnt specified.
 ```bash
---bed12 '[path to BED12 file]'
+--gene_bed '[path to gene BED file]'
+```
+
+### `--tss_bed`
+The full path to BED file for genome-wide transcription start sites. This will be created from the gene BED file if it isnt specified.
+```bash
+--tss_bed '[path to tss BED file]'
 ```
 
 ### `--macs_gsize`
@@ -284,8 +292,8 @@ Duplicate reads are not filtered from alignments.
 ### `--keepMultiMap`
 Reads mapping to multiple locations in the genome are not filtered from alignments.
 
-### `--skipMergeBySample`
-Do not perform alignment merging and downstream analysis at the sample-level i.e. only do this at the replicate-level.
+### `--skipMergeReplicates`
+Do not perform alignment merging and downstream analysis of replicates from the same condition i.e. only do this at the library-level.
 
 ### `--saveAlignedIntermediates`
 By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also copy out BAM files from BWA and sorting/filtering steps.
@@ -361,6 +369,9 @@ Should be a string in the format integer-unit. eg. `--max_cpus 1`
 
 ### `--plaintext_email`
 Set to receive plain-text e-mails instead of HTML formatted.
+
+### `--monochrome_logs`
+Set to disable colourful command line output and live life in monochrome.
 
 ### `--multiqc_config`
 Specify a path to a custom MultiQC configuration file.

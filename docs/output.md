@@ -13,7 +13,7 @@ The directories listed below will be created in the output directory after the p
 
 The initial QC and alignments are performed at the library-level e.g. if the same library has been sequenced more than once to increase sequencing depth. This has the advantage of being able to assess each library individually, and the ability to process multiple libraries from the same sample in parallel.
 
-File names in the resulting directory (i.e. `bwa/library/`) will either have the '`.mkD.`' (**m**ar**k** **D**uplicates) or '`.clN.`' (**cl**ea**n**) suffix to denote files before and after read filtering, respectively.  
+File names in the resulting directory (i.e. `bwa/library/`) will have the '`.mkD.`' (**m**ar**k** **D**uplicates) suffix.
 
 1. **Raw read QC**
 
@@ -53,7 +53,7 @@ File names in the resulting directory (i.e. `bwa/library/`) will either have the
 3. **Alignment, duplicate marking and read filtering**
 
     *Software*:  
-    [BWA](https://sourceforge.net/projects/bio-bwa/files/), [picard](https://broadinstitute.github.io/picard/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/), [BEDTools](https://github.com/arq5x/bedtools2/), [BAMTools](https://github.com/pezmaster31/bamtools), [Pysam](http://pysam.readthedocs.io/en/latest/installation.html)
+    [BWA](https://sourceforge.net/projects/bio-bwa/files/), [picard](https://broadinstitute.github.io/picard/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/)
 
     *Description*:  
     Adapter-trimmed reads are mapped to the reference assembly using BWA. A genome index is required to run BWA so if this isnt provided explicitly using the `--bwa_index_dir` and `--bwa_index_base` parameters then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--saveReference` parameter to save the indices for future pipeline runs, reducing processing times.
@@ -81,26 +81,32 @@ File names in the resulting directory (i.e. `bwa/library/`) will either have the
     [MultiQC - Picard insert size plot](images/mqc_picard_insert_size_plot.png)  
     [MultiQC - Picard deduplication stats plot](images/mqc_picard_deduplication_plot.png)
 
-## Replicate-level analysis
+## Merged library-level analysis
 
-The library-level alignments associated with any given sample are merged at the replicate-level and subsequently used for the downstream analyses.
+The library-level alignments associated with any given replicate are merged and subsequently used for the downstream analyses.
 
-File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.mRp.`' suffix to denote **m**erging at the **R**e**p**licate-level.
+File names in the resulting directory (i.e. `bwa/mergeLibrary/`) will have the '`.mLb.`' suffix to denote **m**erging at the **L**i**b**rary-level.
 
 1. **Alignment merging, duplicate marking and removal**
 
     *Software*:  
-    [picard](https://broadinstitute.github.io/picard/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/)
+    [picard](https://broadinstitute.github.io/picard/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/), [BEDTools](https://github.com/arq5x/bedtools2/), [BAMTools](https://github.com/pezmaster31/bamtools), [Pysam](http://pysam.readthedocs.io/en/latest/installation.html)
 
     *Description*:  
-    Picard MergeSamFiles and MarkDuplicates are used in combination to merge the alignments, and for the re-marking and removal of duplicates. If you only have one library for any given replicate then the merging step isnt carried out because the library-level and replicate-level BAM files will be exactly the same.
+    Picard MergeSamFiles and MarkDuplicates are used in combination to merge the alignments, and for the re-marking and removal of duplicates. If you only have one library for any given replicate then the merging step isnt carried out because the library-level and merged library-level BAM files will be exactly the same.
+
+    Read duplicate marking is carried out using the Picard MarkDuplicates command. Duplicate reads are generally removed from the aligned reads to mitigate for fragments in the library that may have been sequenced more than once due to PCR biases. There is an option to keep duplicate reads with the `--keepDups` parameter but its generally recommend to remove them to avoid the wrong interpretation of the results. A similar option has been provided to keep reads that are multi-mapped - `--keepMultiMap`.
+
+    Certain cell types and tissues yield an enormous fraction (typically 20–80%) of unusable sequences of mitochondrial origin. This is a known problem that is specific to ATAC-seq library preps - see [Montefiori et al. 2017](https://www.nature.com/articles/s41598-017-02547-w). There is an option to keep these reads using the `--keepMito` parameter but its generally recommended to remove these in order to get a more reliable assessment of the duplication rate from the rest of the genome.
+
+    Other steps have been incorporated into the pipeline to clean the resulting alignments - see [`main README.md`](../README.md) for a more comprehensive listing, and the tools used at each step.
 
     *Output directories*:
-    * `bwa/replicate/`  
-      Replicate-level, merged, coordinate sorted `*.bam` files after the re-marking and removal of duplicates.
-    * `bwa/replicate/flagstat/`    
+    * `bwa/mergeLibrary/`  
+      Merged library-level, coordinate sorted `*.bam` files after the re-marking and removal of duplicates.
+    * `bwa/mergeLibrary/flagstat/`    
       SAMtools `*.flagstat` files associated with the final filtered merged BAM file.
-    * `bwa/replicate/picard_metrics/`    
+    * `bwa/mergeLibrary/picard_metrics/`    
       MarkDuplicates `*.metrics.txt` file.
 
 2. **Normalised bigWig files**
@@ -112,25 +118,10 @@ File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.m
     The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in an indexed binary format useful for displaying dense, continuous data in Genome Browsers such as the [UCSC](https://genome.ucsc.edu/cgi-bin/hgTracks) and [IGV](http://software.broadinstitute.org/software/igv/). This removes the need to load the much larger BAM files for data visualisation purposes which will be slower and result in memory issues. The coverage values represented in the bigWig file can also be normalised in order to be able to compare the coverage across multiple samples - this is not possible with BAM files. The bigWig format is also supported by various bioinformatics software for downstream processing such as meta-profile plotting.
 
     *Output directories*:
-    * `bwa/replicate/bigwig/`  
+    * `bwa/mergeLibrary/bigwig/`  
       Normalised `*.bigWig` files scaled to 1 million mapped reads.
 
-3. **TSS meta-profiles**
-
-    *Software*:  
-    [deepTools](https://deeptools.readthedocs.io/en/develop/)  
-
-    *Description*:  
-    Transcription start site (TSS) enrichment is another QC measure which is useful to ATAC-seq datasets. In theory, the open chromatin regions denoted by ATAC-seq signal should be enriched within the promoter regions of genes.
-
-    *Output directories*:
-    * `bwa/replicate/deeptools/`  
-      TSS meta-profile `*.png` plot for coverage across all genes. Generated with deepTools *computeMatrix* and *plotProfile* commands.
-
-    *Plots*:  
-    [deepTools - TSS meta-profile plot](images/deeptools_tss_plot.png)
-
-4. **Call peaks**
+3. **Call peaks**
 
     *Software*:  
     [MACS2](https://github.com/taoliu/MACS), [HOMER](http://homer.ucsd.edu/homer/download.html), [R](https://www.r-project.org/)
@@ -147,13 +138,13 @@ File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.m
     See [MACS2 outputs](https://github.com/taoliu/MACS#output-files) for a description of the output files generated by MACS2.
 
     *Output directories*:
-    * `bwa/replicate/macs2/`  
+    * `bwa/mergeLibrary/macs2/`  
       * MACS2 output files: `*.xls`, `*.broadPeak` or `*.narrowPeak`, `*.gappedPeak` and `*summits.bed`.  
         The files generated will depend on whether MACS2 has been run in *narrowPeak* or *broadPeak* mode.  
       * HOMER peak-to-gene annotation file: `*.annotatePeaks.txt`.
-    * `bwa/replicate/macs2/qc`  
-      * QC plots for MACS2 peaks: `macs_peak.mRp.plots.pdf`
-      * QC plots for peak to gene feature annotation: `macs_annotatePeaks.mRp.plots.pdf`
+    * `bwa/mergeLibrary/macs2/qc`  
+      * QC plots for MACS2 peaks: `macs_peak.mLb.plots.pdf`
+      * QC plots for peak to gene feature annotation: `macs_annotatePeaks.mLb.plots.pdf`
       * MultiQC custom-content files for [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html) and peak count: `*.FRiP_mqc.tsv` and `*.count_mqc.tsv`, respectively.
 
     *Plots*:  
@@ -161,7 +152,7 @@ File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.m
     [MultiQC - MACS2 peaks FRiP score plot](images/mqc_frip_score_plot.png)  
     [MultiQC - HOMER annotatePeaks peak to genomic feature ratio plot](images/mqc_annotatePeaks_feature_percentage_plot.png)  
 
-5. **Create consensus set of peaks**
+4. **Create consensus set of peaks**
 
     *Software*:  
     [BEDTools](https://github.com/arq5x/bedtools2/)
@@ -172,7 +163,7 @@ File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.m
     Using the consensus peaks it is also possible to assess the degree of overlap between the peaks from a set of samples e.g. *Which consensus peaks contain peaks that are common to a given set of samples?*. This may be useful for downstream filtering of peaks based on whether they are called in multiple replicates/conditions. Please note that it is possible for a consensus peak to contain multiple peaks from the same sample. Unfortunately, this is sample-dependent but the files generated by the pipeline do have columns that report such instances and allow you to factor them into any further analysis.  
 
     *Output directories*:
-    * `bwa/replicate/macs2/consensus/`  
+    * `bwa/mergeLibrary/macs2/consensus/`  
       * Consensus peakset across all samples in `*.bed` format.
       * Consensus peakset across all samples in `*.saf` format. Required by featureCounts for read quantification.  
       * HOMER `*.annotatePeaks.txt` peak-to-gene annotation file for consensus peaks.   
@@ -185,7 +176,7 @@ File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.m
     *Plots*:  
     [R - UpSetR peak intersection plot](images/r_upsetr_intersect_plot.png)
 
-6. **Read counting and differential accessibility analysis**
+5. **Read counting and differential accessibility analysis**
 
     *Software*:  
     [featureCounts](http://bioinf.wehi.edu.au/featureCounts/), [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html), [R](https://www.r-project.org/),
@@ -200,19 +191,19 @@ File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.m
     Please see [DESeq2 output](http://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#differential-expression-analysis) for a description of the columns generated by DESeq2.
 
     *Output directories*:
-    * `bwa/replicate/macs2/consensus/deseq2/`
+    * `bwa/mergeLibrary/macs2/consensus/deseq2/`
         * `.featureCounts.txt` file for read counts across all samples relative to consensus peak set.
         * Differential accessibility `*.results.txt` spreadsheet containing results across all consensus peaks and all comparisons.  
         * `*.plots.pdf` file for PCA and hierarchical clustering.  
         * `*.log` file with information for number of genes differentially bound at different FDR and fold-change thresholds for each comparison.  
         * `*.dds.rld.RData` file containing R `dds` and `rld` objects generated by DESeq2.  
         * `R_sessionInfo.log` file containing information about R, the OS and attached or loaded packages.
-    * `bwa/replicate/macs2/consensus/<COMPARISON>/`  
+    * `bwa/mergeLibrary/macs2/consensus/<COMPARISON>/`  
         * `*.results.txt` spreadsheet containing comparison-specific DESeq2 output for differential accessibility results across all peaks.   
-        * Subset of above file for peaks that pass FDR <= 0.01 (`*FDR0.01.results.txt`), FDR <= 0.01 and fold-change >= 2 (`*FDR0.01.FC2.results.txt`), FDR <= 0.05 (`*FDR0.05.results.txt`) and FDR <= 0.05 and fold-change >= 2 (`*FDR0.05.FC2.results.txt`).  
-        * BED files for peaks that pass FDR <= 0.01 (`*FDR0.01.results.bed`), FDR <= 0.01 and fold-change >= 2 (`*FDR0.01.FC2.results.bed`), FDR <= 0.05 (`*FDR0.05.results.bed`) and FDR <= 0.05 and fold-change >= 2 (`*FDR0.05.FC2.results.bed`).
+        * Subset of above file for peaks that pass FDR <= 0.01 (`*FDR0.01.results.txt`) and FDR <= 0.05 (`*FDR0.05.results.txt`).  
+        * BED files for peaks that pass FDR <= 0.01 (`*FDR0.01.results.bed`) and FDR <= 0.05 (`*FDR0.05.results.bed`).
         * MA, Volcano, clustering and scatterplots at FDR <= 0.01 and FDR <= 0.05: `*deseq2.plots.pdf`.  
-    * `bwa/replicate/macs2/consensus/sizeFactors/`  
+    * `bwa/mergeLibrary/macs2/consensus/sizeFactors/`  
       Files containing DESeq2 sizeFactors per sample: `*.txt` and `*.RData`.
 
     *Plots*:  
@@ -224,13 +215,13 @@ File names in the resulting directory (i.e. `bwa/replicate/`) will have the '`.m
 
 ## Sample-level analysis
 
-The library-level alignments associated with all of the replicates from the same experimental condition are also merged at the sample-level. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/). The analysis steps and directory structure for `bwa/replicate/` and `bwa/sample/` are almost identical.  
+The alignments associated with all of the replicates from the same experimental condition are also merged at the replicate-level. This can be useful to increase the coverage for peak-calling and for other analyses that require high sequencing depth such as [motif footprinting](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3959825/). The analysis steps and directory structure for `bwa/mergeLibrary/` and `bwa/mergeReplicate/` are almost identical.  
 
-File names in the resulting directory (i.e. `bwa/sample/`) will have the '`.mSm.`' suffix to denote **m**erging at the **S**a**m**ple-level.
+File names in the resulting directory (i.e. `bwa/mergeReplicate/`) will have the '`.mRp.`' suffix to denote **m**erging at the **R**e**p**licate-level.
 
-You can skip this portion of the analysis by specifying the `--skipMergeBySample` parameter.  
+You can skip this portion of the analysis by specifying the `--skipMergeReplicate` parameter.  
 
->NB: Replicate-level alignments will be used for read counting relative to the consensus sample-level peakset. This is the only way in which differential analysis can be performed at the sample-level.
+>NB: Merged library-level alignments will be used for read counting relative to the consensus merged replicate-level peakset. This is the only way in which differential analysis can be performed at the merged replicate-level.
 
 ## Aggregate analysis
 
@@ -306,6 +297,6 @@ You can skip this portion of the analysis by specifying the `--skipMergeBySample
 
     *Output directories*:
     * `pipeline_info/`  
-      Default reports generated by the pipeline are `atacseq_report.html`, `atacseq_timeline.html`, `atacseq_trace.txt` and `atacseq_dag.dot`.  
+      Default reports generated by the pipeline are `execution_report.html`, `execution_timeline.html`, `execution_trace.txt` and `pipeline_dag.dot`.  
     * `Documentation/`  
       Additional reports and documentation generated by the pipeline i.e. `pipeline_report.html`, `pipeline_report.txt`, `results_description.html`.
