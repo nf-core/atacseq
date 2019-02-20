@@ -221,7 +221,7 @@ The library-level alignments associated with any given replicate are merged and 
     * `bwa/mergedLibrary/ataqv/`  
       `.json` files containing ATAC-seq specific metrics for each sample.
     * `bwa/mergedLibrary/ataqv/html/`  
-      Folder containing ataqv results aggregated across all samples for visualisation in your internet browser.
+      Folder containing ataqv results aggregated across all samples for visualisation via an internet browser.
 
 ## Merged replicate-level analysis
 
