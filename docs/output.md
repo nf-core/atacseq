@@ -256,8 +256,8 @@ You can skip this portion of the analysis by specifying the `--skipMergeReplicat
 
     *Output directories*:
     * `igv/`  
-      `igv_session.xml` file.  
-      `igv_files.txt` file containing a listing of the files used to create the IGV session, and their associated colours.
+      * `igv_session.xml` file.  
+      * `igv_files.txt` file containing a listing of the files used to create the IGV session, and their associated colours.
 
     *Plots*:   
     [IGV screenshot](images/igv_screenshot.png)  
