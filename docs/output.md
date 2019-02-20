@@ -171,7 +171,7 @@ The library-level alignments associated with any given replicate are merged and 
 5. **Read counting and differential accessibility analysis**
 
     *Software*:  
-    [featureCounts](http://bioinf.wehi.edu.au/featureCounts/), [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html), [R](https://www.r-project.org/),
+    [featureCounts](http://bioinf.wehi.edu.au/featureCounts/), [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html), [R](https://www.r-project.org/)
 
     *Description*:  
     The featureCounts tool is used to count the number of reads relative to the consensus peakset across all of the samples. This essentially generates a file containing a matrix where the rows represent the consensus intervals, the columns represent all of the samples in the experiment, and the values represent the raw read counts.
@@ -206,6 +206,22 @@ The library-level alignments associated with any given replicate are merged and 
     [MultiQC - DESeq2 sample similarity plot](images/mqc_deseq2_sample_similarity_plot.png)  
     [R - DESeq2 MA plot](images/r_deseq2_ma_plot.png)  
     [R - DESeq2 Volcano plot](images/r_deseq2_volcano_plot.png)  
+
+6. **ataqv**
+
+    *Software*:  
+    [ataqv](https://parkerlab.github.io/ataqv/)
+
+    *Description*:  
+    ataqv is a toolkit for measuring and comparing ATAC-seq results. It was written to help understand how well ATAC-seq assays have worked, and to make it easier to spot differences that might be caused by library prep or sequencing.
+
+    Please see [ataqv homepage](https://parkerlab.github.io/ataqv/) for documentation and an example report.
+
+    *Output directories*:
+    * `bwa/mergedLibrary/ataqv/`  
+      `.json` files containing ATAC-seq specific metrics for each sample.
+    * `bwa/mergedLibrary/ataqv/html/`  
+      Folder containing ataqv results aggregated across all samples for visualisation in your internet browser.
 
 ## Merged replicate-level analysis
 
