@@ -33,7 +33,7 @@ module_order:
         name: 'SAMTools (library)'
         info: 'This section of the report shows SAMTools results for individual libraries.'
         path_filters:
-            - '*sorted.bam*'
+            - '*.Lb.sorted.bam*'
     - samtools:
         name: 'SAMTools (merged library; unfiltered)'
         info: 'This section of the report shows SAMTools results after merging libraries and before filtering.'

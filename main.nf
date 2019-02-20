@@ -164,7 +164,8 @@ if( params.fasta ){
                 fasta_mlib_macs_annotate;
                 fasta_mlib_macs_consensus_annotate;
                 fasta_mrep_macs_annotate;
-                fasta_mrep_macs_consensus_annotate }
+                fasta_mrep_macs_consensus_annotate;
+                fasta_igv }
 } else {
     exit 1, "Fasta file not specified!"
 }
@@ -588,9 +589,10 @@ if(!params.bwa_aln){
         set val(name), file("*.bam") into bwa_bam
 
         script:
+        prefix="${name}.Lb"
         rg="\'@RG\\tID:${name}\\tSM:${name.toString().subSequence(0, name.length() - 3)}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
         """
-        bwa mem -t $task.cpus -M -R $rg ${index}/${params.bwa_index_base} $reads | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${name}.bam -
+        bwa mem -t $task.cpus -M -R $rg ${index}/${params.bwa_index_base} $reads | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -
         """
     }
 } else {
@@ -609,7 +611,8 @@ if(!params.bwa_aln){
         set val(name), file("*.sai") into sai_read1
 
         script:
-        sainame = params.singleEnd ? "${name}.sai" : "${name}_1.sai"
+        prefix="${name}.Lb"
+        sainame = params.singleEnd ? "${prefix}.sai" : "${prefix}_1.sai"
         """
         bwa aln -t $task.cpus ${index}/${params.bwa_index_base} ${reads[0]} > $sainame
         """
@@ -630,8 +633,9 @@ if(!params.bwa_aln){
             set val(name), file("*.sai") into sai_read2
 
             script:
+            prefix="${name}.Lb"
             """
-            bwa aln -t $task.cpus ${index}/${params.bwa_index_base} ${reads[1]} > ${name}_2.sai
+            bwa aln -t $task.cpus ${index}/${params.bwa_index_base} ${reads[1]} > ${prefix}_2.sai
             """
         }
         sai_to_sam = trimmed_reads_sai_to_sam.join(sai_read1, by: [0])
@@ -650,10 +654,11 @@ if(!params.bwa_aln){
         set val(name), file("*.bam") into bwa_bam
 
         script:
+        prefix="${name}.Lb"
         command = params.singleEnd ? "bwa samse" : "bwa sampe"
         rg="\'@RG\\tID:${name}\\tSM:${name.toString().subSequence(0, name.length() - 3)}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
         """
-        $command -r $rg ${index}/${params.bwa_index_base} $sais $fastqs | samtools view -@ $task.cpus -b -h -O BAM -o ${name}.bam -
+        $command -r $rg ${index}/${params.bwa_index_base} $sais $fastqs | samtools view -@ $task.cpus -b -h -O BAM -o ${prefix}.bam -
         """
     }
 }
@@ -667,8 +672,9 @@ process sort_bam {
     if (params.saveAlignedIntermediates) {
         publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
             saveAs: { filename ->
-                    if (filename.endsWith(".flagstat")) "flagstat/$filename"
-                    else if (filename.endsWith(".idxstats")) "idxstats/$filename"
+                    if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+                    else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+                    else if (filename.endsWith(".stats")) "samtools_stats/$filename"
                     else filename }
     }
 
@@ -677,14 +683,16 @@ process sort_bam {
 
     output:
     set val(name), file("*.sorted.{bam,bam.bai}") into sort_bam_mlib
-    file "*.{flagstat,idxstats}" into sort_bam_flagstat_mqc
+    file "*.{flagstat,idxstats,stats}" into sort_bam_flagstat_mqc
 
     script:
+    prefix="${name}.Lb"
     """
-    samtools sort -@ $task.cpus -o ${name}.sorted.bam -T $name $bam
-    samtools index ${name}.sorted.bam
-    samtools flagstat ${name}.sorted.bam > ${name}.sorted.bam.flagstat
-    samtools idxstats ${name}.sorted.bam > ${name}.sorted.bam.idxstats
+    samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $name $bam
+    samtools index ${prefix}.sorted.bam
+    samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+    samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
+    samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
     """
 }
 
@@ -709,8 +717,9 @@ process merge_library {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
         saveAs: { filename ->
-            if (filename.endsWith(".flagstat")) "flagstat/$filename"
-            else if (filename.endsWith(".idxstats")) "idxstats/$filename"
+            if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+            else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+            else if (filename.endsWith(".stats")) "samtools_stats/$filename"
             else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
             else params.saveAlignedIntermediates ? filename : null
         }
@@ -721,7 +730,7 @@ process merge_library {
     output:
     set val(name), file("*${prefix}.sorted.{bam,bam.bai}") into mlib_bam_filter,
                                                                 mlib_bam_ataqv
-    file "*.{flagstat,idxstats}" into mlib_bam_stats_mqc
+    file "*.{flagstat,idxstats,stats}" into mlib_bam_stats_mqc
     file "*.txt" into mlib_metrics_mqc
 
     script:
@@ -755,6 +764,7 @@ process merge_library {
         samtools index ${prefix}.sorted.bam
         samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
         samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+        samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
         """
     } else {
       """
@@ -770,6 +780,7 @@ process merge_library {
       samtools index ${prefix}.sorted.bam
       samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
       samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+      samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
       """
     }
 }
@@ -783,8 +794,12 @@ process merge_library_filter {
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
         saveAs: { filename ->
             if (params.singleEnd || params.saveAlignedIntermediates) {
-                if (filename.endsWith(".flagstat")) "flagstat/$filename"
-                else filename }
+                if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+                else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+                else if (filename.endsWith(".stats")) "samtools_stats/$filename"
+                else if (filename.endsWith(".sorted.bam")) filename
+                else if (filename.endsWith(".sorted.bam.bai")) filename
+                else null }
             }
 
     input:
@@ -795,6 +810,7 @@ process merge_library_filter {
     output:
     set val(name), file("*.{bam,bam.bai}") into mlib_filter_bam
     file "*.flagstat" into mlib_filter_flagstat
+    file "*.{idxstats,stats}" into mlib_filter_stats_mqc
 
     script:
     prefix = params.singleEnd ? "${name}.mLb.clN" : "${name}.mLb.flT"
@@ -815,6 +831,9 @@ process merge_library_filter {
 
     samtools index ${prefix}.sorted.bam
     samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+    samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
+    samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
+
     $name_sort_bam
     """
 }
@@ -831,13 +850,17 @@ if(params.singleEnd){
     mlib_filter_flagstat.into { mlib_rm_orphan_flagstat_bigwig;
                                 mlib_rm_orphan_flagstat_macs;
                                 mlib_rm_orphan_flagstat_mqc }
+    mlib_filter_stats_mqc.into { mlib_rm_orphan_stats_mqc }
+
 } else {
     process merge_library_rm_orphan {
         tag "$name"
         label 'process_medium'
         publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
             saveAs: { filename ->
-                if (filename.endsWith(".flagstat")) "flagstat/$filename"
+                if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+                else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+                else if (filename.endsWith(".stats")) "samtools_stats/$filename"
                 else if (filename.endsWith(".sorted.bam")) filename
                 else if (filename.endsWith(".sorted.bam.bai")) filename
                 else null
@@ -856,6 +879,7 @@ if(params.singleEnd){
         set val(name), "*.flagstat" into mlib_rm_orphan_flagstat_bigwig,
                                          mlib_rm_orphan_flagstat_macs,
                                          mlib_rm_orphan_flagstat_mqc
+        file "*.{idxstats,stats}" into mlib_rm_orphan_stats_mqc
 
         script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
         prefix="${name}.mLb.clN"
@@ -864,6 +888,8 @@ if(params.singleEnd){
         samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $prefix ${prefix}.bam
         samtools index ${prefix}.sorted.bam
         samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+        samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
+        samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
         """
     }
 }
@@ -1260,7 +1286,9 @@ process merge_replicate {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate", mode: 'copy',
         saveAs: {filename ->
-                    if (filename.endsWith(".flagstat")) "flagstat/$filename"
+                    if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+                    else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+                    else if (filename.endsWith(".stats")) "samtools_stats/$filename"
                     else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
                     else filename
                 }
@@ -1274,6 +1302,7 @@ process merge_replicate {
     set val(name), file("*.flagstat") into mrep_flagstat_bigwig,
                                            mrep_flagstat_macs,
                                            mrep_flagstat_mqc
+    file "*.{idxstats,stats}" into mrep_stats_mqc
     file "*.txt" into mrep_metrics_mqc
 
     when: !skipMergeReplicates && replicates_exist
@@ -1308,6 +1337,8 @@ process merge_replicate {
 
         samtools index ${prefix}.sorted.bam
         samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+        samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
+        samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
         """
     } else {
       """
@@ -1315,6 +1346,8 @@ process merge_replicate {
       ln -s ${bams[1]} ${prefix}.sorted.bam.bai
       touch ${prefix}.MarkDuplicates.metrics.txt
       samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+      samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
+      samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
       """
     }
 }
@@ -1669,6 +1702,7 @@ process multiqc {
 
     file ('alignment/mergedLibrary/*') from mlib_bam_stats_mqc.collect()
     file ('alignment/mergedLibrary/*') from mlib_rm_orphan_flagstat_mqc.collect{it[1]}
+    file ('alignment/mergedLibrary/*') from mlib_rm_orphan_stats_mqc.collect()
     file ('alignment/mergedLibrary/picard_metrics/*') from mlib_metrics_mqc.collect()
     file ('alignment/mergedLibrary/picard_metrics/*') from mlib_collectmetrics_mqc.collect()
     file ('macs/mergedLibrary/*') from mlib_macs_peaks_mqc.collect().ifEmpty([])
@@ -1677,6 +1711,7 @@ process multiqc {
     file ('macs/mergedLibrary/consensus/*') from mlib_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
     file ('alignment/mergedReplicate/*') from mrep_flagstat_mqc.collect{it[1]}.ifEmpty([])
+    file ('alignment/mergedReplicate/*') from mrep_stats_mqc.collect().ifEmpty([])
     file ('alignment/mergedReplicate/*') from mrep_metrics_mqc.collect().ifEmpty([])
     file ('macs/mergedReplicate/*') from mrep_macs_peak_mqc.collect().ifEmpty([])
     file ('macs/mergedReplicate/*') from mrep_macs_qc_mqc.collect().ifEmpty([])
@@ -1714,6 +1749,8 @@ process igv {
     publishDir "${params.outdir}/igv", mode: 'copy'
 
     input:
+    file fasta from fasta_igv.collect()
+
     file ('bwa/mergedLibrary/bigwig/*') from mlib_bigwig_igv.collect()
     file ('bwa/mergedLibrary/macs/*') from mlib_macs_peaks_igv.collect{it[1]}.ifEmpty([])
     file ('bwa/mergedLibrary/macs/consensus/*') from mlib_macs_consensus_bed_igv.collect().ifEmpty([])
@@ -1725,37 +1762,16 @@ process igv {
     file ('bwa/mergedReplicate/macs/consensus/deseq2/*') from mrep_macs_consensus_deseq_comp_bed_igv.collect().ifEmpty([])
 
     output:
-    file "*.xml" into igv_session
+    file "*.{txt,xml}" into igv_session
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     outdir_abspath = new File(params.outdir).getCanonicalPath().toString()
     """
-    igv_get_files.sh ./ mLb > igv_files.txt
-    igv_get_files.sh ./ mRp >> igv_files.txt
-    igv_files_to_session.py igv_session.xml igv_files.txt ${params.fasta}
+    igv_get_files.sh ./ mLb $outdir_abspath > igv_files.txt
+    igv_get_files.sh ./ mRp $outdir_abspath >> igv_files.txt
+    igv_files_to_session.py igv_session.xml igv_files.txt ${outdir_abspath}/reference_genome/${fasta.getName()}
     """
 }
-
-// process igv_session {
-//
-//     publishDir "${params.outdir}/igv", mode: 'copy'
-//
-//     input:
-//     file igvs from igv_input_ch
-//     file fasta from fasta_igv_ch.collect()
-//     file gtf from gtf_igv_ch.collect()
-//
-//     output:
-//     file "*.{xml,txt}" into igv_session_ch
-//
-//     script:
-//         """
-//         [ ! -f ${params.outdir_abspath}/genome/${fasta.getName()} ] && ln -s ${params.fasta} ${params.outdir_abspath}/genome/${fasta.getName()}
-//         [ ! -f ${params.outdir_abspath}/genome/${gtf.getName()} ] && ln -s ${params.gtf} ${params.outdir_abspath}/genome/${gtf.getName()}
-//         python igv_get_files.py ${params.outdir_abspath} igv_files.txt
-//         python igv_files_to_session.py igv_session.xml igv_files.txt ${params.outdir_abspath}/genome/${fasta.getName()}
-//         """
-// }
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
