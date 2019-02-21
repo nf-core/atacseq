@@ -38,7 +38,6 @@ def helpMessage() {
       --singleEnd                   Specifies that the input is single-end reads
       --narrowPeak                  Run MACS in narrowPeak mode. Default: broadPeak
       --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 0
-      --bwa_aln                     Use bwa aln algorithm as opposed to bwa mem for mapping reads
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
       --bwa_index_dir               Directory containing BWA index
@@ -184,12 +183,9 @@ if( params.gtf ){
 }
 
 if( params.bwa_index_dir ){
-    Channel
+    bwa_index = Channel
         .fromPath(params.bwa_index_dir, checkIfExists: true)
         .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index_dir}" }
-        .into { bwa_index_read1;
-                bwa_index_read2;
-                bwa_index_sai_to_sam }
 }
 
 if( params.gene_bed ){
@@ -316,7 +312,6 @@ if( params.skipTrimming ){
     summary["Trim 3' R2"]             = "$params.three_prime_clip_r2 bp"
 }
 summary['Fragment Size']              = "$params.fragment_size bp"
-summary['BWA MEM']                    = params.bwa_aln ? 'No' : 'Yes'
 summary['Keep Mitochondrial']         = params.keepMito ? 'Yes' : 'No'
 summary['Keep Duplicates']            = params.keepDups ? 'Yes' : 'No'
 summary['Keep Multi-mapped']          = params.keepMultiMap ? 'Yes' : 'No'
@@ -381,9 +376,7 @@ if(!params.bwa_index_dir){
         file fasta from fasta_bwa_index
 
         output:
-        file "BWAIndex" into bwa_index_read1,
-                             bwa_index_read2,
-                             bwa_index_sai_to_sam
+        file "BWAIndex" into bwa_index
 
         script:
         """
@@ -517,9 +510,7 @@ process fastqc {
  * STEP 2 - Trim Galore!
  */
 if(params.skipTrimming){
-    raw_reads_trimgalore.into { trimmed_reads_aln_1;
-                                trimmed_reads_aln_2;
-                                trimmed_reads_sai_to_sam }
+    trimmed_reads = raw_reads_trimgalore
     trimgalore_results_mqc = []
     trimgalore_fastqc_reports_mqc = []
 } else {
@@ -538,9 +529,7 @@ if(params.skipTrimming){
         set val(name), file(reads) from raw_reads_trimgalore
 
         output:
-        set val(name), file("*.fq.gz") into trimmed_reads_aln_1,
-                                            trimmed_reads_aln_2,
-                                            trimmed_reads_sai_to_sam
+        set val(name), file("*.fq.gz") into trimmed_reads
         file "*.txt" into trimgalore_results_mqc
         file "*.{zip,html}" into trimgalore_fastqc_reports_mqc
 
@@ -576,91 +565,23 @@ if(params.skipTrimming){
 /*
  * STEP 3.1 - Align read 1 with bwa
  */
-if(!params.bwa_aln){
-    process bwa_mem {
-        tag "$name"
-        label 'process_big'
+process bwa_mem {
+    tag "$name"
+    label 'process_big'
 
-        input:
-        set val(name), file(reads) from trimmed_reads_aln_1
-        file index from bwa_index_read1.first()
+    input:
+    set val(name), file(reads) from trimmed_reads
+    file index from bwa_index.first()
 
-        output:
-        set val(name), file("*.bam") into bwa_bam
+    output:
+    set val(name), file("*.bam") into bwa_bam
 
-        script:
-        prefix="${name}.Lb"
-        rg="\'@RG\\tID:${name}\\tSM:${name.toString().subSequence(0, name.length() - 3)}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
-        """
-        bwa mem -t $task.cpus -M -R $rg ${index}/${params.bwa_index_base} $reads | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -
-        """
-    }
-} else {
-    /*
-     * STEP 3.1 - Align reads with bwa aln
-     */
-    process bwa_aln_read1 {
-        tag "$name"
-        label 'process_big'
-
-        input:
-        set val(name), file(reads) from trimmed_reads_aln_1
-        file index from bwa_index_read1.first()
-
-        output:
-        set val(name), file("*.sai") into sai_read1
-
-        script:
-        prefix="${name}.Lb"
-        sainame = params.singleEnd ? "${prefix}.sai" : "${prefix}_1.sai"
-        """
-        bwa aln -t $task.cpus ${index}/${params.bwa_index_base} ${reads[0]} > $sainame
-        """
-    }
-
-    if(params.singleEnd){
-        sai_to_sam = trimmed_reads_sai_to_sam.join(sai_read1, by: [0])
-    } else {
-        process bwa_aln_read2 {
-            tag "$name"
-            label 'process_big'
-
-            input:
-            set val(name), file(reads) from trimmed_reads_aln_2
-            file index from bwa_index_read2.first()
-
-            output:
-            set val(name), file("*.sai") into sai_read2
-
-            script:
-            prefix="${name}.Lb"
-            """
-            bwa aln -t $task.cpus ${index}/${params.bwa_index_base} ${reads[1]} > ${prefix}_2.sai
-            """
-        }
-        sai_to_sam = trimmed_reads_sai_to_sam.join(sai_read1, by: [0])
-                                             .join(sai_read2, by: [0])
-                                             .map { it -> [it[0], it[1], [ it[2], it[3] ] ] }
-    }
-
-    process bwa_sai_to_bam {
-        tag "$name"
-
-        input:
-        set val(name), file(fastqs), file(sais) from sai_to_sam
-        file index from bwa_index_sai_to_sam.first()
-
-        output:
-        set val(name), file("*.bam") into bwa_bam
-
-        script:
-        prefix="${name}.Lb"
-        command = params.singleEnd ? "bwa samse" : "bwa sampe"
-        rg="\'@RG\\tID:${name}\\tSM:${name.toString().subSequence(0, name.length() - 3)}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
-        """
-        $command -r $rg ${index}/${params.bwa_index_base} $sais $fastqs | samtools view -@ $task.cpus -b -h -O BAM -o ${prefix}.bam -
-        """
-    }
+    script:
+    prefix="${name}.Lb"
+    rg="\'@RG\\tID:${name}\\tSM:${name.toString().subSequence(0, name.length() - 3)}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
+    """
+    bwa mem -t $task.cpus -M -R $rg ${index}/${params.bwa_index_base} $reads | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -
+    """
 }
 
 /*
@@ -1638,31 +1559,15 @@ process merge_replicate_macs_consensus_deseq {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-def create_workflow_summary(summary) {
-
-    def yaml_file = workDir.resolve('workflow_summary_mqc.yaml')
-    yaml_file.text  = """
-    id: 'nf-core-atacseq-summary'
-    description: " - this information is collected when the pipeline is started."
-    section_name: 'nf-core/atacseq Workflow Summary'
-    section_href: 'https://github.com/nf-core/atacseq'
-    plot_type: 'html'
-    data: |
-        <dl class=\"dl-horizontal\">
-${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }.join("\n")}
-        </dl>
-    """.stripIndent()
-
-   return yaml_file
-}
-
 /*
  * Parse software version numbers
  */
 process get_software_versions {
+    publishDir "${params.outdir}/Documentation", mode: 'copy'
 
     output:
-    file "software_versions_mqc.yaml" into software_versions_yaml
+    file "software_versions.txt" into software_versions_mqc,
+                                      software_versions_methods
 
     script:
     """
@@ -1682,8 +1587,48 @@ process get_software_versions {
     echo \$(ataqv --version 2>&1) > v_ataqv.txt
     echo \$(featureCounts -v 2>&1) > v_featurecounts.txt
     multiqc --version > v_multiqc.txt
-    scrape_software_versions.py > software_versions_mqc.yaml
+    scrape_software_versions.py > software_versions.txt
     """
+}
+
+def create_software_summary(software_version_file) {
+
+    def yaml_file = workDir.resolve('software_summary_mqc.yaml')
+    yaml_file.text  = """
+    id: 'nf-core-atacseq-software-versions'
+    section_name: 'nf-core/atacseq Software Versions'
+    section_href: 'https://github.com/nf-core/atacseq'
+    plot_type: 'html'
+    description: 'are collected at run time from the software output.'
+    data: |
+        <dl class=\"dl-horizontal\">
+${software_version_file.splitCsv(sep: '\t')
+                       .map{ it -> "            <dt>${it[0]}</dt><dd>${it[1] != 'NA' ? it[1] : '<span style="color:#999999;">N/A</span>'}</dd>" }
+                       .collect()
+                       .get()
+                       .join("\n") }
+        </dl>
+    """.stripIndent()
+
+   return yaml_file
+}
+
+def create_workflow_summary(summary) {
+
+    def yaml_file = workDir.resolve('workflow_summary_mqc.yaml')
+    yaml_file.text  = """
+    id: 'nf-core-atacseq-summary'
+    description: " - this information is collected when the pipeline is started."
+    section_name: 'nf-core/atacseq Workflow Summary'
+    section_href: 'https://github.com/nf-core/atacseq'
+    plot_type: 'html'
+    data: |
+        <dl class=\"dl-horizontal\">
+${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }.join("\n")}
+        </dl>
+    """.stripIndent()
+
+   return yaml_file
 }
 
 /*
@@ -1694,6 +1639,7 @@ process multiqc {
 
     input:
     file multiqc_config from multiqc_config_ch.collect()
+
     file ('fastqc/*') from fastqc_reports_mqc.collect()
     file ('trimgalore/*') from trimgalore_results_mqc.collect()
     file ('trimgalore/fastqc/*') from trimgalore_fastqc_reports_mqc.collect()
@@ -1718,7 +1664,7 @@ process multiqc {
     file ('macs/mergedReplicate/consensus/*') from mrep_macs_consensus_counts_mqc.collect().ifEmpty([])
     file ('macs/mergedReplicate/consensus/*') from mrep_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
-    file ('software_versions/*') from software_versions_yaml.collect()
+    file ('software_versions/*') from create_software_summary(software_versions_mqc)
     file ('workflow_summary/*') from create_workflow_summary(summary)
 
     output:

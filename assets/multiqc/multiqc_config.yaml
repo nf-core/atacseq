@@ -98,7 +98,7 @@ report_section_order:
         order: -1800
     mrep_deseq2_clustering:
         order: -1900
-    nf-core_atacseq-software-versions:
+    nf-core-atacseq-software-versions:
         order: -2000
     nf-core-atacseq-summary:
         order: -2100
