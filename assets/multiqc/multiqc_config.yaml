@@ -10,6 +10,7 @@ fn_clean_exts:
     - '_trimmed'
     - '_val'
     - 'sorted.bam'
+    - '.Lb'
     - 'mkD'
     - 'clN'
     - 'mLb'
@@ -17,15 +18,21 @@ fn_clean_exts:
 
 module_order:
     - fastqc:
-        name: 'FastQC (raw)'
+        name: 'FastQC (library; raw)'
         info: 'This section of the report shows FastQC results before adapter trimming.'
         path_filters:
             - '*_fastqc.zip'
-    - cutadapt
+        path_filters_exclude:
+            - '*val*_fastqc.zip'
+            - '*trimmed_fastqc.zip'
+    - cutadapt:
+        name: 'cutadapt (library; trimmed)'
+        info: 'This section of the report shows the length of trimmed reads by cutadapt.'
+        path_filters:
+            - '*_trimming_report.txt'
     - fastqc:
-        name: 'FastQC (trimmed)'
+        name: 'FastQC (library; trimmed)'
         info: 'This section of the report shows FastQC results after adapter trimming.'
-        target: ''
         path_filters:
             - '*val*_fastqc.zip'
             - '*trimmed_fastqc.zip'
@@ -33,7 +40,7 @@ module_order:
         name: 'SAMTools (library)'
         info: 'This section of the report shows SAMTools results for individual libraries.'
         path_filters:
-            - '*sorted.bam*'
+            - '*.Lb.sorted.bam*'
     - samtools:
         name: 'SAMTools (merged library; unfiltered)'
         info: 'This section of the report shows SAMTools results after merging libraries and before filtering.'
@@ -91,7 +98,7 @@ report_section_order:
         order: -1800
     mrep_deseq2_clustering:
         order: -1900
-    nf-core_atacseq-software-versions:
+    nf-core-atacseq-software-versions:
         order: -2000
     nf-core-atacseq-summary:
         order: -2100

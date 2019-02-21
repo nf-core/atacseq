@@ -30,7 +30,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
         * reads that arent marked as primary alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
         * reads that are unmapped ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
         * reads that map to multiple locations ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
-        * reads containing > 3 mismatches ([`BAMTools`](https://github.com/pezmaster31/bamtools))
+        * reads containing > 4 mismatches ([`BAMTools`](https://github.com/pezmaster31/bamtools))
         * reads that are soft-clipped ([`BAMTools`](https://github.com/pezmaster31/bamtools))
         * reads that have an insert size > 2kb ([`BAMTools`](https://github.com/pezmaster31/bamtools); *paired-end only*)
         * reads that map to different chromosomes ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); *paired-end only*)

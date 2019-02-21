@@ -23,22 +23,22 @@ regexes = {
 }
 
 results = OrderedDict()
-results['nf-core/atacseq'] = '<span style="color:#999999;\">N/A</span>'
-results['Nextflow'] = '<span style="color:#999999;\">N/A</span>'
-results['FastQC'] = '<span style="color:#999999;\">N/A</span>'
-results['Trim Galore!'] = '<span style="color:#999999;\">N/A</span>'
-results['BWA'] = '<span style="color:#999999;\">N/A</span>'
-results['Samtools'] = '<span style="color:#999999;\">N/A</span>'
-results['BEDTools'] = '<span style="color:#999999;\">N/A</span>'
-results['BamTools'] = '<span style="color:#999999;\">N/A</span>'
-results['Picard'] = '<span style="color:#999999;\">N/A</span>'
-results['R'] = '<span style="color:#999999;\">N/A</span>'
-results['Pysam'] = '<span style="color:#999999;\">N/A</span>'
-results['MACS2'] = '<span style="color:#999999;\">N/A</span>'
-results['HOMER'] = '<span style="color:#999999;\">N/A</span>'
-results['ataqv'] = '<span style="color:#999999;\">N/A</span>'
-results['featureCounts'] = '<span style="color:#999999;\">N/A</span>'
-results['MultiQC'] = '<span style="color:#999999;\">N/A</span>'
+results['nf-core/atacseq'] = 'NA'
+results['Nextflow'] = 'NA'
+results['FastQC'] = 'NA'
+results['Trim Galore!'] = 'NA'
+results['BWA'] = 'NA'
+results['Samtools'] = 'NA'
+results['BEDTools'] = 'NA'
+results['BamTools'] = 'NA'
+results['Picard'] = 'NA'
+results['R'] = 'NA'
+results['Pysam'] = 'NA'
+results['MACS2'] = 'NA'
+results['HOMER'] = 'NA'
+results['ataqv'] = 'NA'
+results['featureCounts'] = 'NA'
+results['MultiQC'] = 'NA'
 
 # Search each file using its regex
 for k, v in regexes.items():
@@ -48,16 +48,6 @@ for k, v in regexes.items():
         if match:
             results[k] = "v{}".format(match.group(1))
 
-# Dump to YAML
-print ('''
-id: 'nf-core/atacseq-software-versions'
-section_name: 'nf-core/atacseq Software Versions'
-section_href: 'https://github.com/nf-core/atacseq'
-plot_type: 'html'
-description: 'are collected at run time from the software output.'
-data: |
-    <dl class="dl-horizontal">
-''')
+# Dump to TSV
 for k,v in results.items():
-    print("        <dt>{}</dt><dd>{}</dd>".format(k,v))
-print ("    </dl>")
+    print("{}\t{}".format(k,v))
