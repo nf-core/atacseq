@@ -1132,7 +1132,7 @@ process merge_library_macs_consensus_deseq {
 }
 
 /*
- * STEP 4.7.1 Run ataqv on BAM file and corresponding peaks
+ * STEP 4.6.1 Run ataqv on BAM file and corresponding peaks
  */
 process merge_library_ataqv {
    tag "$name"
@@ -1165,7 +1165,7 @@ process merge_library_ataqv {
 }
 
 /*
- * STEP 4.7.2 run ataqv mkarv on all JSON files to render web app
+ * STEP 4.6.2 run ataqv mkarv on all JSON files to render web app
  */
 process merge_library_ataqv_mkarv {
    label 'process_medium'
