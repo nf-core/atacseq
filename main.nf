@@ -115,7 +115,7 @@ params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: 
 // Has the run name been specified by the user?
 //  this has the bonus effect of catching both -name and --name
 custom_runName = params.name
-if( !(workflow.runName ==~ /[a-z]+_[a-z]+/) ){
+if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)){
   custom_runName = workflow.runName
 }
 
@@ -127,7 +127,7 @@ if( !(workflow.runName ==~ /[a-z]+_[a-z]+/) ){
 output_docs_ch = Channel.fromPath("$baseDir/docs/output.md", checkIfExists: true)
 
 // JSON files required by BAMTools for alignment filtering
-if ( params.singleEnd ) {
+if (params.singleEnd) {
     bamtools_filter_config_ch = Channel.fromPath(params.bamtools_filter_se_config, checkIfExists: true)
 } else {
     bamtools_filter_config_ch = Channel.fromPath(params.bamtools_filter_pe_config, checkIfExists: true)
@@ -152,7 +152,15 @@ mrep_deseq2_clustering_header_ch = Channel.fromPath("$baseDir/assets/multiqc/mre
 ////////////////////////////////////////////////////
 
 // Validate inputs
-if( params.fasta ){
+if (params.design){
+    design_csv = Channel
+        .fromPath(params.design, checkIfExists: true)
+        .ifEmpty { exit 1, "Samples design file not found: ${params.design}" }
+} else {
+    exit 1, "Samples design file not specified!"
+}
+
+if (params.fasta){
     Channel
         .fromPath(params.fasta, checkIfExists: true)
         .ifEmpty { exit 1, "Fasta file not found: ${params.fasta}" }
@@ -169,7 +177,7 @@ if( params.fasta ){
     exit 1, "Fasta file not specified!"
 }
 
-if( params.gtf ){
+if (params.gtf){
     Channel
         .fromPath(params.gtf, checkIfExists: true)
         .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
@@ -182,98 +190,44 @@ if( params.gtf ){
     exit 1, "GTF annotation file not specified!"
 }
 
-if( params.bwa_index_dir ){
+if (params.bwa_index_dir){
     bwa_index = Channel
         .fromPath(params.bwa_index_dir, checkIfExists: true)
         .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index_dir}" }
 }
 
-if( params.gene_bed ){
+if (params.gene_bed){
     gene_bed = Channel
         .fromPath(params.gene_bed, checkIfExists: true)
         .ifEmpty { exit 1, "Gene BED annotation file not found: ${params.gene_bed}" }
 }
 
-if( params.tss_bed ){
+if (params.tss_bed){
     tss_bed = Channel
         .fromPath(params.tss_bed, checkIfExists: true)
         .ifEmpty { exit 1, "TSS BED annotation file not found: ${params.tss_bed}" }
 }
 
-if ( params.blacklist ) {
+if (params.blacklist) {
     blacklist = Channel
         .fromPath(params.blacklist, checkIfExists: true)
         .ifEmpty { exit 1, "Blacklist file not found: ${params.blacklist}" }
 }
-
-/*
- * Create a channel for input read files
- */
-if( params.design ){
-    if ( params.singleEnd ) {
-        Channel
-            .fromPath(params.design, checkIfExists: true)
-            .ifEmpty { exit 1, "Samples design file not found: ${params.design}" }
-            .splitCsv(header:true, sep:',')
-            .map { row -> [ [row.group,"R"+row.replicate].join("_"),
-                            [file(row.fastq_1)] ] }
-            .groupTuple(by: [0])
-            .map { group -> (1..group[1].size()).collect { value -> [ [ group[0],value ].join("_T"), group[1][value-1] ] } }
-            .flatten()
-            .collate( 2 )
-            .map { it -> [ it[0], [ it[1] ] ] }
-            .into { design_replicates_exist;
-                    design_multiple_samples;
-                    raw_reads_fastqc;
-                    raw_reads_trimgalore }
-    } else {
-      Channel
-          .fromPath(params.design, checkIfExists: true)
-          .ifEmpty { exit 1, "Samples design file not found: ${params.design}" }
-          .splitCsv(header:true, sep:',')
-          .map { row -> [ [row.group,"R"+row.replicate].join("_"),
-                          [file(row.fastq_1), file(row.fastq_2)] ] }
-          .groupTuple(by: [0])
-          .map { group -> (1..group[1].size()).collect { value -> [ [ group[0],value ].join("_T"), group[1][value-1] ] } }
-          .flatten()
-          .collate( 3 )
-          .map { it -> [ it[0], [ it[1], it[2] ] ] }
-          .into { design_replicates_exist;
-                  design_multiple_samples;
-                  raw_reads_fastqc;
-                  raw_reads_trimgalore }
-    }
-} else {
-    exit 1, "Samples design file not specified!"
-}
-
-// Boolean value for replicates existing in design
-replicates_exist = design_replicates_exist.map { it -> it[0][-4].toInteger() }
-                                          .flatten()
-                                          .max()
-                                          .val > 1
-
-// Boolean value for multiple samples existing in design
-multiple_samples = design_multiple_samples.map { it -> it[0][0..-7] }
-                                          .flatten()
-                                          .unique()
-                                          .count()
-                                          .val > 1
 
 ////////////////////////////////////////////////////
 /* --                   AWS                    -- */
 ////////////////////////////////////////////////////
 
 // AWSBatch sanity checking
-if(workflow.profile == 'awsbatch'){
+if (workflow.profile == 'awsbatch'){
     if (!params.awsqueue || !params.awsregion) exit 1, "Specify correct --awsqueue and --awsregion parameters on AWSBatch!"
     if (!workflow.workDir.startsWith('s3') || !params.outdir.startsWith('s3')) exit 1, "Specify S3 URLs for workDir and outdir parameters on AWSBatch!"
 }
 
 // Check workDir/outdir paths to be S3 buckets if running on AWSBatch
 // related: https://github.com/nextflow-io/nextflow/issues/813
-if( workflow.profile == 'awsbatch') {
-    if(!workflow.workDir.startsWith('s3:') || !params.outdir.startsWith('s3:')) exit 1, "Workdir or Outdir not on S3 - specify S3 Buckets for each to run on AWSBatch!"
+if (workflow.profile == 'awsbatch') {
+    if (!workflow.workDir.startsWith('s3:') || !params.outdir.startsWith('s3:')) exit 1, "Workdir or Outdir not on S3 - specify S3 Buckets for each to run on AWSBatch!"
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -293,17 +247,17 @@ summary['Run Name']                   = custom_runName ?: workflow.runName
 summary['Genome']                     = params.genome ? params.genome : 'Not supplied'
 summary['Data Type']                  = params.singleEnd ? 'Single-End' : 'Paired-End'
 summary['Design File']                = params.design
-if(params.bwa_index_dir)  summary['BWA Index Directory'] = params.bwa_index_dir ? params.bwa_index_dir : 'Not supplied'
-if(params.bwa_index_dir)  summary['BWA Index Base'] = params.bwa_index_base ? params.bwa_index_base : 'Not supplied'
+if (params.bwa_index_dir)  summary['BWA Index Directory'] = params.bwa_index_dir ? params.bwa_index_dir : 'Not supplied'
+if (params.bwa_index_dir)  summary['BWA Index Base'] = params.bwa_index_base ? params.bwa_index_base : 'Not supplied'
 summary['Fasta Ref']                  = params.fasta
 summary['GTF File']                   = params.gtf
 summary['Gene BED File']              = params.gene_bed ? params.gene_bed : 'Not supplied'
 summary['TSS BED File']               = params.tss_bed ? params.tss_bed : 'Not supplied'
-if(params.blacklist) summary['Blacklist BED'] = params.blacklist
+if (params.blacklist) summary['Blacklist BED'] = params.blacklist
 summary['Mitochondrial Contig']       = params.mito_name ? params.mito_name : 'Not supplied'
 summary['MACS Genome Size']           = params.macs_gsize ? params.macs_gsize : 'Not supplied'
-if(params.macs_gsize)  summary['MACS Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
-if( params.skipTrimming ){
+if (params.macs_gsize)  summary['MACS Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
+if (params.skipTrimming){
     summary['Trimming Step']          = 'Skipped'
 } else {
     summary['Trim R1']                = "$params.clip_r1 bp"
@@ -325,7 +279,7 @@ summary['Max Time']                   = params.max_time
 summary['Output Dir']                 = params.outdir
 summary['Working Dir']                = workflow.workDir
 summary['Container Engine']           = workflow.containerEngine
-if(workflow.containerEngine) summary['Container'] = workflow.container
+if (workflow.containerEngine) summary['Container'] = workflow.container
 summary['Current Home']               = "$HOME"
 summary['Current User']               = "$USER"
 summary['Current Path']               = "$PWD"
@@ -333,14 +287,14 @@ summary['Working Dir']                = workflow.workDir
 summary['Output Dir']                 = params.outdir
 summary['Script Dir']                 = workflow.projectDir
 summary['Config Profile']             = workflow.profile
-if(params.config_profile_description) summary['Config Description'] = params.config_profile_description
-if(params.config_profile_contact)     summary['Config Contact']     = params.config_profile_contact
-if(params.config_profile_url)         summary['Config URL']         = params.config_profile_url
-if(workflow.profile == 'awsbatch'){
+if (params.config_profile_description) summary['Config Description'] = params.config_profile_description
+if (params.config_profile_contact)     summary['Config Contact']     = params.config_profile_contact
+if (params.config_profile_url)         summary['Config URL']         = params.config_profile_url
+if (workflow.profile == 'awsbatch'){
    summary['AWS Region']              = params.awsregion
    summary['AWS Queue']               = params.awsqueue
 }
-if(params.email) summary['E-mail Address'] = params.email
+if (params.email) summary['E-mail Address'] = params.email
 log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
 log.info "\033[2m----------------------------------------------------\033[0m"
 
@@ -357,6 +311,64 @@ if (!params.macs_gsize){
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 /* --                                                                     -- */
+/* --                     PARSE DESIGN FILE                               -- */
+/* --                                                                     -- */
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+ * PREPROCESSING - REFORMAT DESIGN FILE AND CHECK VALIDITY
+ */
+process reformat_design {
+    tag "$design"
+
+    input:
+    file design from design_csv
+
+    output:
+    file "*.csv" into reformat_design
+
+    script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
+    """
+    reformat_design.py $design design_reformat.csv
+    """
+}
+
+/*
+ * Create channels for input fastq files
+ */
+if (params.singleEnd) {
+    reformat_design.splitCsv(header:true, sep:',')
+                   .map { row -> [ row.sample_id, [ file(row.fastq_1) ] ] }
+                   .into { design_replicates_exist;
+                           design_multiple_samples;
+                           raw_reads_fastqc;
+                           raw_reads_trimgalore }
+} else {
+    reformat_design.splitCsv(header:true, sep:',')
+                   .map { row -> [ row.sample_id, [ file(row.fastq_1), file(row.fastq_2) ] ] }
+                   .into { design_replicates_exist;
+                           design_multiple_samples;
+                           raw_reads_fastqc;
+                           raw_reads_trimgalore }
+}
+
+// Boolean value for replicates existing in design
+replicates_exist = design_replicates_exist.map { it -> it[0][-4].toInteger() }
+                                          .flatten()
+                                          .max()
+                                          .val > 1
+
+// Boolean value for multiple samples existing in design
+multiple_samples = design_multiple_samples.map { it -> it[0][0..-7] }
+                                          .flatten()
+                                          .unique()
+                                          .count()
+                                          .val > 1
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/* --                                                                     -- */
 /* --                     PREPARE ANNOTATION FILES                        -- */
 /* --                                                                     -- */
 ///////////////////////////////////////////////////////////////////////////////
@@ -365,7 +377,7 @@ if (!params.macs_gsize){
 /*
  * PREPROCESSING - Build BWA index
  */
-if(!params.bwa_index_dir){
+if (!params.bwa_index_dir){
     process makeBWAindex {
         tag "$fasta"
         label 'process_big'
@@ -389,7 +401,7 @@ if(!params.bwa_index_dir){
 /*
  * PREPROCESSING - Generate gene BED file
  */
-if(!params.gene_bed){
+if (!params.gene_bed){
     process makeGeneBED {
         tag "$gtf"
         publishDir "${params.outdir}/reference_genome", mode: 'copy'
@@ -410,7 +422,7 @@ if(!params.gene_bed){
 /*
  * PREPROCESSING - Generate TSS BED file
  */
-if(!params.tss_bed){
+if (!params.tss_bed){
     process makeTSSBED {
         tag "$bed"
         publishDir "${params.outdir}/reference_genome", mode: 'copy'
@@ -509,7 +521,7 @@ process fastqc {
 /*
  * STEP 2 - Trim Galore!
  */
-if(params.skipTrimming){
+if (params.skipTrimming){
     trimmed_reads = raw_reads_trimgalore
     trimgalore_results_mqc = []
     trimgalore_fastqc_reports_mqc = []
@@ -657,7 +669,7 @@ process merge_library {
     script:
     prefix="${name}.mLb.mkD"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    if( !task.memory ){
+    if (!task.memory){
         log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
         avail_mem = 3
     } else {
@@ -762,7 +774,7 @@ process merge_library_filter {
 /*
  * STEP 4.3 Remove orphan reads from paired-end BAM file
  */
-if(params.singleEnd){
+if (params.singleEnd){
     mlib_filter_bam.into { mlib_rm_orphan_bam_bigwig;
                            mlib_rm_orphan_bam_macs;
                            mlib_rm_orphan_bam_mrep;
@@ -796,7 +808,7 @@ if(params.singleEnd){
                                                            mlib_rm_orphan_bam_macs,
                                                            mlib_rm_orphan_bam_mrep
         set val(name), file("${prefix}.bam") into mlib_name_bam_mlib_counts,
-                                                 mlib_name_bam_mrep_counts
+                                                  mlib_name_bam_mrep_counts
         set val(name), "*.flagstat" into mlib_rm_orphan_flagstat_bigwig,
                                          mlib_rm_orphan_flagstat_macs,
                                          mlib_rm_orphan_flagstat_mqc
@@ -806,6 +818,7 @@ if(params.singleEnd){
         prefix="${name}.mLb.clN"
         """
         bampe_rm_orphan.py ${bam[0]} ${prefix}.bam --only_fr_pairs
+
         samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $prefix ${prefix}.bam
         samtools index ${prefix}.sorted.bam
         samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
@@ -846,7 +859,7 @@ process merge_library_collectmetrics {
 
     script:
     prefix="${name}.mLb.clN"
-    if( !task.memory ){
+    if (!task.memory){
         log.info "[Picard CollectMultipleMetrics] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
         avail_mem = 3
     } else {
@@ -891,6 +904,7 @@ process merge_library_bigwig {
     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
     genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -k1,1 -k2,2n >  ${prefix}.bedGraph
+
     bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
     """
 }
@@ -1231,7 +1245,7 @@ process merge_replicate {
     script:
     prefix="${name}.mRp.clN"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    if( !task.memory ){
+    if (!task.memory){
         log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
         avail_mem = 3
     } else {
@@ -1312,6 +1326,7 @@ process merge_replicate_bigwig {
     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
     genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -k1,1 -k2,2n >  ${prefix}.bedGraph
+
     bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
     """
 }
@@ -1752,7 +1767,7 @@ workflow.onComplete {
 
     // Set up the e-mail variables
     def subject = "[nf-core/atacseq] Successful: $workflow.runName"
-    if(!workflow.success){
+    if (!workflow.success){
       subject = "[nf-core/atacseq] FAILED: $workflow.runName"
     }
     def email_fields = [:]
@@ -1771,9 +1786,9 @@ workflow.onComplete {
     email_fields['summary']['Date Completed'] = workflow.complete
     email_fields['summary']['Pipeline script file path'] = workflow.scriptFile
     email_fields['summary']['Pipeline script hash ID'] = workflow.scriptId
-    if(workflow.repository) email_fields['summary']['Pipeline repository Git URL'] = workflow.repository
-    if(workflow.commitId) email_fields['summary']['Pipeline repository Git Commit'] = workflow.commitId
-    if(workflow.revision) email_fields['summary']['Pipeline Git branch/tag'] = workflow.revision
+    if (workflow.repository) email_fields['summary']['Pipeline repository Git URL'] = workflow.repository
+    if (workflow.commitId) email_fields['summary']['Pipeline repository Git Commit'] = workflow.commitId
+    if (workflow.revision) email_fields['summary']['Pipeline Git branch/tag'] = workflow.revision
     email_fields['summary']['Nextflow Version'] = workflow.nextflow.version
     email_fields['summary']['Nextflow Build'] = workflow.nextflow.build
     email_fields['summary']['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
@@ -1798,7 +1813,7 @@ workflow.onComplete {
     // Send the HTML e-mail
     if (params.email) {
         try {
-          if( params.plaintext_email ){ throw GroovyException('Send plaintext e-mail, not HTML') }
+          if (params.plaintext_email){ throw GroovyException('Send plaintext e-mail, not HTML') }
           // Try to send HTML e-mail using sendmail
           [ 'sendmail', '-t' ].execute() << sendmail_html
           log.info "[nf-core/atacseq] Sent summary e-mail to $params.email (sendmail)"
@@ -1811,7 +1826,7 @@ workflow.onComplete {
 
     // Write summary e-mail HTML to a file
     def output_d = new File( "${params.outdir}/Documentation/" )
-    if( !output_d.exists() ) {
+    if (!output_d.exists()) {
       output_d.mkdirs()
     }
     def output_hf = new File( output_d, "pipeline_report.html" )
