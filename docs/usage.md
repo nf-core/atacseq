@@ -24,11 +24,12 @@
     * [`--gtf`](#--gtf)
     * [`--bwa_index_dir`](#--bwa_index_dir)
     * [`--bwa_index_base`](#--bwa_index_base)
-    * [`--bed12`](#--bed12)
+    * [`--gene_bed`](#--gene_bed)
+    * [`--tss_bed`](#--tss_bed)
     * [`--mito_name`](#--mito_name)
     * [`--macs_gsize`](#--macs_gsize)
     * [`--blacklist`](#--blacklist)
-    * [`--saveReference`](#--saveReference)
+    * [`--saveGenomeIndex`](#--saveGenomeIndex)
     * [`--igenomesIgnore`](#--igenomesignore)
 * [Adapter trimming](#adapter-trimming)
     * [`--skipTrimming`](#--skipTrimming)
@@ -37,7 +38,7 @@
     * [`--keepMito`](#--keepMito)
     * [`--keepDups`](#--keepDups)
     * [`--keepMultiMap`](#--keepMultiMap)
-    * [`--skipMergeBySample`](#--skipMergeBySample)
+    * [`--skipMergeReplicates`](#--skipMergeReplicates)
     * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
 * [Job resources](#job-resources)
 * [Automatic resubmission](#automatic-resubmission)
@@ -57,6 +58,7 @@
     * [`--max_time`](#--max_time)
     * [`--max_cpus`](#--max_cpus)
     * [`--plaintext_email`](#--plaintext_email)
+    * [`--monochrome_logs`](#--monochrome_logs)
     * [`--multiqc_config`](#--multiqc_config)
 
 ## General Nextflow info
@@ -116,37 +118,60 @@ If `-profile` is not specified at all the pipeline will be run locally and expec
     * Pulls software from dockerhub: [`nfcore/atacseq`](http://hub.docker.com/r/nfcore/atacseq/)
 * `singularity`
     * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
-    * Pulls software from singularity-hub
+    * Pulls software from dockerhub: [`nfcore/atacseq`](http://hub.docker.com/r/nfcore/atacseq/)
 * `test`
     * A profile with a complete configuration for automated testing
     * Includes links to test data so needs no other parameters
 
 ### `--design`
-You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location.
+You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row as shown in the examples below.
 
 ```bash
 --design '[path to design file]'
 ```
 
-It has to be a comma-separated file with 4 columns, and a header row as shown in the example below:
+#### Multiple replicates
+
+The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. Below is an example for a single experimental group in triplicate:
 
 ```bash
-sample,replicate,fastq_1,fastq_2
+group,replicate,fastq_1,fastq_2
 control,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
 control,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
-treatment,1,AEG588A3_S5_L003_R1_001.fastq.gz,AEG588A3_S5_L003_R2_001.fastq.gz
-treatment,2,AEG588A4_S3_L002_R1_001.fastq.gz,AEG588A4_S3_L002_R2_001.fastq.gz
-treatment,2,AEG588A5_S4_L002_R1_001.fastq.gz,AEG588A5_S4_L002_R2_001.fastq.gz
+control,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
 ```
 
-| Column      | Description                                                                                   |
-|-------------|-----------------------------------------------------------------------------------------------|
-| `sample`    | Group identifier for sample.                                                                  |
-| `replicate` | Integer representing replicate number. Must start from 1..<number of replicates>              |
-| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz". |
-| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz". |
+#### Multiple runs of the same library
 
-If you have sequenced the same library more than once you just provide this as a separate entry in the design file with the same replicate identifier. The alignments will be performed separately, and subsequently merged before further analysis.
+The `group` and `replicate` identifiers are the same when you have resequenced the same sample more than once (e.g. to increase sequencing depth). The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example for the same sample sequenced twice:
+
+```bash
+group,replicate,fastq_1,fastq_2
+control,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+control,1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
+```
+
+#### Full design
+
+A final design file may look something like the one below. This is for two experimental groups in triplicate, where the last replicate of the `treatment` group has been sequenced twice.
+
+```bash
+group,replicate,fastq_1,fastq_2
+control,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+control,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
+control,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
+treatment,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz
+treatment,2,AEG588A5_S5_L003_R1_001.fastq.gz,AEG588A5_S5_L003_R2_001.fastq.gz
+treatment,3,AEG588A6_S6_L003_R1_001.fastq.gz,AEG588A6_S6_L003_R2_001.fastq.gz
+treatment,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz
+```
+
+| Column      | Description                                                                                                 |
+|-------------|-------------------------------------------------------------------------------------------------------------|
+| `group`     | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
+| `replicate` | Integer representing replicate number. Must start from `1..<number of replicates>`.                         |
+| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz".               |
+| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz".               |
 
 Example design files have been provided with the pipeline for [paired-end](../assets/design_pe.csv) and [single-end](../assets/design_se.csv) data.
 
@@ -201,7 +226,7 @@ params {
 ```
 
 ### `--fasta`
-Full path to fasta file containing reference genome (*mandatory* if `--genome` is not specified). If you don't have a BWA index available this will be generated for you automatically. Combine with `--saveReference` to save BWA index for future runs.
+Full path to fasta file containing reference genome (*mandatory* if `--genome` is not specified). If you don't have a BWA index available this will be generated for you automatically. Combine with `--saveGenomeIndex` to save BWA index for future runs.
 ```bash
 --fasta '[path to FASTA reference]'
 ```
@@ -224,32 +249,38 @@ Base file name for an existing BWA index for your reference genome. Default: `ge
 --bwa_index_base '[basename of BWA index]'
 ```
 
-### `--bed12`
-The full path to BED12 file for TSS profile plots. This will be created from the GTF file if it isnt specified.
+### `--gene_bed`
+The full path to BED file for genome-wide gene intervals. This will be created from the GTF file if it isnt specified.
 ```bash
---bed12 '[path to BED12 file]'
+--gene_bed '[path to gene BED file]'
+```
+
+### `--tss_bed`
+The full path to BED file for genome-wide transcription start sites. This will be created from the gene BED file if it isnt specified.
+```bash
+--tss_bed '[path to tss BED file]'
 ```
 
 ### `--macs_gsize`
-[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as *GRCh37*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter isnt specified then the MACS2 peak-calling and differential analysis will be skipped.
+[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter isnt specified then the MACS2 peak-calling and differential analysis will be skipped.
 ```bash
 --macs_gsize 2.7e9
 ```
 
 ### `--mito_name`
-Name of Mitochondrial chomosome in genome fasta. Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the [`igenomes.config`](../conf/igenomes.config).
+Name of mitochondrial chomosome in reference assembly. Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the [`igenomes.config`](../conf/igenomes.config).
 ```bash
 --mito_name chrM
 ```
 
 ### `--blacklist`
-If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.
+If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.
 ```bash
 --blacklist '[path to blacklisted regions]'
 ```
 
-### `--saveReference`
-Supply this parameter to save any generated reference genome files such as the BWA index to your results folder. These can then be used for future pipeline runs, reducing processing times.
+### `--saveGenomeIndex`
+If the BWA index is generated by the pipeline use this parameter to save it to your results folder. These can then be used for future pipeline runs, reducing processing times.
 
 ### `--igenomesIgnore`
 Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`.
@@ -284,11 +315,11 @@ Duplicate reads are not filtered from alignments.
 ### `--keepMultiMap`
 Reads mapping to multiple locations in the genome are not filtered from alignments.
 
-### `--skipMergeBySample`
-Do not perform alignment merging and downstream analysis at the sample-level i.e. only do this at the replicate-level.
+### `--skipMergeReplicates`
+An additional series of steps are performed by the pipeline by merging the replicates from the same experimental group. This is primarily to increase the sequencing depth in order to perform downstream analyses such as footprinting. Specifying this parameter means that these steps will not be performed.
 
 ### `--saveAlignedIntermediates`
-By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also copy out BAM files from BWA and sorting/filtering steps.
+By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also save other intermediate BAM files.
 
 ## Job resources
 ### Automatic resubmission
@@ -361,6 +392,9 @@ Should be a string in the format integer-unit. eg. `--max_cpus 1`
 
 ### `--plaintext_email`
 Set to receive plain-text e-mails instead of HTML formatted.
+
+### `--monochrome_logs`
+Set to disable colourful command line output and live life in monochrome.
 
 ### `--multiqc_config`
 Specify a path to a custom MultiQC configuration file.

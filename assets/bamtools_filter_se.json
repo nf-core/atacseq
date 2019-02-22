@@ -1,7 +1,7 @@
 {
     "filters" : [
         { "id" : "mismatch",
-          "tag" : "XM:<=3"
+          "tag" : "NM:<=4"
         },
 
         { "id" : "cigar",
