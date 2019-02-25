@@ -40,8 +40,7 @@ def helpMessage() {
       --fragment_size [int]         Estimated fragment size used to extend single-end reads. Default: 0
 
     References                      If not specified in the configuration file or you wish to overwrite any of the references
-      --bwa_index_dir               Directory containing BWA index
-      --bwa_index_base              Basename for BWA index. Default: genome.fa
+      --bwa_index                   Full path to directory containing BWA index including base name i.e. /path/to/index/genome.fa
       --gene_bed                    Path to BED file containing gene intervals
       --tss_bed                     Path to BED file containing transcription start sites (used by ataqv)
       --mito_name                   Name of Mitochondrial chomosome in genome fasta (e.g. chrM). Reads aligning to this contig are filtered out
@@ -105,7 +104,7 @@ if (params.genomes && params.genome && !params.genomes.containsKey(params.genome
 
 // Configurable variables
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
-params.bwa_index_dir = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
+params.bwa_index = params.genome ? params.genomes[ params.genome ].bwa ?: false : false
 params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
 params.gene_bed = params.genome ? params.genomes[ params.genome ].gene_bed ?: false : false
 params.mito_name = params.genome ? params.genomes[ params.genome ].mito_name ?: false : false
@@ -161,6 +160,9 @@ if (params.design){
 }
 
 if (params.fasta){
+    lastPath = params.fasta.lastIndexOf(File.separator)
+    bwa_base = params.fasta.substring(lastPath+1)
+
     Channel
         .fromPath(params.fasta, checkIfExists: true)
         .ifEmpty { exit 1, "Fasta file not found: ${params.fasta}" }
@@ -190,10 +192,14 @@ if (params.gtf){
     exit 1, "GTF annotation file not specified!"
 }
 
-if (params.bwa_index_dir){
+if (params.bwa_index){
+    lastPath = params.bwa_index.lastIndexOf(File.separator)
+    bwa_dir =  params.bwa_index.substring(0,lastPath+1)
+    bwa_base = params.bwa_index.substring(lastPath+1)
+
     bwa_index = Channel
-        .fromPath(params.bwa_index_dir, checkIfExists: true)
-        .ifEmpty { exit 1, "BWA index not found: ${params.bwa_index_dir}" }
+        .fromPath(bwa_dir, checkIfExists: true)
+        .ifEmpty { exit 1, "BWA index directory not found: ${bwa_dir}" }
 }
 
 if (params.gene_bed){
@@ -244,18 +250,17 @@ def summary = [:]
 summary['Pipeline Name']              = 'nf-core/atacseq'
 summary['Pipeline Version']           = workflow.manifest.version
 summary['Run Name']                   = custom_runName ?: workflow.runName
-summary['Genome']                     = params.genome ? params.genome : 'Not supplied'
+summary['Genome']                     = params.genome ?: 'Not supplied'
 summary['Data Type']                  = params.singleEnd ? 'Single-End' : 'Paired-End'
 summary['Design File']                = params.design
-if (params.bwa_index_dir)  summary['BWA Index Directory'] = params.bwa_index_dir ? params.bwa_index_dir : 'Not supplied'
-if (params.bwa_index_dir)  summary['BWA Index Base'] = params.bwa_index_base ? params.bwa_index_base : 'Not supplied'
+if (params.bwa_index)  summary['BWA Index'] = params.bwa_index ?: 'Not supplied'
 summary['Fasta Ref']                  = params.fasta
 summary['GTF File']                   = params.gtf
-summary['Gene BED File']              = params.gene_bed ? params.gene_bed : 'Not supplied'
-summary['TSS BED File']               = params.tss_bed ? params.tss_bed : 'Not supplied'
+summary['Gene BED File']              = params.gene_bed ?: 'Not supplied'
+summary['TSS BED File']               = params.tss_bed ?: 'Not supplied'
 if (params.blacklist) summary['Blacklist BED'] = params.blacklist
-summary['Mitochondrial Contig']       = params.mito_name ? params.mito_name : 'Not supplied'
-summary['MACS Genome Size']           = params.macs_gsize ? params.macs_gsize : 'Not supplied'
+summary['Mitochondrial Contig']       = params.mito_name ?: 'Not supplied'
+summary['MACS Genome Size']           = params.macs_gsize ?: 'Not supplied'
 if (params.macs_gsize)  summary['MACS Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
 if (params.skipTrimming){
     summary['Trimming Step']          = 'Skipped'
@@ -377,7 +382,7 @@ multiple_samples = design_multiple_samples.map { it -> it[0][0..-7] }
 /*
  * PREPROCESSING - Build BWA index
  */
-if (!params.bwa_index_dir){
+if (!params.bwa_index){
     process makeBWAindex {
         tag "$fasta"
         label 'process_big'
@@ -592,7 +597,7 @@ process bwa_mem {
     prefix="${name}.Lb"
     rg="\'@RG\\tID:${name}\\tSM:${name.toString().subSequence(0, name.length() - 3)}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
     """
-    bwa mem -t $task.cpus -M -R $rg ${index}/${params.bwa_index_base} $reads | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -
+    bwa mem -t $task.cpus -M -R $rg ${index}/${bwa_base} $reads | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -
     """
 }
 
@@ -742,7 +747,7 @@ process merge_library_filter {
 
     output:
     set val(name), file("*.{bam,bam.bai}") into mlib_filter_bam
-    file "*.flagstat" into mlib_filter_flagstat
+    set val(name), file("*.flagstat") into mlib_filter_flagstat
     file "*.{idxstats,stats}" into mlib_filter_stats_mqc
 
     script:
@@ -775,7 +780,8 @@ process merge_library_filter {
  * STEP 4.3 Remove orphan reads from paired-end BAM file
  */
 if (params.singleEnd){
-    mlib_filter_bam.into { mlib_rm_orphan_bam_bigwig;
+    mlib_filter_bam.into { mlib_rm_orphan_bam_metrics;
+                           mlib_rm_orphan_bam_bigwig;
                            mlib_rm_orphan_bam_macs;
                            mlib_rm_orphan_bam_mrep;
                            mlib_name_bam_mlib_counts;
@@ -783,8 +789,7 @@ if (params.singleEnd){
     mlib_filter_flagstat.into { mlib_rm_orphan_flagstat_bigwig;
                                 mlib_rm_orphan_flagstat_macs;
                                 mlib_rm_orphan_flagstat_mqc }
-    mlib_filter_stats_mqc.into { mlib_rm_orphan_stats_mqc }
-
+    mlib_filter_stats_mqc.set { mlib_rm_orphan_stats_mqc }
 } else {
     process merge_library_rm_orphan {
         tag "$name"
@@ -809,9 +814,9 @@ if (params.singleEnd){
                                                            mlib_rm_orphan_bam_mrep
         set val(name), file("${prefix}.bam") into mlib_name_bam_mlib_counts,
                                                   mlib_name_bam_mrep_counts
-        set val(name), "*.flagstat" into mlib_rm_orphan_flagstat_bigwig,
-                                         mlib_rm_orphan_flagstat_macs,
-                                         mlib_rm_orphan_flagstat_mqc
+        set val(name), file("*.flagstat") into mlib_rm_orphan_flagstat_bigwig,
+                                               mlib_rm_orphan_flagstat_macs,
+                                               mlib_rm_orphan_flagstat_mqc
         file "*.{idxstats,stats}" into mlib_rm_orphan_stats_mqc
 
         script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/

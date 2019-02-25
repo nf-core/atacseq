@@ -22,8 +22,7 @@
     * [`--genome`](#--genome)
     * [`--fasta`](#--fasta)
     * [`--gtf`](#--gtf)
-    * [`--bwa_index_dir`](#--bwa_index_dir)
-    * [`--bwa_index_base`](#--bwa_index_base)
+    * [`--bwa_index`](#--bwa_index)
     * [`--gene_bed`](#--gene_bed)
     * [`--tss_bed`](#--tss_bed)
     * [`--mito_name`](#--mito_name)
@@ -237,16 +236,10 @@ The full path to GTF file for annotating peaks (*mandatory* if `--genome` is not
 --gtf '[path to GTF file]'
 ```
 
-### `--bwa_index_dir`
-Directory containing an existing BWA index for your reference genome.
+### `--bwa_index`
+Full path to an existing BWA index for your reference genome including the base name for the index.
 ```bash
---bwa_index_dir '[directory containing BWA index]'
-```
-
-### `--bwa_index_base`
-Base file name for an existing BWA index for your reference genome. Default: `genome.fa`.
-```bash
---bwa_index_base '[basename of BWA index]'
+--bwa_index '[directory containing BWA index]/genome.fa'
 ```
 
 ### `--gene_bed`
