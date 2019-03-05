@@ -16,19 +16,19 @@ dependencies:
     - conda-forge::r-upsetr=1.3.3
 
     ## bioconda packages
-    - fastqc=0.11.8
-    - trim-galore=0.5.0
-    - bwa=0.7.17
-    - samtools=1.9
-    - picard=2.18.26
-    - bamtools=2.5.1
-    - pysam=0.15.2
-    - bedtools=2.27.1
-    - ucsc-bedgraphtobigwig=377
-    - macs2=2.1.2
-    - homer=4.9.1
-    - ataqv=1.0.0
-    - subread=1.6.3
-    - multiqc=1.7
+    - bioconda::fastqc=0.11.8
+    - bioconda::trim-galore=0.5.0
+    - bioconda::bwa=0.7.17
+    - bioconda::samtools=1.9
+    - bioconda::picard=2.18.26
+    - bioconda::bamtools=2.5.1
+    - bioconda::pysam=0.15.2
+    - bioconda::bedtools=2.27.1
+    - bioconda::ucsc-bedgraphtobigwig=377
+    - bioconda::macs2=2.1.2
+    - bioconda::homer=4.9.1
+    - bioconda::ataqv=1.0.0
+    - bioconda::subread=1.6.3
+    - bioconda::multiqc=1.7
     - bioconda::bioconductor-deseq2=1.20.0
     - bioconda::bioconductor-vsn=3.46.0
