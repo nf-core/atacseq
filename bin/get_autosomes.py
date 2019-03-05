@@ -2,7 +2,7 @@
 
 #######################################################################
 #######################################################################
-## Created on February 26th 2019 to render methods
+## Created on January 23rd 2019 to get autosomes from FAI file
 #######################################################################
 #######################################################################
 
@@ -21,7 +21,7 @@ Epilog = """Example usage: python get_autosomes.py <FAI_FILE> <OUT_FILE>"""
 argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 
 ## REQUIRED PARAMETERS
-argParser.add_argument('METHODS', help="FAI input file.")
+argParser.add_argument('FAI_FILE', help="FAI input file.")
 argParser.add_argument('OUT_FILE', help="Output file containing one chromosome per line.")
 args = argParser.parse_args()
 
