@@ -384,7 +384,8 @@ wget https://github.com/nf-core/configs/archive/master.zip
 unzip master.zip
 
 ## Run the pipeline
---custom_config_version d52db660777c4bf36546ddb188ec530c3ada1b96
+cd /path/to/my/data
+nextflow run /path/to/atacseq_pipeline/ --custom_config_base /path/to/my/configs/configs-master/
 ```
 
 ### `--max_memory`
