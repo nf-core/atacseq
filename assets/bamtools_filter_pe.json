@@ -9,7 +9,7 @@
         },
 
         { "id" : "mismatch",
-          "tag" : "NM:<=4"
+          "tag" : "NM:<=3"
         },
 
         { "id" : "cigar",
