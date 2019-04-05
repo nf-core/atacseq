@@ -294,7 +294,7 @@ if (params.config_profile_contact)     summary['Config Contact']     = params.co
 if (params.config_profile_url)         summary['Config URL']         = params.config_profile_url
 if(params.email) {
   summary['E-mail Address']     = params.email
-  summary['MultiQC maxsize']    = params.maxMultiqcEmailFileSize
+  summary['MultiQC Max Size']   = params.maxMultiqcEmailFileSize
 }
 log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
 log.info "\033[2m----------------------------------------------------\033[0m"
@@ -1215,7 +1215,7 @@ process merge_library_ataqv_mkarv {
 /*
  * STEP 5.1 Merge library BAM files across all replicates
  */
-mlib_rm_orphan_bam_mrep.map { it -> [ it[0].split('_')[0..-3].join('_'), it[1] ] }
+mlib_rm_orphan_bam_mrep.map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
                        .groupTuple(by: [0])
                        .map { it ->  [ it[0], it[1].flatten() ] }
                        .set { mlib_rm_orphan_bam_mrep }
