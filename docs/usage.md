@@ -127,7 +127,7 @@ You will need to create a design file with information about the samples in your
 
 #### Multiple replicates
 
-The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. Below is an example for a single experimental group in triplicate:
+The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given sample must be 1. Below is an example for a single experimental group in triplicate:
 
 ```bash
 group,replicate,fastq_1,fastq_2
@@ -138,12 +138,14 @@ control,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
 
 #### Multiple runs of the same library
 
-The `group` and `replicate` identifiers are the same when you have resequenced the same sample more than once (e.g. to increase sequencing depth). The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example for the same sample sequenced twice:
+The `group` and `replicate` identifiers are the same when you have re-sequenced the same sample more than once (e.g. to increase sequencing depth). The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example for two samples sequenced across multiple lanes:
 
 ```bash
 group,replicate,fastq_1,fastq_2
 control,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
 control,1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
+treatment,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz
+treatment,1,AEG588A4_S4_L004_R1_001.fastq.gz,AEG588A4_S4_L004_R2_001.fastq.gz
 ```
 
 #### Full design
@@ -165,8 +167,8 @@ treatment,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz
 |-------------|-------------------------------------------------------------------------------------------------------------|
 | `group`     | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
 | `replicate` | Integer representing replicate number. Must start from `1..<number of replicates>`.                         |
-| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz".               |
-| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz".               |
+| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
 
 Example design files have been provided with the pipeline for [paired-end](../assets/design_pe.csv) and [single-end](../assets/design_se.csv) data.
 

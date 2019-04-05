@@ -5,6 +5,8 @@ report_comment: >
 
 skip_generalstats: true
 
+export_plots: true
+
 fn_clean_exts:
     - 'fastq.gz'
     - '_trimmed'
@@ -98,7 +100,7 @@ report_section_order:
         order: -1800
     mrep_deseq2_clustering:
         order: -1900
-    nf-core-atacseq-software-versions:
+    software_versions:
         order: -2000
     nf-core-atacseq-summary:
         order: -2100

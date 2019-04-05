@@ -72,8 +72,8 @@ def reformat_design(DesignFileIn,DesignFileOut):
 
             for fastq in fastQFiles:
                 ## CHECK FASTQ FILE EXTENSION
-                if fastq[-9:] != '.fastq.gz':
-                    print "{}: FastQ file has incorrect extension (has to be '.fastq.gz') - {}\nLine: '{}'".format(ERROR_STR,fastq,line.strip())
+                if fastq[-9:] != '.fastq.gz' and fastq[-6:] != '.fq.gz':
+                    print "{}: FastQ file has incorrect extension (has to be '.fastq.gz' or 'fq.gz') - {}\nLine: '{}'".format(ERROR_STR,fastq,line.strip())
                     sys.exit(1)
 
                 ## CHECK FASTQ FILES EXIST PER SAMPLE

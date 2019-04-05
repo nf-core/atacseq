@@ -248,53 +248,53 @@ if (workflow.profile == 'awsbatch') {
 // Header log info
 log.info nfcoreHeader()
 def summary = [:]
-summary['Run Name']                   = custom_runName ?: workflow.runName
-summary['Genome']                     = params.genome ?: 'Not supplied'
-summary['Data Type']                  = params.singleEnd ? 'Single-End' : 'Paired-End'
-summary['Design File']                = params.design
-if (params.bwa_index)  summary['BWA Index'] = params.bwa_index ?: 'Not supplied'
-summary['Fasta Ref']                  = params.fasta
-summary['GTF File']                   = params.gtf
-summary['Gene BED File']              = params.gene_bed ?: 'Not supplied'
-summary['TSS BED File']               = params.tss_bed ?: 'Not supplied'
+summary['Run Name']             = custom_runName ?: workflow.runName
+summary['Genome']               = params.genome ?: 'Not supplied'
+summary['Data Type']            = params.singleEnd ? 'Single-End' : 'Paired-End'
+summary['Design File']          = params.design
+if (params.bwa_index) summary['BWA Index'] = params.bwa_index ?: 'Not supplied'
+summary['Fasta Ref']            = params.fasta
+summary['GTF File']             = params.gtf
+summary['Gene BED File']        = params.gene_bed ?: 'Not supplied'
+summary['TSS BED File']         = params.tss_bed ?: 'Not supplied'
 if (params.blacklist) summary['Blacklist BED'] = params.blacklist
-summary['Mitochondrial Contig']       = params.mito_name ?: 'Not supplied'
-summary['MACS Genome Size']           = params.macs_gsize ?: 'Not supplied'
-if (params.macs_gsize)  summary['MACS Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
+summary['Mitochondrial Contig'] = params.mito_name ?: 'Not supplied'
+summary['MACS Genome Size']     = params.macs_gsize ?: 'Not supplied'
+if (params.macs_gsize) summary['MACS Narrow Peaks'] = params.narrowPeak ? 'Yes' : 'No'
 if (params.skipTrimming){
-    summary['Trimming Step']          = 'Skipped'
+    summary['Trimming Step']    = 'Skipped'
 } else {
-    summary['Trim R1']                = "$params.clip_r1 bp"
-    summary['Trim R2']                = "$params.clip_r2 bp"
-    summary["Trim 3' R1"]             = "$params.three_prime_clip_r1 bp"
-    summary["Trim 3' R2"]             = "$params.three_prime_clip_r2 bp"
+    summary['Trim R1']          = "$params.clip_r1 bp"
+    summary['Trim R2']          = "$params.clip_r2 bp"
+    summary["Trim 3' R1"]       = "$params.three_prime_clip_r1 bp"
+    summary["Trim 3' R2"]       = "$params.three_prime_clip_r2 bp"
 }
-summary['Fragment Size']              = "$params.fragment_size bp"
-summary['Keep Mitochondrial']         = params.keepMito ? 'Yes' : 'No'
-summary['Keep Duplicates']            = params.keepDups ? 'Yes' : 'No'
-summary['Keep Multi-mapped']          = params.keepMultiMap ? 'Yes' : 'No'
-summary['Merge Replicates']           = params.skipMergeReplicates ? 'No' : 'Yes'
-summary['Save Genome Index']          = params.saveGenomeIndex ? 'Yes' : 'No'
-summary['Save Trimmed']               = params.saveTrimmed ? 'Yes' : 'No'
-summary['Save Intermeds']             = params.saveAlignedIntermediates ? 'Yes' : 'No'
-summary['Max Resources']              = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
+summary['Fragment Size']        = "$params.fragment_size bp"
+summary['Keep Mitochondrial']   = params.keepMito ? 'Yes' : 'No'
+summary['Keep Duplicates']      = params.keepDups ? 'Yes' : 'No'
+summary['Keep Multi-mapped']    = params.keepMultiMap ? 'Yes' : 'No'
+summary['Merge Replicates']     = params.skipMergeReplicates ? 'No' : 'Yes'
+summary['Save Genome Index']    = params.saveGenomeIndex ? 'Yes' : 'No'
+summary['Save Trimmed']         = params.saveTrimmed ? 'Yes' : 'No'
+summary['Save Intermeds']       = params.saveAlignedIntermediates ? 'Yes' : 'No'
+summary['Max Resources']        = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
 if(workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
-summary['Output Dir']       = params.outdir
-summary['Launch Dir']       = workflow.launchDir
-summary['Working Dir']      = workflow.workDir
-summary['Script Dir']       = workflow.projectDir
-summary['User']             = workflow.userName
+summary['Output Dir']           = params.outdir
+summary['Launch Dir']           = workflow.launchDir
+summary['Working Dir']          = workflow.workDir
+summary['Script Dir']           = workflow.projectDir
+summary['User']                 = workflow.userName
 if (workflow.profile == 'awsbatch'){
-   summary['AWS Region']              = params.awsregion
-   summary['AWS Queue']               = params.awsqueue
+   summary['AWS Region']        = params.awsregion
+   summary['AWS Queue']         = params.awsqueue
 }
-summary['Config Profile']             = workflow.profile
+summary['Config Profile']       = workflow.profile
 if (params.config_profile_description) summary['Config Description'] = params.config_profile_description
 if (params.config_profile_contact)     summary['Config Contact']     = params.config_profile_contact
 if (params.config_profile_url)         summary['Config URL']         = params.config_profile_url
 if(params.email) {
-  summary['E-mail Address']  = params.email
-  summary['MultiQC maxsize'] = params.maxMultiqcEmailFileSize
+  summary['E-mail Address']     = params.email
+  summary['MultiQC maxsize']    = params.maxMultiqcEmailFileSize
 }
 log.info summary.collect { k,v -> "${k.padRight(21)}: $v" }.join("\n")
 log.info "\033[2m----------------------------------------------------\033[0m"
@@ -1244,7 +1244,7 @@ process merge_replicate {
     file "*.{idxstats,stats}" into mrep_stats_mqc
     file "*.txt" into mrep_metrics_mqc
 
-    when: !skipMergeReplicates && replicates_exist
+    when: !params.skipMergeReplicates && replicates_exist
 
     script:
     prefix="${name}.mRp.clN"
@@ -1320,7 +1320,7 @@ process merge_replicate_bigwig {
     file "*.bigWig" into mrep_bigwig_igv
     file "*.txt" into mrep_bigwig_scale
 
-    when: !skipMergeReplicates && replicates_exist
+    when: !params.skipMergeReplicates && replicates_exist
 
     script:
     prefix="${name}.mRp.clN"
@@ -1360,7 +1360,7 @@ process merge_replicate_macs {
                                           mrep_macs_peaks_igv
     file "*_mqc.tsv" into mrep_macs_peak_mqc
 
-    when: !skipMergeReplicates && replicates_exist && params.macs_gsize
+    when: !params.skipMergeReplicates && replicates_exist && params.macs_gsize
 
     script:
     prefix="${name}.mRp.clN"
@@ -1399,7 +1399,7 @@ process merge_replicate_macs_annotate {
     output:
     file "*.txt" into mrep_macs_annotate
 
-    when: !skipMergeReplicates && replicates_exist && params.macs_gsize
+    when: !params.skipMergeReplicates && replicates_exist && params.macs_gsize
 
     script:
     prefix="${name}.mRp.clN"
@@ -1428,7 +1428,7 @@ process merge_replicate_macs_qc {
    file "*.{txt,pdf}" into mrep_macs_qc
    file "*.tsv" into mrep_macs_qc_mqc
 
-   when: !skipMergeReplicates && replicates_exist && params.macs_gsize
+   when: !params.skipMergeReplicates && replicates_exist && params.macs_gsize
 
    script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
    suffix='mRp.clN'
@@ -1464,7 +1464,7 @@ process merge_replicate_macs_consensus {
     file "*.saf" into mrep_macs_consensus_saf
     file "*.intersect.{txt,plot.pdf}" into mrep_macs_consensus_intersect
 
-    when: !skipMergeReplicates && replicates_exist && params.macs_gsize && multiple_samples
+    when: !params.skipMergeReplicates && replicates_exist && params.macs_gsize && multiple_samples
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     suffix='mRp.clN'
@@ -1508,7 +1508,7 @@ process merge_replicate_macs_consensus_annotate {
     output:
     file "*.annotatePeaks.txt" into mrep_macs_consensus_annotate
 
-    when: !skipMergeReplicates && replicates_exist && params.macs_gsize && multiple_samples
+    when: !params.skipMergeReplicates && replicates_exist && params.macs_gsize && multiple_samples
 
     script:
     prefix="consensus_peaks.mRp.clN"
@@ -1546,7 +1546,7 @@ process merge_replicate_macs_consensus_deseq {
     file "*vs*/*.bed" into mrep_macs_consensus_deseq_comp_bed_igv
     file "*.tsv" into mrep_macs_consensus_deseq_mqc
 
-    when: !skipMergeReplicates && replicates_exist && params.macs_gsize && multiple_samples
+    when: !params.skipMergeReplicates && replicates_exist && params.macs_gsize && multiple_samples
 
     script:
     prefix="consensus_peaks.mRp.clN"
@@ -1573,6 +1573,45 @@ process merge_replicate_macs_consensus_deseq {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 /* --                                                                     -- */
+/* --                             IGV                                     -- */
+/* --                                                                     -- */
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+/*
+ * STEP 6 - Create IGV session file
+ */
+process igv {
+    publishDir "${params.outdir}/igv", mode: 'copy'
+
+    input:
+    file fasta from fasta_igv.collect()
+
+    file ('bwa/mergedLibrary/bigwig/*') from mlib_bigwig_igv.collect()
+    file ('bwa/mergedLibrary/macs/*') from mlib_macs_peaks_igv.collect{it[1]}.ifEmpty([])
+    file ('bwa/mergedLibrary/macs/consensus/*') from mlib_macs_consensus_bed_igv.collect().ifEmpty([])
+    file ('bwa/mergedLibrary/macs/consensus/deseq2/*') from mlib_macs_consensus_deseq_comp_bed_igv.collect().ifEmpty([])
+
+    file ('bwa/mergedReplicate/bigwig/*') from mrep_bigwig_igv.collect().ifEmpty([])
+    file ('bwa/mergedReplicate/macs/*') from mrep_macs_peaks_igv.collect{it[1]}.ifEmpty([])
+    file ('bwa/mergedReplicate/macs/consensus/*') from mrep_macs_consensus_bed_igv.collect().ifEmpty([])
+    file ('bwa/mergedReplicate/macs/consensus/deseq2/*') from mrep_macs_consensus_deseq_comp_bed_igv.collect().ifEmpty([])
+
+    output:
+    file "*.{txt,xml}" into igv_session
+
+    script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
+    outdir_abspath = new File(params.outdir).getCanonicalPath().toString()
+    """
+    igv_get_files.sh ./ mLb $outdir_abspath > igv_files.txt
+    igv_get_files.sh ./ mRp $outdir_abspath >> igv_files.txt
+    igv_files_to_session.py igv_session.xml igv_files.txt ${outdir_abspath}/reference_genome/${fasta.getName()}
+    """
+}
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+/* --                                                                     -- */
 /* --                          MULTIQC                                    -- */
 /* --                                                                     -- */
 ///////////////////////////////////////////////////////////////////////////////
@@ -1582,11 +1621,15 @@ process merge_replicate_macs_consensus_deseq {
  * Parse software version numbers
  */
 process get_software_versions {
-    publishDir "${params.outdir}/Documentation", mode: 'copy'
+  publishDir "${params.outdir}/pipeline_info", mode: 'copy',
+      saveAs: {filename ->
+          if (filename.indexOf(".csv") > 0) filename
+          else null
+      }
 
     output:
-    file "software_versions.txt" into software_versions_mqc,
-                                      software_versions_methods
+    file 'software_versions_mqc.yaml' into software_versions_mqc
+    file "software_versions.csv"
 
     script:
     """
@@ -1606,30 +1649,8 @@ process get_software_versions {
     echo \$(ataqv --version 2>&1) > v_ataqv.txt
     echo \$(featureCounts -v 2>&1) > v_featurecounts.txt
     multiqc --version > v_multiqc.txt
-    scrape_software_versions.py > software_versions.txt
+    scrape_software_versions.py &> software_versions_mqc.yaml
     """
-}
-
-def create_software_summary(software_version_file) {
-
-    def yaml_file = workDir.resolve('software_summary_mqc.yaml')
-    yaml_file.text  = """
-    id: 'nf-core-atacseq-software-versions'
-    section_name: 'nf-core/atacseq Software Versions'
-    section_href: 'https://github.com/nf-core/atacseq'
-    plot_type: 'html'
-    description: 'are collected at run time from the software output.'
-    data: |
-        <dl class=\"dl-horizontal\">
-${software_version_file.splitCsv(sep: '\t')
-                       .map{ it -> "            <dt>${it[0]}</dt><dd>${it[1] != 'NA' ? it[1] : '<span style="color:#999999;">N/A</span>'}</dd>" }
-                       .collect()
-                       .get()
-                       .join("\n") }
-        </dl>
-    """.stripIndent()
-
-   return yaml_file
 }
 
 def create_workflow_summary(summary) {
@@ -1651,7 +1672,7 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
 }
 
 /*
- * STEP 6 - MultiQC
+ * STEP 7 - MultiQC
  */
 process multiqc {
     publishDir "${params.outdir}/multiqc", mode: 'copy'
@@ -1683,12 +1704,13 @@ process multiqc {
     file ('macs/mergedReplicate/consensus/*') from mrep_macs_consensus_counts_mqc.collect().ifEmpty([])
     file ('macs/mergedReplicate/consensus/*') from mrep_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
-    file ('software_versions/*') from create_software_summary(software_versions_mqc)
+    file ('software_versions/*') from software_versions_mqc
     file ('workflow_summary/*') from create_workflow_summary(summary)
 
     output:
     file "*multiqc_report.html" into multiqc_report
     file "*_data"
+    file "multiqc_plots"
 
     script:
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
@@ -1696,45 +1718,6 @@ process multiqc {
     """
     multiqc . -f $rtitle $rfilename --config $multiqc_config \\
         -m custom_content -m fastqc -m cutadapt -m samtools -m picard -m featureCounts
-    """
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                             IGV                                     -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 7 - Create IGV session file
- */
-process igv {
-    publishDir "${params.outdir}/igv", mode: 'copy'
-
-    input:
-    file fasta from fasta_igv.collect()
-
-    file ('bwa/mergedLibrary/bigwig/*') from mlib_bigwig_igv.collect()
-    file ('bwa/mergedLibrary/macs/*') from mlib_macs_peaks_igv.collect{it[1]}.ifEmpty([])
-    file ('bwa/mergedLibrary/macs/consensus/*') from mlib_macs_consensus_bed_igv.collect().ifEmpty([])
-    file ('bwa/mergedLibrary/macs/consensus/deseq2/*') from mlib_macs_consensus_deseq_comp_bed_igv.collect().ifEmpty([])
-
-    file ('bwa/mergedReplicate/bigwig/*') from mrep_bigwig_igv.collect().ifEmpty([])
-    file ('bwa/mergedReplicate/macs/*') from mrep_macs_peaks_igv.collect{it[1]}.ifEmpty([])
-    file ('bwa/mergedReplicate/macs/consensus/*') from mrep_macs_consensus_bed_igv.collect().ifEmpty([])
-    file ('bwa/mergedReplicate/macs/consensus/deseq2/*') from mrep_macs_consensus_deseq_comp_bed_igv.collect().ifEmpty([])
-
-    output:
-    file "*.{txt,xml}" into igv_session
-
-    script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
-    outdir_abspath = new File(params.outdir).getCanonicalPath().toString()
-    """
-    igv_get_files.sh ./ mLb $outdir_abspath > igv_files.txt
-    igv_get_files.sh ./ mRp $outdir_abspath >> igv_files.txt
-    igv_files_to_session.py igv_session.xml igv_files.txt ${outdir_abspath}/reference_genome/${fasta.getName()}
     """
 }
 
@@ -1772,7 +1755,7 @@ workflow.onComplete {
     // Set up the e-mail variables
     def subject = "[nf-core/atacseq] Successful: $workflow.runName"
     if(!workflow.success){
-        subject = "[nf-core/atacseq] FAILED: $workflow.runName"
+      subject = "[nf-core/atacseq] FAILED: $workflow.runName"
     }
     def email_fields = [:]
     email_fields['version'] = workflow.manifest.version
@@ -1794,6 +1777,7 @@ workflow.onComplete {
     if(workflow.commitId) email_fields['summary']['Pipeline repository Git Commit'] = workflow.commitId
     if(workflow.revision) email_fields['summary']['Pipeline Git branch/tag'] = workflow.revision
     if(workflow.container) email_fields['summary']['Docker image'] = workflow.container
+    email_fields['skipped_poor_alignment'] = skipped_poor_alignment
     email_fields['summary']['Nextflow Version'] = workflow.nextflow.version
     email_fields['summary']['Nextflow Build'] = workflow.nextflow.build
     email_fields['summary']['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
@@ -1832,14 +1816,14 @@ workflow.onComplete {
     // Send the HTML e-mail
     if (params.email) {
         try {
-            if( params.plaintext_email ){ throw GroovyException('Send plaintext e-mail, not HTML') }
-            // Try to send HTML e-mail using sendmail
-            [ 'sendmail', '-t' ].execute() << sendmail_html
-            log.info "[nf-core/atacseq] Sent summary e-mail to $params.email (sendmail)"
+          if( params.plaintext_email ){ throw GroovyException('Send plaintext e-mail, not HTML') }
+          // Try to send HTML e-mail using sendmail
+          [ 'sendmail', '-t' ].execute() << sendmail_html
+          log.info "[nf-core/atacseq] Sent summary e-mail to $params.email (sendmail)"
         } catch (all) {
-            // Catch failures and try with plaintext
-            [ 'mail', '-s', subject, params.email ].execute() << email_txt
-            log.info "[nf-core/atacseq] Sent summary e-mail to $params.email (mail)"
+          // Catch failures and try with plaintext
+          [ 'mail', '-s', subject, params.email ].execute() << email_txt
+          log.info "[nf-core/atacseq] Sent summary e-mail to $params.email (mail)"
         }
     }
 
@@ -1858,7 +1842,7 @@ workflow.onComplete {
     c_green = params.monochrome_logs ? '' : "\033[0;32m";
     c_red = params.monochrome_logs ? '' : "\033[0;31m";
     if(workflow.success){
-        log.info "${c_purple}[nf-core/atacseq]${c_green} Pipeline complete${c_reset}"
+        log.info "${c_purple}[nf-core/atacseq]${c_green} Pipeline completed successfully${c_reset}"
     } else {
         checkHostname()
         log.info "${c_purple}[nf-core/atacseq]${c_red} Pipeline completed with errors${c_reset}"
@@ -1892,7 +1876,7 @@ def nfcoreHeader(){
     ${c_blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${c_yellow}}  {${c_reset}
     ${c_blue}  | \\| |       \\__, \\__/ |  \\ |___     ${c_green}\\`-._,-`-,${c_reset}
                                             ${c_green}`._,._,\'${c_reset}
-    ${c_purple}  {{ cookiecutter.name }} v${workflow.manifest.version}${c_reset}
+    ${c_purple}  nf-core/atacseq v${workflow.manifest.version}${c_reset}
     ${c_dim}----------------------------------------------------${c_reset}
     """.stripIndent()
 }
