@@ -358,13 +358,13 @@ if (params.singleEnd) {
 }
 
 // Boolean value for replicates existing in design
-replicates_exist = design_replicates_exist.map { it -> it[0][-4].toInteger() }
+replicates_exist = design_replicates_exist.map { it -> it[0].split('_')[-2].replaceAll('R','').toInteger() }
                                           .flatten()
                                           .max()
                                           .val > 1
 
 // Boolean value for multiple samples existing in design
-multiple_samples = design_multiple_samples.map { it -> it[0][0..-7] }
+multiple_samples = design_multiple_samples.map { it -> it[0].split('_')[0..-3].join('_') }
                                           .flatten()
                                           .unique()
                                           .count()
@@ -594,7 +594,7 @@ process bwa_mem {
 
     script:
     prefix="${name}.Lb"
-    rg="\'@RG\\tID:${name}\\tSM:${name.toString().subSequence(0, name.length() - 3)}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
+    rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
     """
     bwa mem -t $task.cpus -M -R $rg ${index}/${bwa_base} $reads | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -
     """
@@ -644,7 +644,7 @@ process sort_bam {
 /*
  * STEP 4.1 Merge BAM files for all libraries from same replicate
  */
-sort_bam_mlib.map { it -> [ it[0].toString().subSequence(0, it[0].length() - 3), it[1] ] }
+sort_bam_mlib.map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
              .groupTuple(by: [0])
              .map { it ->  [ it[0], it[1].flatten() ] }
              .set { sort_bam_mlib }
@@ -1215,7 +1215,7 @@ process merge_library_ataqv_mkarv {
 /*
  * STEP 5.1 Merge library BAM files across all replicates
  */
-mlib_rm_orphan_bam_mrep.map { it -> [ it[0].toString().subSequence(0, it[0].length() - 3), it[1] ] }
+mlib_rm_orphan_bam_mrep.map { it -> [ it[0].split('_')[0..-3].join('_'), it[1] ] }
                        .groupTuple(by: [0])
                        .map { it ->  [ it[0], it[1].flatten() ] }
                        .set { mlib_rm_orphan_bam_mrep }
