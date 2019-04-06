@@ -70,8 +70,13 @@ def reformat_design(DesignFileIn,DesignFileOut):
                 print "{}: Replicate id not an integer!\nLine: '{}'".format(ERROR_STR,line.strip())
                 sys.exit(1)
 
-            ## CHECK FASTQ FILES EXIST PER SAMPLE
             for fastq in fastQFiles:
+                ## CHECK FASTQ FILE EXTENSION
+                if fastq[-9:] != '.fastq.gz' and fastq[-6:] != '.fq.gz':
+                    print "{}: FastQ file has incorrect extension (has to be '.fastq.gz' or 'fq.gz') - {}\nLine: '{}'".format(ERROR_STR,fastq,line.strip())
+                    sys.exit(1)
+
+                ## CHECK FASTQ FILES EXIST PER SAMPLE
                 if fastq[:4] not in ['http']:
                     if not os.path.exists(fastq):
                         print "{}: FastQ file does not exist - {}\nLine: '{}'".format(ERROR_STR,fastq,line.strip())
