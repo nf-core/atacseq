@@ -73,4 +73,4 @@ The pipeline was developed by [Harshil Patel](mailto:harshil.patel@crick.ac.uk).
 
 The [nf-core/rnaseq](https://github.com/nf-core/rnaseq) and [nf-core/chipseq](https://github.com/nf-core/chipseq) pipelines developed by Phil Ewels were initially used as a template for this pipeline. Many thanks to Phil for all of his help and advice, and the team at SciLifeLab.
 
-Many thanks to other who have helped out along the way too, including (but not limited to): [@apeltzer](https://github.com/apeltzer), [@sven1103](https://github.com/sven1103), [@MaxUlysse](https://github.com/MaxUlysse), [@micans](https://github.com/micans), [@pditommaso](https://github.com/pditommaso).
+Many thanks to others who have helped out along the way too, including (but not limited to): [@apeltzer](https://github.com/apeltzer), [@sven1103](https://github.com/sven1103), [@MaxUlysse](https://github.com/MaxUlysse), [@micans](https://github.com/micans), [@pditommaso](https://github.com/pditommaso).
