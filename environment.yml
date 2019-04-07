@@ -25,7 +25,7 @@ dependencies:
   - picard=2.19.0
   - bamtools=2.5.1
   - pysam=0.15.2
-  - bedtools=2.28.0
+  - bedtools=2.27.1
   - ucsc-bedgraphtobigwig=377
   - macs2=2.1.2
   - homer=4.9.1
