@@ -4,4 +4,4 @@ LABEL authors="harshil.patel@crick.ac.uk" \
 
 COPY environment.yml /
 RUN conda env create -f /environment.yml && conda clean -a
-ENV PATH /opt/conda/envs/nf-core-atacseq-1.0dev/bin:$PATH
+ENV PATH /opt/conda/envs/nf-core-atacseq-1.0.0/bin:$PATH
