@@ -2,65 +2,60 @@
 
 ## Table of contents
 
-* [Introduction](#general-nextflow-info)
+* [Introduction](#introduction)
 * [Running the pipeline](#running-the-pipeline)
-* [Updating the pipeline](#updating-the-pipeline)
-* [Reproducibility](#reproducibility)
+  * [Updating the pipeline](#updating-the-pipeline)
+  * [Reproducibility](#reproducibility)
 * [Main arguments](#main-arguments)
-    * [`-profile`](#-profile-single-dash)
-        * [`awsbatch`](#awsbatch)
-        * [`conda`](#conda)
-        * [`docker`](#docker)
-        * [`singularity`](#singularity)
-        * [`test`](#test)
-    * [`--design`](#--design)
+  * [`-profile`](#-profile)
+  * [`--design`](#--design)
 * [Generic arguments](#generic-arguments)
-    * [`--singleEnd`](#--singleEnd)
-    * [`--narrowPeak`](#--narrowPeak)
-    * [`--fragment_size`](#--fragment_size)
+  * [`--singleEnd`](#--singleend)
+  * [`--narrowPeak`](#--narrowpeak)
+  * [`--fragment_size`](#--fragment_size)
 * [Reference genomes](#reference-genomes)
-    * [`--genome`](#--genome)
-    * [`--fasta`](#--fasta)
-    * [`--gtf`](#--gtf)
-    * [`--bwa_index`](#--bwa_index)
-    * [`--gene_bed`](#--gene_bed)
-    * [`--tss_bed`](#--tss_bed)
-    * [`--mito_name`](#--mito_name)
-    * [`--macs_gsize`](#--macs_gsize)
-    * [`--blacklist`](#--blacklist)
-    * [`--saveGenomeIndex`](#--saveGenomeIndex)
-    * [`--igenomesIgnore`](#--igenomesignore)
+  * [`--genome` (using iGenomes)](#--genome-using-igenomes)
+  * [`--fasta`](#--fasta)
+  * [`--gtf`](#--gtf)
+  * [`--bwa_index`](#--bwa_index)
+  * [`--gene_bed`](#--gene_bed)
+  * [`--tss_bed`](#--tss_bed)
+  * [`--mito_name`](#--mito_name)
+  * [`--macs_gsize`](#--macs_gsize)
+  * [`--blacklist`](#--blacklist)
+  * [`--saveGenomeIndex`](#--savegenomeindex)
+  * [`--igenomesIgnore`](#--igenomesignore)
 * [Adapter trimming](#adapter-trimming)
-    * [`--skipTrimming`](#--skipTrimming)
-    * [`--saveTrimmed`](#--saveTrimmed)
+  * [`--skipTrimming`](#--skiptrimming)
+  * [`--saveTrimmed`](#--savetrimmed)
 * [Alignments](#alignments)
-    * [`--keepMito`](#--keepMito)
-    * [`--keepDups`](#--keepDups)
-    * [`--keepMultiMap`](#--keepMultiMap)
-    * [`--skipMergeReplicates`](#--skipMergeReplicates)
-    * [`--saveAlignedIntermediates`](#--saveAlignedIntermediates)
+  * [`--keepMito`](#--keepmito)
+  * [`--keepDups`](#--keepdups)
+  * [`--keepMultiMap`](#--keepmultimap)
+  * [`--skipMergeReplicates`](#--skipmergereplicates)
+  * [`--saveAlignedIntermediates`](#--savealignedintermediates)
 * [Job resources](#job-resources)
-* [Automatic resubmission](#automatic-resubmission)
-* [Custom resource requests](#custom-resource-requests)
-* [AWS batch specific parameters](#aws-batch-specific-parameters)
-    * [`-awsbatch`](#-awsbatch)
-    * [`--awsqueue`](#--awsqueue)
-    * [`--awsregion`](#--awsregion)
+  * [Automatic resubmission](#automatic-resubmission)
+  * [Custom resource requests](#custom-resource-requests)
+* [AWS Batch specific parameters](#aws-batch-specific-parameters)
+  * [`--awsqueue`](#--awsqueue)
+  * [`--awsregion`](#--awsregion)
 * [Other command line parameters](#other-command-line-parameters)
-    * [`--outdir`](#--outdir)
-    * [`--email`](#--email)
-    * [`-name`](#-name-single-dash)
-    * [`-resume`](#-resume-single-dash)
-    * [`-c`](#-c-single-dash)
-    * [`--custom_config_version`](#--custom_config_version)
-    * [`--max_memory`](#--max_memory)
-    * [`--max_time`](#--max_time)
-    * [`--max_cpus`](#--max_cpus)
-    * [`--plaintext_email`](#--plaintext_email)
-    * [`--monochrome_logs`](#--monochrome_logs)
-    * [`--multiqc_config`](#--multiqc_config)
+  * [`--outdir`](#--outdir)
+  * [`--email`](#--email)
+  * [`-name`](#-name)
+  * [`-resume`](#-resume)
+  * [`-c`](#-c)
+  * [`--custom_config_version`](#--custom_config_version)
+  * [`--custom_config_base`](#--custom_config_base)
+  * [`--max_memory`](#--max_memory)
+  * [`--max_time`](#--max_time)
+  * [`--max_cpus`](#--max_cpus)
+  * [`--plaintext_email`](#--plaintext_email)
+  * [`--monochrome_logs`](#--monochrome_logs)
+  * [`--multiqc_config`](#--multiqc_config)
 
-## General Nextflow info
+## Introduction
 Nextflow handles job submissions on SLURM or other environments, and supervises running the jobs. Thus the Nextflow process must run until the pipeline is finished. We recommend that you put the process running in the background through `screen` / `tmux` or similar tool. Alternatively you can run nextflow within a cluster job submitted your job scheduler.
 
 It is recommended to limit the Nextflow Java virtual machines memory. We recommend adding the following line to your environment (typically in `~/.bashrc` or `~./bash_profile`):
@@ -71,6 +66,7 @@ NXF_OPTS='-Xms1g -Xmx4g'
 
 ## Running the pipeline
 The typical command for running the pipeline is as follows:
+
 ```bash
 nextflow run nf-core/atacseq --design design.csv --genome GRCh37 -profile docker
 ```
@@ -108,19 +104,19 @@ Use this parameter to choose a configuration profile. Profiles can give configur
 If `-profile` is not specified at all the pipeline will be run locally and expects all software to be installed and available on the `PATH`.
 
 * `awsbatch`
-    * A generic configuration profile to be used with AWS Batch.
+  * A generic configuration profile to be used with AWS Batch
 * `conda`
-    * A generic configuration profile to be used with [conda](https://conda.io/docs/)
-    * Pulls most software from [Bioconda](https://bioconda.github.io/)
+  * A generic configuration profile to be used with [conda](https://conda.io/docs/)
+  * Pulls most software from [Bioconda](https://bioconda.github.io/)
 * `docker`
-    * A generic configuration profile to be used with [Docker](http://docker.com/)
-    * Pulls software from dockerhub: [`nfcore/atacseq`](http://hub.docker.com/r/nfcore/atacseq/)
+  * A generic configuration profile to be used with [Docker](http://docker.com/)
+  * Pulls software from dockerhub: [`nfcore/atacseq`](http://hub.docker.com/r/nfcore/atacseq/)
 * `singularity`
-    * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
-    * Pulls software from dockerhub: [`nfcore/atacseq`](http://hub.docker.com/r/nfcore/atacseq/)
+  * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
+  * Pulls software from dockerhub: [`nfcore/atacseq`](http://hub.docker.com/r/nfcore/atacseq/)
 * `test`
-    * A profile with a complete configuration for automated testing
-    * Includes links to test data so needs no other parameters
+  * A profile with a complete configuration for automated testing
+  * Includes links to test data so needs no other parameters
 
 ### `--design`
 You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row as shown in the examples below.
@@ -131,7 +127,7 @@ You will need to create a design file with information about the samples in your
 
 #### Multiple replicates
 
-The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. Below is an example for a single experimental group in triplicate:
+The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1. Below is an example for a single experimental group in triplicate:
 
 ```bash
 group,replicate,fastq_1,fastq_2
@@ -142,12 +138,14 @@ control,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
 
 #### Multiple runs of the same library
 
-The `group` and `replicate` identifiers are the same when you have resequenced the same sample more than once (e.g. to increase sequencing depth). The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example for the same sample sequenced twice:
+The `group` and `replicate` identifiers are the same when you have re-sequenced the same sample more than once (e.g. to increase sequencing depth). The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example for two samples sequenced across multiple lanes:
 
 ```bash
 group,replicate,fastq_1,fastq_2
 control,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
 control,1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
+treatment,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz
+treatment,1,AEG588A4_S4_L004_R1_001.fastq.gz,AEG588A4_S4_L004_R2_001.fastq.gz
 ```
 
 #### Full design
@@ -169,12 +167,10 @@ treatment,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz
 |-------------|-------------------------------------------------------------------------------------------------------------|
 | `group`     | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
 | `replicate` | Integer representing replicate number. Must start from `1..<number of replicates>`.                         |
-| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz".               |
-| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz".               |
+| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
 
 Example design files have been provided with the pipeline for [paired-end](../assets/design_pe.csv) and [single-end](../assets/design_se.csv) data.
-
->NB: The pipeline will assume that the design file is in the correct format so please double-check this before execution.
 
 ## Generic arguments
 
@@ -205,7 +201,7 @@ You can find the keys to specify the genomes in the [`iGenomes config file`](../
 * _Drosophila_
   * `--genome BDGP6`
 * _S. cerevisiae_
-  * `--genome 'R64-1-1'`
+  * `--genome R64-1-1`
 
 > There are numerous others - check the config file for more.
 
@@ -226,48 +222,56 @@ params {
 
 ### `--fasta`
 Full path to fasta file containing reference genome (*mandatory* if `--genome` is not specified). If you don't have a BWA index available this will be generated for you automatically. Combine with `--saveGenomeIndex` to save BWA index for future runs.
+
 ```bash
 --fasta '[path to FASTA reference]'
 ```
 
 ### `--gtf`
 The full path to GTF file for annotating peaks (*mandatory* if `--genome` is not specified). Note that the GTF file should resemble the Ensembl format.
+
 ```bash
 --gtf '[path to GTF file]'
 ```
 
 ### `--bwa_index`
 Full path to an existing BWA index for your reference genome including the base name for the index.
+
 ```bash
 --bwa_index '[directory containing BWA index]/genome.fa'
 ```
 
 ### `--gene_bed`
 The full path to BED file for genome-wide gene intervals. This will be created from the GTF file if it isnt specified.
+
 ```bash
 --gene_bed '[path to gene BED file]'
 ```
 
 ### `--tss_bed`
 The full path to BED file for genome-wide transcription start sites. This will be created from the gene BED file if it isnt specified.
+
 ```bash
 --tss_bed '[path to tss BED file]'
 ```
 
 ### `--macs_gsize`
 [Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter isnt specified then the MACS2 peak-calling and differential analysis will be skipped.
+
 ```bash
 --macs_gsize 2.7e9
 ```
 
 ### `--mito_name`
 Name of mitochondrial chomosome in reference assembly. Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the [`igenomes.config`](../conf/igenomes.config).
+
 ```bash
 --mito_name chrM
 ```
 
 ### `--blacklist`
 If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.
+
 ```bash
 --blacklist '[path to blacklisted regions]'
 ```
@@ -323,7 +327,7 @@ Wherever process-specific requirements are set in the pipeline, the default valu
 
 If you are likely to be running `nf-core` pipelines regularly it may be a good idea to request that your custom config file is uploaded to the `nf-core/configs` git repository. Before you do this please can you test that the config file works with your pipeline of choice using the `-c` parameter (see definition below). You can then create a pull request to the `nf-core/configs` repository with the addition of your config file, associated documentation file (see examples in [`nf-core/configs/docs`](https://github.com/nf-core/configs/tree/master/docs)), and amending [`nfcore_custom.config`](https://github.com/nf-core/configs/blob/master/nfcore_custom.config) to include your custom profile.
 
-If you have any questions or issues please send us a message on [`Slack`](https://nf-core-invite.herokuapp.com/).
+If you have any questions or issues please send us a message on [Slack](https://nf-core-invite.herokuapp.com/).
 
 ## AWS Batch specific parameters
 Running the pipeline on AWS Batch requires a couple of specific parameters to be set according to your AWS Batch configuration. Please use the `-awsbatch` profile and then specify all of the following parameters.
@@ -360,8 +364,7 @@ You can also supply a run name to resume a specific run: `-resume [run-name]`. U
 Specify the path to a specific config file (this is a core NextFlow command).
 
 **NB:** Single hyphen (core Nextflow option)
-
-Note - you can use this to override pipeline defaults.
+**NB:** You can use this config to override pipeline defaults.
 
 ### `--custom_config_version`
 Provide git commit id for custom Institutional configs hosted at `nf-core/configs`. This was implemented for reproducibility purposes. Default is set to `master`.
