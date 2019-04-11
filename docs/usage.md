@@ -192,7 +192,7 @@ The pipeline config files come bundled with paths to the illumina iGenomes refer
 ### `--genome` (using iGenomes)
 There are 31 different species supported in the iGenomes references. To run the pipeline, you must specify which to use with the `--genome` flag.
 
-You can find the keys to specify the genomes in the [`iGenomes config file`](../conf/igenomes.config). Common genomes that are supported are:
+You can find the keys to specify the genomes in the [iGenomes config file](../conf/igenomes.config). Common genomes that are supported are:
 
 * Human
   * `--genome GRCh37`
@@ -364,7 +364,8 @@ You can also supply a run name to resume a specific run: `-resume [run-name]`. U
 Specify the path to a specific config file (this is a core NextFlow command).
 
 **NB:** Single hyphen (core Nextflow option)
-**NB:** You can use this config to override pipeline defaults.
+
+Note - you can use this to override pipeline defaults.
 
 ### `--custom_config_version`
 Provide git commit id for custom Institutional configs hosted at `nf-core/configs`. This was implemented for reproducibility purposes. Default is set to `master`.
@@ -388,7 +389,7 @@ unzip master.zip
 
 ## Run the pipeline
 cd /path/to/my/data
-nextflow run /path/to/atacseq_pipeline/ --custom_config_base /path/to/my/configs/configs-master/
+nextflow run /path/to/pipeline/ --custom_config_base /path/to/my/configs/configs-master/
 ```
 
 > Note that the nf-core/tools helper package has a `download` command to download all required pipeline
