@@ -839,7 +839,7 @@ if (params.singleEnd){
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 4.4.1 Picard CollectMultipleMetrics at after merging libraries
+ * STEP 4.4.1 Picard CollectMultipleMetrics after merging libraries
  */
 process merge_library_collectmetrics {
     tag "$name"
