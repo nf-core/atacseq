@@ -54,7 +54,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
     [BWA](https://sourceforge.net/projects/bio-bwa/files/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/)
 
     *Description*:  
-    Adapter-trimmed reads are mapped to the reference assembly using BWA. A genome index is required to run BWA so if this isnt provided explicitly using the `--bwa_index_dir` and `--bwa_index_base` parameters then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--saveGenomeIndex` parameter to save the indices for future pipeline runs, reducing processing times.
+    Adapter-trimmed reads are mapped to the reference assembly using BWA. A genome index is required to run BWA so if this isnt provided explicitly using the `--bwa_index` parameter then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--saveGenomeIndex` parameter to save the indices for future pipeline runs, reducing processing times.
 
     File names in the resulting directory (i.e. `bwa/library/`) will have the '`.Lb.`' (**L**i**b**rary) suffix.
 
