@@ -6,6 +6,7 @@
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/)
 [![Docker](https://img.shields.io/docker/automated/nfcore/atacseq.svg)](https://hub.docker.com/r/nfcore/atacseq)
+[![DOI](https://zenodo.org/badge/156259074.svg)](https://zenodo.org/badge/latestdoi/156259074)
 
 ### Introduction
 
