@@ -3,7 +3,7 @@
 This document describes the output produced by the pipeline. Most of the plots are taken from the MultiQC report, which summarises results at the end of the pipeline.
 
 ## Pipeline overview
-The pipeline is built using [Nextflow](https://www.nextflow.io/). See [`main README.md`](../README.md) for a condensed listing of the pipeline, and the bioinformatics tools used at each step.
+The pipeline is built using [Nextflow](https://www.nextflow.io/). See [`main README.md`](../README.md) for a condensed overview of the steps in the pipeline, and the bioinformatics tools used at each step.
 
 See [Illumina website](https://emea.illumina.com/science/sequencing-method-explorer/kits-and-arrays/atac-seq.html) for more information regarding the ATAC-seq protocol, and for an extensive list of publications.
 
@@ -19,7 +19,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
     [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)  
 
     *Description*:  
-    FastQC gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%T/A/G/C). You get information about adapter contamination and other overrepresented sequences. For further reading and documentation see the [FastQC help](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
+    FastQC gives general quality metrics about your reads. It provides information about the quality score distribution across your reads, the per base sequence content (%A/C/G/T). You get information about adapter contamination and other overrepresented sequences. For further reading and documentation see the [FastQC help](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
 
     *Output directories*:  
     * `fastqc/`  
@@ -54,7 +54,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
     [BWA](https://sourceforge.net/projects/bio-bwa/files/), [SAMtools](https://sourceforge.net/projects/samtools/files/samtools/)
 
     *Description*:  
-    Adapter-trimmed reads are mapped to the reference assembly using BWA. A genome index is required to run BWA so if this isnt provided explicitly using the `--bwa_index_dir` and `--bwa_index_base` parameters then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--saveGenomeIndex` parameter to save the indices for future pipeline runs, reducing processing times.
+    Adapter-trimmed reads are mapped to the reference assembly using BWA. A genome index is required to run BWA so if this isnt provided explicitly using the `--bwa_index` parameter then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes so it is possible to use the `--saveGenomeIndex` parameter to save the indices for future pipeline runs, reducing processing times.
 
     File names in the resulting directory (i.e. `bwa/library/`) will have the '`.Lb.`' (**L**i**b**rary) suffix.
 
@@ -69,7 +69,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
 ## Merged library-level analysis
 
-The library-level alignments associated with any given replicate are merged and subsequently used for the downstream analyses.
+The library-level alignments associated with the same sample are merged and subsequently used for the downstream analyses.
 
 1. **Alignment merging, duplicate marking and filtering**
 
@@ -79,7 +79,7 @@ The library-level alignments associated with any given replicate are merged and 
     *Description*:  
     Picard MergeSamFiles and MarkDuplicates are used in combination to merge the alignments, and for the marking of duplicates, respectively. If you only have one library for any given replicate then the merging step isnt carried out because the library-level and merged library-level BAM files will be exactly the same.
 
-    Read duplicate marking is carried out using the Picard MarkDuplicates command. Duplicate reads are generally removed from the aligned reads to mitigate for fragments in the library that may have been sequenced more than once due to PCR biases. There is an option to keep duplicate reads with the `--keepDups` parameter but its generally recommend to remove them to avoid the wrong interpretation of the results. A similar option has been provided to keep reads that are multi-mapped - `--keepMultiMap`.
+    Read duplicate marking is carried out using the Picard MarkDuplicates command. Duplicate reads are generally removed from the aligned reads to mitigate for fragments in the library that may have been sequenced more than once due to PCR biases. There is an option to keep duplicate reads with the `--keepDups` parameter but its generally recommended to remove them to avoid the wrong interpretation of the results. A similar option has been provided to keep reads that are multi-mapped - `--keepMultiMap`.
 
     Certain cell types and tissues yield an enormous fraction (typically 20–80%) of unusable sequences of mitochondrial origin. This is a known problem that is specific to ATAC-seq library preps - see [Montefiori et al. 2017](https://www.nature.com/articles/s41598-017-02547-w). There is an option to keep these reads using the `--keepMito` parameter but its generally recommended to remove these in order to get a more reliable assessment of the duplication rate from the rest of the genome, and to avoid any biases in the downstream analyses.
 
@@ -121,9 +121,9 @@ The library-level alignments associated with any given replicate are merged and 
     *Description*:  
     MACS2 is one of the most popular peak-calling algorithms for ChIPSeq data. For ATAC-seq data we are also looking for genome-wide regions of enrichment but in this case without comparison to a standard control sample (e.g. input DNA).  
 
-    By default, the peaks are called with the MACS2 `--broad` parameter, and this is recommended for ATAC-seq data. If, however, you would like to call narrow peaks then please provide the `--narrowPeak` parameter when running the pipeline.
+    By default, the peaks are called with the MACS2 `--broad` parameter as this is recommended for ATAC-seq data. If, however, you would like to call narrow peaks then please provide the `--narrowPeak` parameter when running the pipeline.
 
-    [HOMER annotatePeaks.pl](http://homer.ucsd.edu/homer/ngs/annotation.html) is used to annotate the peaks relative to known genomic features. HOMER is able to use the annotation provided to the pipeline in the form of the `--gtf` file. Please note that some of the output columns will be blank because the annotation isnt provided using HOMER's in-built database format. However, the more important fields required for downstream analysis will be populated i.e. *Annotation*, *Distance to TSS* and *Nearest Promoter ID*.  
+    [HOMER annotatePeaks.pl](http://homer.ucsd.edu/homer/ngs/annotation.html) is used to annotate the peaks relative to known genomic features. HOMER is able to use the `--gtf` annotation file which is provided to the pipeline. Please note that some of the output columns will be blank because the annotation isnt provided using HOMER's in-built database format. However, the more important fields required for downstream analysis will be populated i.e. *Annotation*, *Distance to TSS* and *Nearest Promoter ID*.  
 
     Various QC plots per sample including number of peaks, fold-change distribution, FRiP score and peak-to-gene feature annotation are also generated by the pipeline. Where possible these have been integrated into the MultiQC report.  
 
@@ -137,7 +137,7 @@ The library-level alignments associated with any given replicate are merged and 
     * `bwa/mergedLibrary/macs2/qc`  
       * QC plots for MACS2 peaks: `macs_peak.mLb.clN.plots.pdf`
       * QC plots for peak-to-gene feature annotation: `macs_annotatePeaks.mLb.clN.plots.pdf`
-      * MultiQC custom-content files for [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html), peak count and peak-to-gene ratios: `*.FRiP_mqc.tsv` and `*.count_mqc.tsv` and `macs_annotatePeaks.mLb.clN.summary_mqc.tsv` respectively.
+      * MultiQC custom-content files for [FRiP score](https://genome.cshlp.org/content/22/9/1813.full.pdf+html), peak count and peak-to-gene ratios: `*.FRiP_mqc.tsv`, `*.count_mqc.tsv` and `macs_annotatePeaks.mLb.clN.summary_mqc.tsv` respectively.
 
     *Plots*:  
     [MultiQC - MACS2 total peak count plot](images/mqc_macs2_peak_count_plot.png)  
@@ -180,7 +180,7 @@ The library-level alignments associated with any given replicate are merged and 
 
     This pipeline uses a standardised DESeq2 analysis script to get an idea of the reproducibility within the experiment, and to assess the overall differential accessibility. Please note that this will not suit every experimental design, and if there are other problems with the experiment then it may not work as well as expected. By default, the peak sets are not filtered, therefore, the consensus peaks will be generated across all peaks. However, it is possible to filter the consensus peaks and the corresponding read counts based on user-defined criteria (outlined in the section above), and then to use the same scripts to re-generate the results for a more refined analysis. In future iterations of the pipeline more formal analyses such as [IDR](https://projecteuclid.org/euclid.aoas/1318514284) may be implemented to obtain reproducible and high confidence peak sets with which to perform this sort of analysis.
 
-    By default, all possible pairwise comparisons across the groups within the experiment are performed. The DESeq2 results are generated by the pipeline in various ways. You can load up the results across all of the comparisons in a single spreadsheet, or individual folders will also be created that contain the results specific to a particular comparison. For the latter, additional files will also be generated where the intervals have been pre-filtered based on a couple of standard FDR thresholds.  
+    By default, all possible pairwise comparisons across the groups within the experiment are performed. The DESeq2 results are outputted by the pipeline in various ways. You can load up the results across all of the comparisons in a single spreadsheet, or individual folders will also be created that contain the results specific to a particular comparison. For the latter, additional files will also be generated where the intervals have been pre-filtered based on a couple of standard FDR thresholds.  
 
     Please see [DESeq2 output](http://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#differential-expression-analysis) for a description of the columns generated by DESeq2.
 
@@ -251,8 +251,9 @@ You can skip this portion of the analysis by specifying the `--skipMergeReplicat
 
     *Output directories*:
     * `multiqc/`  
-      * `Project_multiqc_report.html` - a standalone HTML file that can be viewed in your web browser.
-      * `Project_multiqc_data/` - directory containing parsed statistics from the different tools used in the pipeline.
+      * `multiqc_report.html` - a standalone HTML file that can be viewed in your web browser.
+      * `multiqc_data/` - directory containing parsed statistics from the different tools used in the pipeline.
+      * `multiqc_plots/` - directory containing static images from the report in various formats.
 
 2. **Create IGV session file**
 
@@ -260,7 +261,7 @@ You can skip this portion of the analysis by specifying the `--skipMergeReplicat
     [IGV](https://software.broadinstitute.org/software/igv/)
 
     *Description*:  
-    An IGV session file  will be created at the end of the pipeline containing the file names for the normalised bigWig tracks, peaks and differential sites generated by the pipeline. This avoids having to load all the data individually into IGV for visualisation.
+    An IGV session file will be created at the end of the pipeline containing the normalised bigWig tracks, peaks and differential sites. This avoids having to load all of the data individually into IGV for visualisation.
 
     The genome fasta file required for the IGV session will be the same as the one that was provided to the pipeline. This will be copied into `reference_genome/` to overcome any loading issues. If you prefer to use another path or an in-built genome provided by IGV just change the `genome` entry in the second-line of the session file.
 
@@ -292,7 +293,7 @@ You can skip this portion of the analysis by specifying the `--skipMergeReplicat
     * `reference_genome/`  
       A number of genome-specific files are generated by the pipeline in order to aid in the filtering of the data, and because they are required by standard tools such as BEDTools. These can be found in this directory along with the genome fasta file which is required by IGV.
     * `reference_genome/BWAIndex/`  
-      If they dont exist already and if the `--saveGenomeIndex` parameter is provided then the alignment indices generated by the pipeline will be saved in this directory. This can be quite a time-consuming process so it permits their reuse for reruns of this pipeline or for other purposes.  
+      If they dont exist already and if the `--saveGenomeIndex` parameter is provided then the alignment indices generated by the pipeline will be saved in this directory. This can be quite a time-consuming process so it permits their reuse for future runs of the pipeline or for other purposes.  
 
 2. **Pipeline information**
 
@@ -306,6 +307,8 @@ You can skip this portion of the analysis by specifying the `--skipMergeReplicat
 
     *Output directories*:
     * `pipeline_info/`  
-      Default reports generated by the pipeline are `execution_report.html`, `execution_timeline.html`, `execution_trace.txt` and `pipeline_dag.dot`.  
+      Reports generated by the pipeline - `pipeline_report.html`, `pipeline_report.txt` and `software_versions.csv`.
+    * `pipeline_info/nf-core/`  
+      Default reports generated by Nextflow - `execution_report.html`, `execution_timeline.html`, `execution_trace.txt` and `pipeline_dag.svg`.
     * `Documentation/`  
-      Additional reports and documentation generated by the pipeline i.e. `pipeline_report.html`, `pipeline_report.txt`, `results_description.html`.
+      Documentation for interpretation of results in HTML format - `results_description.html`.

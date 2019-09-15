@@ -225,16 +225,14 @@ if (params.blacklist) {
 /* --                   AWS                    -- */
 ////////////////////////////////////////////////////
 
-// AWSBatch sanity checking
-if (workflow.profile == 'awsbatch'){
-    if (!params.awsqueue || !params.awsregion) exit 1, "Specify correct --awsqueue and --awsregion parameters on AWSBatch!"
-    if (!workflow.workDir.startsWith('s3') || !params.outdir.startsWith('s3')) exit 1, "Specify S3 URLs for workDir and outdir parameters on AWSBatch!"
-}
-
-// Check workDir/outdir paths to be S3 buckets if running on AWSBatch
-// related: https://github.com/nextflow-io/nextflow/issues/813
-if (workflow.profile == 'awsbatch') {
-    if (!workflow.workDir.startsWith('s3:') || !params.outdir.startsWith('s3:')) exit 1, "Workdir or Outdir not on S3 - specify S3 Buckets for each to run on AWSBatch!"
+if( workflow.profile == 'awsbatch') {
+  // AWSBatch sanity checking
+  if (!params.awsqueue || !params.awsregion) exit 1, "Specify correct --awsqueue and --awsregion parameters on AWSBatch!"
+  // Check outdir paths to be S3 buckets if running on AWSBatch
+  // related: https://github.com/nextflow-io/nextflow/issues/813
+  if (!params.outdir.startsWith('s3:')) exit 1, "Outdir not on S3 - specify S3 Bucket to run on AWSBatch!"
+  // Prevent trace files to be stored on S3 since S3 does not support rolling files.
+  if (workflow.tracedir.startsWith('s3:')) exit 1, "Specify a local tracedir or run without trace! S3 cannot be used for tracefiles."
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -841,7 +839,7 @@ if (params.singleEnd){
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 4.4.1 Picard CollectMultipleMetrics at after merging libraries
+ * STEP 4.4.1 Picard CollectMultipleMetrics after merging libraries
  */
 process merge_library_collectmetrics {
     tag "$name"
@@ -1621,11 +1619,11 @@ process igv {
  * Parse software version numbers
  */
 process get_software_versions {
-  publishDir "${params.outdir}/pipeline_info", mode: 'copy',
-      saveAs: {filename ->
-          if (filename.indexOf(".csv") > 0) filename
-          else null
-      }
+    publishDir "${params.outdir}/pipeline_info", mode: 'copy',
+        saveAs: {filename ->
+            if (filename.indexOf(".csv") > 0) filename
+            else null
+        }
 
     output:
     file 'software_versions_mqc.yaml' into software_versions_mqc
@@ -1704,7 +1702,7 @@ process multiqc {
     file ('macs/mergedReplicate/consensus/*') from mrep_macs_consensus_counts_mqc.collect().ifEmpty([])
     file ('macs/mergedReplicate/consensus/*') from mrep_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
-    file ('software_versions/*') from software_versions_mqc
+    file ('software_versions/*') from software_versions_mqc.collect()
     file ('workflow_summary/*') from create_workflow_summary(summary)
 
     output:
@@ -1777,7 +1775,6 @@ workflow.onComplete {
     if(workflow.commitId) email_fields['summary']['Pipeline repository Git Commit'] = workflow.commitId
     if(workflow.revision) email_fields['summary']['Pipeline Git branch/tag'] = workflow.revision
     if(workflow.container) email_fields['summary']['Docker image'] = workflow.container
-    email_fields['skipped_poor_alignment'] = skipped_poor_alignment
     email_fields['summary']['Nextflow Version'] = workflow.nextflow.version
     email_fields['summary']['Nextflow Build'] = workflow.nextflow.build
     email_fields['summary']['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
@@ -1841,6 +1838,13 @@ workflow.onComplete {
     c_purple = params.monochrome_logs ? '' : "\033[0;35m";
     c_green = params.monochrome_logs ? '' : "\033[0;32m";
     c_red = params.monochrome_logs ? '' : "\033[0;31m";
+
+    if (workflow.stats.ignoredCountFmt > 0 && workflow.success) {
+      log.info "${c_purple}Warning, pipeline completed, but with errored process(es) ${c_reset}"
+      log.info "${c_red}Number of ignored errored process(es) : ${workflow.stats.ignoredCountFmt} ${c_reset}"
+      log.info "${c_green}Number of successfully ran process(es) : ${workflow.stats.succeedCountFmt} ${c_reset}"
+    }
+
     if(workflow.success){
         log.info "${c_purple}[nf-core/atacseq]${c_green} Pipeline completed successfully${c_reset}"
     } else {

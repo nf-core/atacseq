@@ -2,7 +2,6 @@
 
 ## Table of contents
 
-* [Table of contents](#table-of-contents)
 * [Introduction](#introduction)
 * [Running the pipeline](#running-the-pipeline)
   * [Updating the pipeline](#updating-the-pipeline)
@@ -105,7 +104,7 @@ Use this parameter to choose a configuration profile. Profiles can give configur
 If `-profile` is not specified at all the pipeline will be run locally and expects all software to be installed and available on the `PATH`.
 
 * `awsbatch`
-  * A generic configuration profile to be used with AWS Batch.
+  * A generic configuration profile to be used with AWS Batch
 * `conda`
   * A generic configuration profile to be used with [conda](https://conda.io/docs/)
   * Pulls most software from [Bioconda](https://bioconda.github.io/)
@@ -128,7 +127,7 @@ You will need to create a design file with information about the samples in your
 
 #### Multiple replicates
 
-The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given sample must be 1. Below is an example for a single experimental group in triplicate:
+The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1. Below is an example for a single experimental group in triplicate:
 
 ```bash
 group,replicate,fastq_1,fastq_2
@@ -173,8 +172,6 @@ treatment,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz
 
 Example design files have been provided with the pipeline for [paired-end](../assets/design_pe.csv) and [single-end](../assets/design_se.csv) data.
 
->NB: The pipeline will assume that the design file is in the correct format so please double-check this before execution.
-
 ## Generic arguments
 
 ### `--singleEnd`
@@ -195,7 +192,7 @@ The pipeline config files come bundled with paths to the illumina iGenomes refer
 ### `--genome` (using iGenomes)
 There are 31 different species supported in the iGenomes references. To run the pipeline, you must specify which to use with the `--genome` flag.
 
-You can find the keys to specify the genomes in the [`iGenomes config file`](../conf/igenomes.config). Common genomes that are supported are:
+You can find the keys to specify the genomes in the [iGenomes config file](../conf/igenomes.config). Common genomes that are supported are:
 
 * Human
   * `--genome GRCh37`
@@ -204,7 +201,7 @@ You can find the keys to specify the genomes in the [`iGenomes config file`](../
 * _Drosophila_
   * `--genome BDGP6`
 * _S. cerevisiae_
-  * `--genome 'R64-1-1'`
+  * `--genome R64-1-1`
 
 > There are numerous others - check the config file for more.
 
@@ -392,7 +389,7 @@ unzip master.zip
 
 ## Run the pipeline
 cd /path/to/my/data
-nextflow run /path/to/atacseq_pipeline/ --custom_config_base /path/to/my/configs/configs-master/
+nextflow run /path/to/pipeline/ --custom_config_base /path/to/my/configs/configs-master/
 ```
 
 > Note that the nf-core/tools helper package has a `download` command to download all required pipeline
