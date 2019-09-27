@@ -68,7 +68,7 @@ The nf-core/atacseq pipeline comes with documentation about the pipeline, found 
 
 ### Credits
 
-The pipeline was originally written by the [The Bioinformatics & Biostatistics Group](https://www.crick.ac.uk/research/science-technology-platforms/bioinformatics-and-biostatistics/) for use at [The Francis Crick Institute](https://www.crick.ac.uk/), London.
+The pipeline was originally written by [The Bioinformatics & Biostatistics Group](https://www.crick.ac.uk/research/science-technology-platforms/bioinformatics-and-biostatistics/) for use at [The Francis Crick Institute](https://www.crick.ac.uk/), London.
 
 The pipeline was developed by [Harshil Patel](mailto:harshil.patel@crick.ac.uk).
 
