@@ -8,13 +8,13 @@
 [![Docker](https://img.shields.io/docker/automated/nfcore/atacseq.svg)](https://hub.docker.com/r/nfcore/atacseq)
 [![DOI](https://zenodo.org/badge/156259074.svg)](https://zenodo.org/badge/latestdoi/156259074)
 
-### Introduction
+## Introduction
 
 **nfcore/atacseq** is a bioinformatics analysis pipeline used for ATAC-seq data.
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It comes with docker containers making installation trivial and results highly reproducible.
 
-### Pipeline summary
+## Pipeline summary
 
 1. Raw read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
 2. Adapter trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
@@ -54,7 +54,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 7. Create IGV session file containing bigWig tracks, peaks and differential sites for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
 8. Present QC for raw read, alignment, peak-calling and differential accessibility results ([`ataqv`](https://github.com/ParkerLab/ataqv), [`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
 
-### Documentation
+## Documentation
 The nf-core/atacseq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
 
 1. [Installation](https://nf-co.re/usage/installation)
@@ -66,7 +66,7 @@ The nf-core/atacseq pipeline comes with documentation about the pipeline, found 
 4. [Output and how to interpret the results](docs/output.md)
 5. [Troubleshooting](https://nf-co.re/usage/troubleshooting)
 
-### Credits
+## Credits
 
 The pipeline was originally written by [The Bioinformatics & Biostatistics Group](https://www.crick.ac.uk/research/science-technology-platforms/bioinformatics-and-biostatistics/) for use at [The Francis Crick Institute](https://www.crick.ac.uk/), London.
 
