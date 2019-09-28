@@ -219,6 +219,8 @@ if (params.blacklist) {
     blacklist = Channel
         .fromPath(params.blacklist, checkIfExists: true)
         .ifEmpty { exit 1, "Blacklist file not found: ${params.blacklist}" }
+} else {
+    blacklist = Channel.empty()
 }
 
 ////////////////////////////////////////////////////
