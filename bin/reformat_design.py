@@ -18,7 +18,7 @@ import argparse
 ############################################
 
 Description = 'Reformat nf-core/atacseq design file and check its contents.'
-Epilog = """Example usage: python check_design.py <DESIGN_FILE_IN> <DESIGN_FILE_OUT>"""
+Epilog = """Example usage: python reformat_design.py <DESIGN_FILE_IN> <DESIGN_FILE_OUT>"""
 
 argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 
@@ -33,7 +33,7 @@ args = argParser.parse_args()
 ############################################
 ############################################
 
-def check_design(DesignFileIn,DesignFileOut):
+def reformat_design(DesignFileIn,DesignFileOut):
 
     ERROR_STR = 'ERROR: Please check design file'
     HEADER = ['group', 'replicate', 'fastq_1', 'fastq_2']
@@ -75,6 +75,16 @@ def check_design(DesignFileIn,DesignFileOut):
                 if fastq[-9:] != '.fastq.gz' and fastq[-6:] != '.fq.gz':
                     print "{}: FastQ file has incorrect extension (has to be '.fastq.gz' or 'fq.gz') - {}\nLine: '{}'".format(ERROR_STR,fastq,line.strip())
                     sys.exit(1)
+
+                ## CHECK FASTQ FILES EXIST PER SAMPLE
+                if fastq[:4] not in ['http']:
+                    if not os.path.exists(fastq):
+                        print "{}: FastQ file does not exist - {}\nLine: '{}'".format(ERROR_STR,fastq,line.strip())
+                        sys.exit(1)
+                else:
+                    if requests.head(fastq).status_code >= 400:
+                        print "{}: FastQ file does not exist - {}\nLine: '{}'".format(ERROR_STR,fastq,line.strip())
+                        sys.exit(1)
 
             ## CREATE GROUP MAPPING DICT = {GROUP_ID: {REPLICATE_ID:[[FASTQ_FILES]]}
             replicate = int(replicate)
@@ -137,7 +147,7 @@ def check_design(DesignFileIn,DesignFileOut):
 ############################################
 ############################################
 
-check_design(DesignFileIn=args.DESIGN_FILE_IN,DesignFileOut=args.DESIGN_FILE_OUT)
+reformat_design(DesignFileIn=args.DESIGN_FILE_IN,DesignFileOut=args.DESIGN_FILE_OUT)
 
 ############################################
 ############################################

@@ -10,8 +10,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### `Added`
 
 * Merged in TEMPLATE branch for automated syncing
-* Use `ch_` prefix for all channels
-* Process renaming to differentiate between nf-core `tools` and pipeline
 
 ## [1.0.0] - 2019-04-09
 
