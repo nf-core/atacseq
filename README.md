@@ -53,6 +53,26 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 7. Create IGV session file containing bigWig tracks, peaks and differential sites for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
 8. Present QC for raw read, alignment, peak-calling and differential accessibility results ([`ataqv`](https://github.com/ParkerLab/ataqv), [`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
 
+## Quick Start
+
+i. Install [`nextflow`](https://nf-co.re/usage/installation)
+
+ii. Install one of [`docker`](https://docs.docker.com/engine/installation/), [`singularity`](https://www.sylabs.io/guides/3.0/user-guide/) or [`conda`](https://conda.io/miniconda.html)
+
+iii. Download the pipeline and test it on a minimal dataset with a single command
+
+```bash
+nextflow run nf-core/atacseq -profile test,<docker/singularity/conda>
+```
+
+iv. Start running your own analysis!
+
+```bash
+nextflow run nf-core/atacseq -profile <docker/singularity/conda> --design design.csv --genome GRCh37
+```
+
+See [usage docs](docs/usage.md) for all of the available options when running the pipeline.
+
 ## Documentation
 The nf-core/atacseq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
 
