@@ -124,28 +124,28 @@ if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)){
 ////////////////////////////////////////////////////
 
 // Pipeline config
-ch_output_docs = Channel.file("$baseDir/docs/output.md", checkIfExists: true)
+ch_output_docs = file("$baseDir/docs/output.md", checkIfExists: true)
 
 // JSON files required by BAMTools for alignment filtering
 if (params.singleEnd) {
-    ch_bamtools_filter_config = Channel.file(params.bamtools_filter_se_config, checkIfExists: true)
+    ch_bamtools_filter_config = file(params.bamtools_filter_se_config, checkIfExists: true)
 } else {
-    ch_bamtools_filter_config = Channel.file(params.bamtools_filter_pe_config, checkIfExists: true)
+    ch_bamtools_filter_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
 }
 
 // Header files for MultiQC
 ch_multiqc_config = file(params.multiqc_config, checkIfExists: true)
-ch_mlib_peak_count_header = Channel.file("$baseDir/assets/multiqc/mlib_peak_count_header.txt", checkIfExists: true)
-ch_mlib_frip_score_header = Channel.file("$baseDir/assets/multiqc/mlib_frip_score_header.txt", checkIfExists: true)
-ch_mlib_peak_annotation_header = Channel.file("$baseDir/assets/multiqc/mlib_peak_annotation_header.txt", checkIfExists: true)
-ch_mlib_deseq2_pca_header = Channel.file("$baseDir/assets/multiqc/mlib_deseq2_pca_header.txt", checkIfExists: true)
-ch_mlib_deseq2_clustering_header = Channel.file("$baseDir/assets/multiqc/mlib_deseq2_clustering_header.txt", checkIfExists: true)
+ch_mlib_peak_count_header = file("$baseDir/assets/multiqc/mlib_peak_count_header.txt", checkIfExists: true)
+ch_mlib_frip_score_header = file("$baseDir/assets/multiqc/mlib_frip_score_header.txt", checkIfExists: true)
+ch_mlib_peak_annotation_header = file("$baseDir/assets/multiqc/mlib_peak_annotation_header.txt", checkIfExists: true)
+ch_mlib_deseq2_pca_header = file("$baseDir/assets/multiqc/mlib_deseq2_pca_header.txt", checkIfExists: true)
+ch_mlib_deseq2_clustering_header = file("$baseDir/assets/multiqc/mlib_deseq2_clustering_header.txt", checkIfExists: true)
 
-ch_mrep_peak_count_header = Channel.file("$baseDir/assets/multiqc/mrep_peak_count_header.txt", checkIfExists: true)
-ch_mrep_frip_score_header = Channel.file("$baseDir/assets/multiqc/mrep_frip_score_header.txt", checkIfExists: true)
-ch_mrep_peak_annotation_header = Channel.file("$baseDir/assets/multiqc/mrep_peak_annotation_header.txt", checkIfExists: true)
-ch_mrep_deseq2_pca_header = Channel.file("$baseDir/assets/multiqc/mrep_deseq2_pca_header.txt", checkIfExists: true)
-ch_mrep_deseq2_clustering_header = Channel.file("$baseDir/assets/multiqc/mrep_deseq2_clustering_header.txt", checkIfExists: true)
+ch_mrep_peak_count_header = file("$baseDir/assets/multiqc/mrep_peak_count_header.txt", checkIfExists: true)
+ch_mrep_frip_score_header = file("$baseDir/assets/multiqc/mrep_frip_score_header.txt", checkIfExists: true)
+ch_mrep_peak_annotation_header = file("$baseDir/assets/multiqc/mrep_peak_annotation_header.txt", checkIfExists: true)
+ch_mrep_deseq2_pca_header = file("$baseDir/assets/multiqc/mrep_deseq2_pca_header.txt", checkIfExists: true)
+ch_mrep_deseq2_clustering_header = file("$baseDir/assets/multiqc/mrep_deseq2_clustering_header.txt", checkIfExists: true)
 
 ////////////////////////////////////////////////////
 /* --          VALIDATE INPUTS                 -- */
