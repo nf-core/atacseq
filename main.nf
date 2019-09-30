@@ -334,7 +334,7 @@ multiple_samples = design_multiple_samples.map { it -> it[0].split('_')[0..-3].j
  * PREPROCESSING - Build BWA index
  */
 if (!params.bwa_index){
-    process MakeBWAIndex {
+    process BWAIndex {
         tag "$fasta"
         label 'process_high'
         publishDir path: { params.saveGenomeIndex ? "${params.outdir}/reference_genome" : params.outdir },
@@ -360,6 +360,7 @@ if (!params.bwa_index){
 if (!params.gene_bed){
     process MakeGeneBED {
         tag "$gtf"
+        label 'process_low'
         publishDir "${params.outdir}/reference_genome", mode: 'copy'
 
         input:
@@ -892,7 +893,8 @@ process MergeLibraryMACSCallPeak {
                                           mlib_macs_peaks_igv
     file "*_mqc.tsv" into mlib_macs_peaks_mqc
 
-    when: params.macs_gsize
+    when: 
+    params.macs_gsize
 
     script:
     def prefix="${name}.mLb.clN"
@@ -932,7 +934,8 @@ process MergeLibraryAnnotatePeaks {
     output:
     file "*.txt" into mlib_macs_annotate
 
-    when: params.macs_gsize
+    when:
+    params.macs_gsize
 
     script:
     def prefix="${name}.mLb.clN"
@@ -961,7 +964,8 @@ process MergeLibraryPeakQC {
    file "*.{txt,pdf}" into mlib_macs_qc
    file "*.tsv" into mlib_macs_qc_mqc
 
-   when: params.macs_gsize
+   when:
+   params.macs_gsize
 
    script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
    def suffix='mLb.clN'
@@ -997,7 +1001,8 @@ process MergeLibraryCreateConsensusPeakSet {
     file "*.saf" into mlib_macs_consensus_saf
     file "*.intersect.{txt,plot.pdf}" into mlib_macs_consensus_intersect
 
-    when: params.macs_gsize && (multiple_samples || replicates_exist)
+    when:
+    params.macs_gsize && (multiple_samples || replicates_exist)
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     def suffix='mLb.clN'
@@ -1042,7 +1047,8 @@ process MergeLibraryAnnotateConsensusPeakSet {
     output:
     file "*.annotatePeaks.txt" into mlib_macs_consensus_annotate
 
-    when: params.macs_gsize && (multiple_samples || replicates_exist)
+    when:
+    params.macs_gsize && (multiple_samples || replicates_exist)
 
     script:
     def prefix="consensus_peaks.mLb.clN"
@@ -1080,7 +1086,8 @@ process MergeLibraryDeseqConsensusPeakSet {
     file "*vs*/*.bed" into mlib_macs_consensus_deseq_comp_bed_igv
     file "*.tsv" into mlib_macs_consensus_deseq_mqc
 
-    when: params.macs_gsize && multiple_samples && replicates_exist
+    when:
+    params.macs_gsize && multiple_samples && replicates_exist
 
     script:
     def prefix="consensus_peaks.mLb.clN"
@@ -1199,7 +1206,8 @@ process MergeReplicate {
     file "*.{idxstats,stats}" into mrep_stats_mqc
     file "*.txt" into mrep_metrics_mqc
 
-    when: !params.skipMergeReplicates && replicates_exist
+    when:
+    !params.skipMergeReplicates && replicates_exist
 
     script:
     def prefix="${name}.mRp.clN"
@@ -1275,7 +1283,8 @@ process MergeReplicateBigWig {
     file "*.bigWig" into mrep_bigwig_igv
     file "*.txt" into mrep_bigwig_scale
 
-    when: !params.skipMergeReplicates && replicates_exist
+    when:
+    !params.skipMergeReplicates && replicates_exist
 
     script:
     def prefix="${name}.mRp.clN"
@@ -1315,7 +1324,8 @@ process MergeReplicateMACSCallPeak {
                                           mrep_macs_peaks_igv
     file "*_mqc.tsv" into mrep_macs_peak_mqc
 
-    when: !params.skipMergeReplicates && replicates_exist && params.macs_gsize
+    when:
+    !params.skipMergeReplicates && replicates_exist && params.macs_gsize
 
     script:
     def prefix="${name}.mRp.clN"
@@ -1355,7 +1365,8 @@ process MergeReplicateAnnotatePeaks {
     output:
     file "*.txt" into mrep_macs_annotate
 
-    when: !params.skipMergeReplicates && replicates_exist && params.macs_gsize
+    when:
+    !params.skipMergeReplicates && replicates_exist && params.macs_gsize
 
     script:
     def prefix="${name}.mRp.clN"
@@ -1384,7 +1395,8 @@ process MergeReplicatePeakQC {
    file "*.{txt,pdf}" into mrep_macs_qc
    file "*.tsv" into mrep_macs_qc_mqc
 
-   when: !params.skipMergeReplicates && replicates_exist && params.macs_gsize
+   when:
+   !params.skipMergeReplicates && replicates_exist && params.macs_gsize
 
    script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
    def suffix='mRp.clN'
@@ -1420,7 +1432,8 @@ process MergeReplicateCreateConsensusPeakSet {
     file "*.saf" into mrep_macs_consensus_saf
     file "*.intersect.{txt,plot.pdf}" into mrep_macs_consensus_intersect
 
-    when: !params.skipMergeReplicates && replicates_exist && params.macs_gsize && multiple_samples
+    when:
+    !params.skipMergeReplicates && replicates_exist && params.macs_gsize && multiple_samples
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     def suffix='mRp.clN'
@@ -1465,7 +1478,8 @@ process MergeReplicateAnnotateConsensusPeakSet {
     output:
     file "*.annotatePeaks.txt" into mrep_macs_consensus_annotate
 
-    when: !params.skipMergeReplicates && replicates_exist && params.macs_gsize && multiple_samples
+    when:
+    !params.skipMergeReplicates && replicates_exist && params.macs_gsize && multiple_samples
 
     script:
     def prefix="consensus_peaks.mRp.clN"
@@ -1503,7 +1517,8 @@ process MergeReplicateDeseqConsensusPeakSet {
     file "*vs*/*.bed" into mrep_macs_consensus_deseq_comp_bed_igv
     file "*.tsv" into mrep_macs_consensus_deseq_mqc
 
-    when: !params.skipMergeReplicates && replicates_exist && params.macs_gsize && multiple_samples
+    when:
+    !params.skipMergeReplicates && replicates_exist && params.macs_gsize && multiple_samples
 
     script:
     def prefix="consensus_peaks.mRp.clN"
