@@ -274,18 +274,19 @@ if (!params.macs_gsize){
 /*
  * PREPROCESSING - REFORMAT DESIGN FILE AND CHECK VALIDITY
  */
-process reformat_design {
+process CheckDesign {
     tag "$design"
+    publishDir "${params.outdir}/pipeline_info", mode: 'copy'
 
     input:
     file design from ch_design
 
     output:
-    file "*.csv" into reformat_design
+    file "*.csv" into ch_design_reads_csv
 
     script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
     """
-    reformat_design.py $design design_reformat.csv
+    check_design.py $design design_reads.csv
     """
 }
 
@@ -293,19 +294,19 @@ process reformat_design {
  * Create channels for input fastq files
  */
 if (params.singleEnd) {
-    reformat_design.splitCsv(header:true, sep:',')
-                   .map { row -> [ row.sample_id, [ file(row.fastq_1) ] ] }
-                   .into { design_replicates_exist;
-                           design_multiple_samples;
-                           raw_reads_fastqc;
-                           raw_reads_trimgalore }
+    ch_design_reads_csv.splitCsv(header:true, sep:',')
+                       .map { row -> [ row.sample_id, [ file(row.fastq_1) ] ] }
+                       .into { design_replicates_exist;
+                              design_multiple_samples;
+                              raw_reads_fastqc;
+                              raw_reads_trimgalore }
 } else {
-    reformat_design.splitCsv(header:true, sep:',')
-                   .map { row -> [ row.sample_id, [ file(row.fastq_1), file(row.fastq_2) ] ] }
-                   .into { design_replicates_exist;
-                           design_multiple_samples;
-                           raw_reads_fastqc;
-                           raw_reads_trimgalore }
+    ch_design_reads_csv.splitCsv(header:true, sep:',')
+                       .map { row -> [ row.sample_id, [ file(row.fastq_1), file(row.fastq_2) ] ] }
+                       .into { design_replicates_exist;
+                               design_multiple_samples;
+                               raw_reads_fastqc;
+                               raw_reads_trimgalore }
 }
 
 // Boolean value for replicates existing in design
@@ -333,9 +334,9 @@ multiple_samples = design_multiple_samples.map { it -> it[0].split('_')[0..-3].j
  * PREPROCESSING - Build BWA index
  */
 if (!params.bwa_index){
-    process makeBWAindex {
+    process MakeBWAIndex {
         tag "$fasta"
-        label 'process_big'
+        label 'process_high'
         publishDir path: { params.saveGenomeIndex ? "${params.outdir}/reference_genome" : params.outdir },
                    saveAs: { params.saveGenomeIndex ? it : null }, mode: 'copy'
 
@@ -535,7 +536,7 @@ if (params.skipTrimming){
  */
 process bwa_mem {
     tag "$name"
-    label 'process_big'
+    label 'process_high'
 
     input:
     set val(name), file(reads) from trimmed_reads
