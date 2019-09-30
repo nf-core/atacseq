@@ -1,4 +1,4 @@
-#!/usr/bin/env nextflow
+ch_bamtools_filter_config#!/usr/bin/env nextflow
 /*
 ========================================================================================
                          nf-core/atacseq
@@ -124,103 +124,54 @@ if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)){
 ////////////////////////////////////////////////////
 
 // Pipeline config
-output_docs_ch = Channel.fromPath("$baseDir/docs/output.md", checkIfExists: true)
+ch_output_docs = Channel.file("$baseDir/docs/output.md", checkIfExists: true)
 
 // JSON files required by BAMTools for alignment filtering
 if (params.singleEnd) {
-    bamtools_filter_config_ch = Channel.fromPath(params.bamtools_filter_se_config, checkIfExists: true)
+    ch_bamtools_filter_config = Channel.file(params.bamtools_filter_se_config, checkIfExists: true)
 } else {
-    bamtools_filter_config_ch = Channel.fromPath(params.bamtools_filter_pe_config, checkIfExists: true)
+    ch_bamtools_filter_config = Channel.file(params.bamtools_filter_pe_config, checkIfExists: true)
 }
 
 // Header files for MultiQC
-multiqc_config_ch = Channel.fromPath(params.multiqc_config, checkIfExists: true)
-mlib_peak_count_header_ch = Channel.fromPath("$baseDir/assets/multiqc/mlib_peak_count_header.txt", checkIfExists: true)
-mlib_frip_score_header_ch = Channel.fromPath("$baseDir/assets/multiqc/mlib_frip_score_header.txt", checkIfExists: true)
-mlib_peak_annotation_header_ch = Channel.fromPath("$baseDir/assets/multiqc/mlib_peak_annotation_header.txt", checkIfExists: true)
-mlib_deseq2_pca_header_ch = Channel.fromPath("$baseDir/assets/multiqc/mlib_deseq2_pca_header.txt", checkIfExists: true)
-mlib_deseq2_clustering_header_ch = Channel.fromPath("$baseDir/assets/multiqc/mlib_deseq2_clustering_header.txt", checkIfExists: true)
+ch_multiqc_config = file(params.multiqc_config, checkIfExists: true)
+ch_mlib_peak_count_header = Channel.file("$baseDir/assets/multiqc/mlib_peak_count_header.txt", checkIfExists: true)
+ch_mlib_frip_score_header = Channel.file("$baseDir/assets/multiqc/mlib_frip_score_header.txt", checkIfExists: true)
+ch_mlib_peak_annotation_header = Channel.file("$baseDir/assets/multiqc/mlib_peak_annotation_header.txt", checkIfExists: true)
+ch_mlib_deseq2_pca_header = Channel.file("$baseDir/assets/multiqc/mlib_deseq2_pca_header.txt", checkIfExists: true)
+ch_mlib_deseq2_clustering_header = Channel.file("$baseDir/assets/multiqc/mlib_deseq2_clustering_header.txt", checkIfExists: true)
 
-mrep_peak_count_header_ch = Channel.fromPath("$baseDir/assets/multiqc/mrep_peak_count_header.txt", checkIfExists: true)
-mrep_frip_score_header_ch = Channel.fromPath("$baseDir/assets/multiqc/mrep_frip_score_header.txt", checkIfExists: true)
-mrep_peak_annotation_header_ch = Channel.fromPath("$baseDir/assets/multiqc/mrep_peak_annotation_header.txt", checkIfExists: true)
-mrep_deseq2_pca_header_ch = Channel.fromPath("$baseDir/assets/multiqc/mrep_deseq2_pca_header.txt", checkIfExists: true)
-mrep_deseq2_clustering_header_ch = Channel.fromPath("$baseDir/assets/multiqc/mrep_deseq2_clustering_header.txt", checkIfExists: true)
+ch_mrep_peak_count_header = Channel.file("$baseDir/assets/multiqc/mrep_peak_count_header.txt", checkIfExists: true)
+ch_mrep_frip_score_header = Channel.file("$baseDir/assets/multiqc/mrep_frip_score_header.txt", checkIfExists: true)
+ch_mrep_peak_annotation_header = Channel.file("$baseDir/assets/multiqc/mrep_peak_annotation_header.txt", checkIfExists: true)
+ch_mrep_deseq2_pca_header = Channel.file("$baseDir/assets/multiqc/mrep_deseq2_pca_header.txt", checkIfExists: true)
+ch_mrep_deseq2_clustering_header = Channel.file("$baseDir/assets/multiqc/mrep_deseq2_clustering_header.txt", checkIfExists: true)
 
 ////////////////////////////////////////////////////
 /* --          VALIDATE INPUTS                 -- */
 ////////////////////////////////////////////////////
 
 // Validate inputs
-if (params.design){
-    design_csv = Channel
-        .fromPath(params.design, checkIfExists: true)
-        .ifEmpty { exit 1, "Samples design file not found: ${params.design}" }
-} else {
-    exit 1, "Samples design file not specified!"
-}
+if (params.design)    { ch_design = file(params.design, checkIfExists: true) } else { exit 1, "Samples design file not specified!" }
+if (params.gtf)       { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, "GTF annotation file not specified!" }
+if (params.gene_bed)  { ch_gene_bed = file(params.gene.bed, checkIfExists: true) }
+if (params.tss_bed)   { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
+if (params.blacklist) { ch_blacklist = file(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
 
 if (params.fasta){
     lastPath = params.fasta.lastIndexOf(File.separator)
     bwa_base = params.fasta.substring(lastPath+1)
-
-    Channel
-        .fromPath(params.fasta, checkIfExists: true)
-        .ifEmpty { exit 1, "Fasta file not found: ${params.fasta}" }
-        .into { fasta_bwa_index;
-                fasta_genome_filter;
-                fasta_markdup_metrics;
-                fasta_mlib_metrics;
-                fasta_mlib_macs_annotate;
-                fasta_mlib_macs_consensus_annotate;
-                fasta_mrep_macs_annotate;
-                fasta_mrep_macs_consensus_annotate;
-                fasta_igv }
+    ch_fasta = file(params.fasta, checkIfExists: true)
 } else {
     exit 1, "Fasta file not specified!"
-}
-
-if (params.gtf){
-    Channel
-        .fromPath(params.gtf, checkIfExists: true)
-        .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
-        .into { gtf_gene_bed;
-                gtf_mlib_macs_annotate;
-                gtf_mlib_macs_consensus_annotate;
-                gtf_mrep_macs_annotate;
-                gtf_mrep_macs_consensus_annotate }
-} else {
-    exit 1, "GTF annotation file not specified!"
 }
 
 if (params.bwa_index){
     lastPath = params.bwa_index.lastIndexOf(File.separator)
     bwa_dir =  params.bwa_index.substring(0,lastPath+1)
     bwa_base = params.bwa_index.substring(lastPath+1)
-
-    bwa_index = Channel
+    ch_bwa_index = Channel
         .fromPath(bwa_dir, checkIfExists: true)
-        .ifEmpty { exit 1, "BWA index directory not found: ${bwa_dir}" }
-}
-
-if (params.gene_bed){
-    gene_bed = Channel
-        .fromPath(params.gene_bed, checkIfExists: true)
-        .ifEmpty { exit 1, "Gene BED annotation file not found: ${params.gene_bed}" }
-}
-
-if (params.tss_bed){
-    tss_bed = Channel
-        .fromPath(params.tss_bed, checkIfExists: true)
-        .ifEmpty { exit 1, "TSS BED annotation file not found: ${params.tss_bed}" }
-}
-
-if (params.blacklist) {
-    blacklist = Channel
-        .fromPath(params.blacklist, checkIfExists: true)
-        .ifEmpty { exit 1, "Blacklist file not found: ${params.blacklist}" }
-} else {
-    blacklist = Channel.empty()
 }
 
 ////////////////////////////////////////////////////
@@ -327,7 +278,7 @@ process reformat_design {
     tag "$design"
 
     input:
-    file design from design_csv
+    file design from ch_design
 
     output:
     file "*.csv" into reformat_design
@@ -389,10 +340,10 @@ if (!params.bwa_index){
                    saveAs: { params.saveGenomeIndex ? it : null }, mode: 'copy'
 
         input:
-        file fasta from fasta_bwa_index
+        file fasta from ch_fasta
 
         output:
-        file "BWAIndex" into bwa_index
+        file "BWAIndex" into ch_bwa_index
 
         script:
         """
@@ -411,10 +362,10 @@ if (!params.gene_bed){
         publishDir "${params.outdir}/reference_genome", mode: 'copy'
 
         input:
-        file gtf from gtf_gene_bed
+        file gtf from ch_gtf
 
         output:
-        file "*.bed" into gene_bed
+        file "*.bed" into ch_gene_bed
 
         script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
         """
@@ -432,10 +383,10 @@ if (!params.tss_bed){
         publishDir "${params.outdir}/reference_genome", mode: 'copy'
 
         input:
-        file bed from gene_bed
+        file bed from ch_gene_bed
 
         output:
-        file "*.bed" into tss_bed
+        file "*.bed" into ch_tss_bed
 
         script:
         """
@@ -452,8 +403,8 @@ process makeGenomeFilter {
     publishDir "${params.outdir}/reference_genome", mode: 'copy'
 
     input:
-    file fasta from fasta_genome_filter
-    file blacklist from blacklist
+    file fasta from ch_fasta
+    file blacklist from ch_blacklist
 
     output:
     file "$fasta" into genome_fasta                 // FASTA FILE FOR IGV
@@ -464,9 +415,9 @@ process makeGenomeFilter {
                         genome_sizes_mrep_bigwig
 
     script:
-    blacklist_filter = params.blacklist ? "sortBed -i $blacklist -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
-    name_filter = params.mito_name ? "| awk '\$1 !~ /${params.mito_name}/ {print \$0}'": ""
-    mito_filter = params.keepMito ? "" : name_filter
+    def blacklist_filter = params.blacklist ? "sortBed -i $blacklist -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
+    def name_filter = params.mito_name ? "| awk '\$1 !~ /${params.mito_name}/ {print \$0}'": ""
+    def mito_filter = params.keepMito ? "" : name_filter
     """
     samtools faidx $fasta
     get_autosomes.py ${fasta}.fai ${fasta}.autosomes.txt
@@ -588,7 +539,7 @@ process bwa_mem {
 
     input:
     set val(name), file(reads) from trimmed_reads
-    file index from bwa_index.first()
+    file index from ch_bwa_index.collect()
 
     output:
     set val(name), file("*.bam") into bwa_bam
@@ -743,7 +694,7 @@ process merge_library_filter {
     input:
     set val(name), file(bam) from mlib_bam_filter
     file bed from genome_filter_regions.collect()
-    file bamtools_filter_config from bamtools_filter_config_ch.collect()
+    file bamtools_filter_config from ch_bamtools_filter_config
 
     output:
     set val(name), file("*.{bam,bam.bai}") into mlib_filter_bam
@@ -856,7 +807,7 @@ process merge_library_collectmetrics {
 
     input:
     set val(name), file(bam) from mlib_rm_orphan_bam_metrics
-    file fasta from fasta_mlib_metrics.collect()
+    file fasta from ch_fasta
 
     output:
     file "*_metrics" into mlib_collectmetrics_mqc
@@ -928,8 +879,8 @@ process merge_library_macs {
 
     input:
     set val(name), file(bam), file(flagstat) from mlib_rm_orphan_bam_macs.join(mlib_rm_orphan_flagstat_macs, by: [0])
-    file mlib_peak_count_header from mlib_peak_count_header_ch.collect()
-    file mlib_frip_score_header from mlib_frip_score_header_ch.collect()
+    file mlib_peak_count_header from ch_mlib_peak_count_header
+    file mlib_frip_score_header from ch_mlib_frip_score_header
 
     output:
     set val(name), file("*.{bed,xls,gappedPeak}") into mlib_macs_output
@@ -974,8 +925,8 @@ process merge_library_macs_annotate {
 
     input:
     set val(name), file(peak) from mlib_macs_peaks_homer
-    file fasta from fasta_mlib_macs_annotate.collect()
-    file gtf from gtf_mlib_macs_annotate.collect()
+    file fasta from ch_fasta
+    file gtf from ch_gtf
 
     output:
     file "*.txt" into mlib_macs_annotate
@@ -1003,7 +954,7 @@ process merge_library_macs_qc {
    input:
    file peaks from mlib_macs_peaks_qc.collect{ it[1] }
    file annos from mlib_macs_annotate.collect()
-   file mlib_peak_annotation_header from mlib_peak_annotation_header_ch.collect()
+   file mlib_peak_annotation_header from ch_mlib_peak_annotation_header
 
    output:
    file "*.{txt,pdf}" into mlib_macs_qc
@@ -1084,8 +1035,8 @@ process merge_library_macs_consensus_annotate {
     input:
     file bed from mlib_macs_consensus_bed
     file bool from mlib_macs_consensus_bool
-    file fasta from fasta_mlib_macs_consensus_annotate
-    file gtf from gtf_mlib_macs_consensus_annotate
+    file fasta from ch_fasta
+    file gtf from ch_gtf
 
     output:
     file "*.annotatePeaks.txt" into mlib_macs_consensus_annotate
@@ -1116,8 +1067,8 @@ process merge_library_macs_consensus_deseq {
     input:
     file bams from mlib_name_bam_mlib_counts.collect{ it[1] }
     file saf from mlib_macs_consensus_saf.collect()
-    file mlib_deseq2_pca_header from mlib_deseq2_pca_header_ch.collect()
-    file mlib_deseq2_clustering_header from mlib_deseq2_clustering_header_ch.collect()
+    file mlib_deseq2_pca_header from ch_mlib_deseq2_pca_header
+    file mlib_deseq2_clustering_header from ch_mlib_deseq2_clustering_header
 
     output:
     file "*featureCounts.txt" into mlib_macs_consensus_counts
@@ -1162,7 +1113,7 @@ process merge_library_ataqv {
 
    input:
    set val(name), file(bam), file(peak) from mlib_bam_ataqv.join(mlib_macs_peaks_ataqv, by: [0])
-   file tss_bed from tss_bed.collect()
+   file tss_bed from ch_tss_bed
    file autosomes from genome_autosomes.collect()
 
    output:
@@ -1352,8 +1303,8 @@ process merge_replicate_macs {
 
     input:
     set val(name), file(bam), file(flagstat) from mrep_bam_macs.join(mrep_flagstat_macs, by: [0])
-    file mrep_peak_count_header from mrep_peak_count_header_ch.collect()
-    file mrep_frip_score_header from mrep_frip_score_header_ch.collect()
+    file mrep_peak_count_header from ch_mrep_peak_count_header
+    file mrep_frip_score_header from ch_mrep_frip_score_header
 
     output:
     file "*.{bed,xls,gappedPeak}" into mrep_macs_output
@@ -1397,8 +1348,8 @@ process merge_replicate_macs_annotate {
 
     input:
     set val(name), file(peak) from mrep_macs_peaks_homer
-    file fasta from fasta_mrep_macs_annotate.collect()
-    file gtf from gtf_mrep_macs_annotate.collect()
+    file fasta from ch_fasta
+    file gtf from ch_gtf
 
     output:
     file "*.txt" into mrep_macs_annotate
@@ -1426,7 +1377,7 @@ process merge_replicate_macs_qc {
    input:
    file peaks from mrep_macs_peaks_qc.collect{ it[1] }
    file annos from mrep_macs_annotate.collect()
-   file mrep_peak_annotation_header from mrep_peak_annotation_header_ch.collect()
+   file mrep_peak_annotation_header from ch_mrep_peak_annotation_header
 
    output:
    file "*.{txt,pdf}" into mrep_macs_qc
@@ -1507,8 +1458,8 @@ process merge_replicate_macs_consensus_annotate {
     input:
     file bed from mrep_macs_consensus_bed
     file bool from mrep_macs_consensus_bool
-    file fasta from fasta_mrep_macs_consensus_annotate
-    file gtf from gtf_mrep_macs_consensus_annotate
+    file fasta from ch_fasta
+    file gtf from ch_gtf
 
     output:
     file "*.annotatePeaks.txt" into mrep_macs_consensus_annotate
@@ -1539,8 +1490,8 @@ process merge_replicate_macs_consensus_deseq {
     input:
     file bams from mlib_name_bam_mrep_counts.collect{ it[1] }
     file saf from mrep_macs_consensus_saf.collect()
-    file mrep_deseq2_pca_header from mrep_deseq2_pca_header_ch.collect()
-    file mrep_deseq2_clustering_header from mrep_deseq2_clustering_header_ch.collect()
+    file mrep_deseq2_pca_header from ch_mrep_deseq2_pca_header
+    file mrep_deseq2_clustering_header from ch_mrep_deseq2_clustering_header
 
     output:
     file "*featureCounts.txt" into mrep_macs_consensus_counts
@@ -1590,7 +1541,7 @@ process igv {
     publishDir "${params.outdir}/igv", mode: 'copy'
 
     input:
-    file fasta from fasta_igv.collect()
+    file fasta from ch_fasta
 
     file ('bwa/mergedLibrary/bigwig/*') from mlib_bigwig_igv.collect()
     file ('bwa/mergedLibrary/macs/*') from mlib_macs_peaks_igv.collect{it[1]}.ifEmpty([])
@@ -1683,7 +1634,7 @@ process multiqc {
     publishDir "${params.outdir}/multiqc", mode: 'copy'
 
     input:
-    file multiqc_config from multiqc_config_ch.collect()
+    file multiqc_config from ch_multiqc_config
 
     file ('fastqc/*') from fastqc_reports_mqc.collect()
     file ('trimgalore/*') from trimgalore_results_mqc.collect()
@@ -1741,7 +1692,7 @@ process output_documentation {
     publishDir "${params.outdir}/Documentation", mode: 'copy'
 
     input:
-    file output_docs from output_docs_ch
+    file output_docs from ch_output_docs
 
     output:
     file "results_description.html"
