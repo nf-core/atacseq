@@ -464,7 +464,7 @@ process makeGenomeFilter {
                         genome_sizes_mrep_bigwig
 
     script:
-    blacklist_filter = params.blacklist ? "sortBed -i ${blacklist} -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
+    blacklist_filter = params.blacklist ? "sortBed -i $blacklist -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
     name_filter = params.mito_name ? "| awk '\$1 !~ /${params.mito_name}/ {print \$0}'": ""
     mito_filter = params.keepMito ? "" : name_filter
     """
@@ -969,6 +969,7 @@ process merge_library_macs {
  */
 process merge_library_macs_annotate {
     tag "$name"
+    label "process_medium"
     publishDir "${params.outdir}/bwa/mergedLibrary/macs", mode: 'copy'
 
     input:
@@ -1077,6 +1078,7 @@ process merge_library_macs_consensus {
  * STEP 4.5.5 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
 process merge_library_macs_consensus_annotate {
+    label "process_medium"
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/consensus", mode: 'copy'
 
     input:
@@ -1390,6 +1392,7 @@ process merge_replicate_macs {
  */
 process merge_replicate_macs_annotate {
     tag "$name"
+    label "process_medium"
     publishDir "${params.outdir}/bwa/mergedReplicate/macs", mode: 'copy'
 
     input:
@@ -1498,6 +1501,7 @@ process merge_replicate_macs_consensus {
  * STEP 5.2.6 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
 process merge_replicate_macs_consensus_annotate {
+    label "process_medium"
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/consensus", mode: 'copy'
 
     input:

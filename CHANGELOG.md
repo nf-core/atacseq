@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Merged in TEMPLATE branch for automated syncing
 * Add quick start information to main README
 * [#46](https://github.com/nf-core/atacseq/issues/46) - Missing gene_bed path in igenomes config
+* [#46](https://github.com/nf-core/atacseq/issues/46) - Bump resources for MAC2 and annotatePeaks.pl
 
 ### `Fixed`
 
