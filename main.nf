@@ -919,7 +919,7 @@ process merge_library_bigwig {
  */
 process merge_library_macs {
     tag "$name"
-    label 'process_long'
+    label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs", mode: 'copy',
         saveAs: {filename ->
                     if (filename.endsWith(".tsv")) "qc/$filename"
@@ -1341,7 +1341,7 @@ process merge_replicate_bigwig {
  */
 process merge_replicate_macs {
     tag "$name"
-    label 'process_long'
+    label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate/macs", mode: 'copy',
         saveAs: {filename ->
                     if (filename.endsWith(".tsv")) "qc/$filename"
