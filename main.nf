@@ -1,4 +1,4 @@
-ch_bamtools_filter_config#!/usr/bin/env nextflow
+#!/usr/bin/env nextflow
 /*
 ========================================================================================
                          nf-core/atacseq
