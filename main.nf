@@ -219,6 +219,8 @@ if (params.blacklist) {
     blacklist = Channel
         .fromPath(params.blacklist, checkIfExists: true)
         .ifEmpty { exit 1, "Blacklist file not found: ${params.blacklist}" }
+} else {
+    blacklist = Channel.empty()
 }
 
 ////////////////////////////////////////////////////
@@ -451,6 +453,7 @@ process makeGenomeFilter {
 
     input:
     file fasta from fasta_genome_filter
+    file blacklist from blacklist
 
     output:
     file "$fasta" into genome_fasta                 // FASTA FILE FOR IGV
@@ -461,7 +464,7 @@ process makeGenomeFilter {
                         genome_sizes_mrep_bigwig
 
     script:
-    blacklist_filter = params.blacklist ? "sortBed -i ${params.blacklist} -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
+    blacklist_filter = params.blacklist ? "sortBed -i ${blacklist} -g ${fasta}.sizes | complementBed -i stdin -g ${fasta}.sizes" : "awk '{print \$1, '0' , \$2}' OFS='\t' ${fasta}.sizes"
     name_filter = params.mito_name ? "| awk '\$1 !~ /${params.mito_name}/ {print \$0}'": ""
     mito_filter = params.keepMito ? "" : name_filter
     """
@@ -916,7 +919,7 @@ process merge_library_bigwig {
  */
 process merge_library_macs {
     tag "$name"
-    label 'process_long'
+    label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs", mode: 'copy',
         saveAs: {filename ->
                     if (filename.endsWith(".tsv")) "qc/$filename"
@@ -1338,7 +1341,7 @@ process merge_replicate_bigwig {
  */
 process merge_replicate_macs {
     tag "$name"
-    label 'process_long'
+    label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate/macs", mode: 'copy',
         saveAs: {filename ->
                     if (filename.endsWith(".tsv")) "qc/$filename"
