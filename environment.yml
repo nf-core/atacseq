@@ -7,6 +7,7 @@ channels:
   - defaults
 dependencies:
   ## conda-forge packages
+  - gawk=4.2.1
   - r-base=3.4.1
   - r-optparse=1.6.0
   - r-rcolorbrewer=1.1_2
@@ -16,6 +17,7 @@ dependencies:
   - r-pheatmap=1.0.10
   - r-lattice=0.20_35
   - r-upsetr=1.3.3
+  - r-xfun=0.3
 
   ## bioconda packages
   - fastqc=0.11.8
@@ -27,6 +29,7 @@ dependencies:
   - pysam=0.15.2
   - bedtools=2.27.1
   - preseq=2.0.3
+  - deeptools=3.2.1
   - ucsc-bedgraphtobigwig=377
   - macs2=2.1.2
   - homer=4.9.1
