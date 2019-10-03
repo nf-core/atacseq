@@ -2,7 +2,7 @@
 
 #######################################################################
 #######################################################################
-## Created on February 22nd 2019 to reformat nf-core/atacseq design file
+## Created on February 22nd 2019 to check nf-core/atacseq design file
 #######################################################################
 #######################################################################
 
@@ -18,7 +18,7 @@ import argparse
 ############################################
 
 Description = 'Reformat nf-core/atacseq design file and check its contents.'
-Epilog = """Example usage: python reformat_design.py <DESIGN_FILE_IN> <DESIGN_FILE_OUT>"""
+Epilog = """Example usage: python check_design.py <DESIGN_FILE_IN> <DESIGN_FILE_OUT>"""
 
 argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 
@@ -33,7 +33,7 @@ args = argParser.parse_args()
 ############################################
 ############################################
 
-def reformat_design(DesignFileIn,DesignFileOut):
+def check_design(DesignFileIn,DesignFileOut):
 
     ERROR_STR = 'ERROR: Please check design file'
     HEADER = ['group', 'replicate', 'fastq_1', 'fastq_2']
@@ -137,7 +137,7 @@ def reformat_design(DesignFileIn,DesignFileOut):
 ############################################
 ############################################
 
-reformat_design(DesignFileIn=args.DESIGN_FILE_IN,DesignFileOut=args.DESIGN_FILE_OUT)
+check_design(DesignFileIn=args.DESIGN_FILE_IN,DesignFileOut=args.DESIGN_FILE_OUT)
 
 ############################################
 ############################################
