@@ -26,6 +26,7 @@ dependencies:
   - bamtools=2.5.1
   - pysam=0.15.2
   - bedtools=2.27.1
+  - preseq=2.0.3
   - ucsc-bedgraphtobigwig=377
   - macs2=2.1.2
   - homer=4.9.1
