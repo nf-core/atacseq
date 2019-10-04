@@ -840,32 +840,32 @@ if (params.singleEnd) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-// /*
-//  * STEP 5.1 preseq analysis after merging libraries and before filtering
-//  */
-// process MergeLibraryBAMPreseq {
-//     tag "$name"
-//     label 'process_low'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: 'copy'
-//
-//     when:
-//     !params.skipPreseq
-//
-//     input:
-//     set val(name), file(bam) from ch_mlib_bam_preseq
-//
-//     output:
-//     file "*.ccurve.txt" into ch_mlib_preseq_mqc
-//
-//     script:
-//     prefix = "${name}.mLb.mkD"
-//     """
-//     preseq lc_extrap -v -output ${prefix}.ccurve.txt -bam ${bam[0]}
-//     """
-// }
+/*
+ * STEP 5.1 preseq analysis after merging libraries and before filtering
+ */
+process MergeLibraryBAMPreseq {
+    tag "$name"
+    label 'process_low'
+    publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: 'copy'
+
+    when:
+    !params.skipPreseq
+
+    input:
+    set val(name), file(bam) from ch_mlib_bam_preseq
+
+    output:
+    file "*.ccurve.txt" into ch_mlib_preseq_mqc
+
+    script:
+    prefix = "${name}.mLb.mkD"
+    """
+    preseq lc_extrap -v -output ${prefix}.ccurve.txt -bam ${bam[0]}
+    """
+}
 
 /*
- * STEP 4.4.1 Picard CollectMultipleMetrics after merging libraries
+ * STEP 5.2 Picard CollectMultipleMetrics after merging libraries
  */
 process MergeLibraryBAMMetrics {
     tag "$name"
@@ -907,7 +907,7 @@ process MergeLibraryBAMMetrics {
 }
 
 /*
- * STEP 4.4.2 Read depth normalised bigWig
+ * STEP 5.3 Read depth normalised bigWig
  */
 process MergeLibraryBigWig {
     tag "$name"
@@ -943,80 +943,80 @@ process MergeLibraryBigWig {
     """
 }
 
-// /*
-//  * STEP 5.4 generate gene body coverage plot with deepTools
-//  */
-// process MergeLibraryPlotProfile {
-//     tag "$name"
-//     label 'process_high'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotProfile", mode: 'copy'
-//
-//     when:
-//     !params.skipPlotProfile
-//
-//     input:
-//     set val(name), file(bigwig) from ch_mlib_bigwig_plotprofile
-//     file bed from ch_gene_bed
-//
-//     output:
-//     file '*.{gz,pdf}' into ch_mlib_plotprofile_results
-//     file '*.plotProfile.tab' into ch_mlib_plotprofile_mqc
-//
-//     script:
-//     prefix = "${name}.mLb.clN"
-//     """
-//     computeMatrix scale-regions \\
-//         --regionsFileName $bed \\
-//         --scoreFileName $bigwig \\
-//         --outFileName ${prefix}.computeMatrix.mat.gz \\
-//         --outFileNameMatrix ${prefix}.computeMatrix.vals.mat.gz \\
-//         --regionBodyLength 1000 \\
-//         --beforeRegionStartLength 3000 \\
-//         --afterRegionStartLength 3000 \\
-//         --skipZeros \\
-//         --smartLabels \\
-//         -p $task.cpus
-//
-//     plotProfile --matrixFile ${prefix}.computeMatrix.mat.gz \\
-//         --outFileName ${prefix}.plotProfile.pdf \\
-//         --outFileNameData ${prefix}.plotProfile.tab
-//     """
-// }
+/*
+ * STEP 5.4 generate gene body coverage plot with deepTools
+ */
+process MergeLibraryPlotProfile {
+    tag "$name"
+    label 'process_high'
+    publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotProfile", mode: 'copy'
 
-// /*
-//  * STEP 6.1 deepTools plotFingerprint
-//  */
-// process MergeLibraryPlotFingerprint {
-//     tag "$name"
-//     label 'process_high'
-//     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: 'copy'
-//
-//     when:
-//     !params.skipPlotFingerprint
-//
-//     input:
-//     set val(name), file(bam) from ch_mlib_rm_orphan_bam_plotfingerprint
-//
-//     output:
-//     file '*.{txt,pdf}' into ch_mlib_plotfingerprint_results
-//     file '*.raw.txt' into ch_mlib_plotfingerprint_mqc
-//
-//     script:
-//     prefix = "${name}.mLb.clN"
-//     extend = (params.singleEnd && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
-//     """
-//     plotFingerprint \\
-//         --bamfiles ${bam[0]} \\
-//         --plotFile ${prefix}.plotFingerprint.pdf \\
-//         $extend \\
-//         --labels $prefix \\
-//         --outRawCounts ${prefix}.plotFingerprint.raw.txt \\
-//         --outQualityMetrics ${prefix}.plotFingerprint.qcmetrics.txt \\
-//         --skipZeros \\
-//         --numberOfProcessors ${task.cpus} \\
-//         --numberOfSamples ${params.fingerprint_bins}
-//     """
-// }
+    when:
+    !params.skipPlotProfile
+
+    input:
+    set val(name), file(bigwig) from ch_mlib_bigwig_plotprofile
+    file bed from ch_gene_bed
+
+    output:
+    file '*.{gz,pdf}' into ch_mlib_plotprofile_results
+    file '*.plotProfile.tab' into ch_mlib_plotprofile_mqc
+
+    script:
+    prefix = "${name}.mLb.clN"
+    """
+    computeMatrix scale-regions \\
+        --regionsFileName $bed \\
+        --scoreFileName $bigwig \\
+        --outFileName ${prefix}.computeMatrix.mat.gz \\
+        --outFileNameMatrix ${prefix}.computeMatrix.vals.mat.gz \\
+        --regionBodyLength 1000 \\
+        --beforeRegionStartLength 3000 \\
+        --afterRegionStartLength 3000 \\
+        --skipZeros \\
+        --smartLabels \\
+        -p $task.cpus
+
+    plotProfile --matrixFile ${prefix}.computeMatrix.mat.gz \\
+        --outFileName ${prefix}.plotProfile.pdf \\
+        --outFileNameData ${prefix}.plotProfile.tab
+    """
+}
+
+/*
+ * STEP 5.5 deepTools plotFingerprint
+ */
+process MergeLibraryPlotFingerprint {
+    tag "$name"
+    label 'process_high'
+    publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: 'copy'
+
+    when:
+    !params.skipPlotFingerprint
+
+    input:
+    set val(name), file(bam) from ch_mlib_rm_orphan_bam_plotfingerprint
+
+    output:
+    file '*.{txt,pdf}' into ch_mlib_plotfingerprint_results
+    file '*.raw.txt' into ch_mlib_plotfingerprint_mqc
+
+    script:
+    prefix = "${name}.mLb.clN"
+    extend = (params.singleEnd && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
+    """
+    plotFingerprint \\
+        --bamfiles ${bam[0]} \\
+        --plotFile ${prefix}.plotFingerprint.pdf \\
+        $extend \\
+        --labels $prefix \\
+        --outRawCounts ${prefix}.plotFingerprint.raw.txt \\
+        --outQualityMetrics ${prefix}.plotFingerprint.qcmetrics.txt \\
+        --skipZeros \\
+        --numberOfProcessors ${task.cpus} \\
+        --numberOfSamples ${params.fingerprint_bins}
+    """
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -1027,7 +1027,7 @@ process MergeLibraryBigWig {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 4.5.1 Call peaks with MACS2 and calculate FRiP score
+ * STEP 6.1 Call peaks with MACS2 and calculate FRiP score
  */
 process MergeLibraryMACSCallPeak {
     tag "$name"
@@ -1083,7 +1083,7 @@ process MergeLibraryMACSCallPeak {
 }
 
 /*
- * STEP 4.5.2 Annotate peaks with HOMER
+ * STEP 6.2 Annotate peaks with HOMER
  */
 process MergeLibraryAnnotatePeaks {
     tag "$name"
@@ -1115,7 +1115,7 @@ process MergeLibraryAnnotatePeaks {
 }
 
 /*
- * STEP 4.5.3 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
+ * STEP 6.3 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
 process MergeLibraryPeakQC {
     label "process_medium"
@@ -1154,7 +1154,7 @@ process MergeLibraryPeakQC {
 }
 
 /*
- * STEP 4.5.4 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
+ * STEP 6.4 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
 process MergeLibraryCreateConsensusPeakSet {
     label 'process_long'
@@ -1208,7 +1208,7 @@ process MergeLibraryCreateConsensusPeakSet {
 }
 
 /*
- * STEP 4.5.5 Annotate consensus peaks with HOMER, and add annotation to boolean output file
+ * STEP 6.5 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
 process MergeLibraryAnnotateConsensusPeakSet {
     label "process_medium"
@@ -1243,7 +1243,7 @@ process MergeLibraryAnnotateConsensusPeakSet {
 }
 
 /*
- * STEP 4.5.6 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
+ * STEP 6.6 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
  */
 process MergeLibraryDeseqConsensusPeakSet {
     label 'process_medium'
@@ -1299,7 +1299,7 @@ process MergeLibraryDeseqConsensusPeakSet {
 }
 
 /*
- * STEP 4.6.1 Run ataqv on BAM file and corresponding peaks
+ * STEP 6.7 Run ataqv on BAM file and corresponding peaks
  */
 process MergeLibraryAtaqv {
     tag "$name"
@@ -1333,7 +1333,7 @@ process MergeLibraryAtaqv {
 }
 
 /*
- * STEP 4.6.2 run ataqv mkarv on all JSON files to render web app
+ * STEP 6.8 run ataqv mkarv on all JSON files to render web app
  */
 process MergeLibraryAtaqvMkarv {
     label 'process_medium'
@@ -1364,7 +1364,7 @@ process MergeLibraryAtaqvMkarv {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 5.1 Merge library BAM files across all replicates
+ * STEP 7 Merge library BAM files across all replicates
  */
 ch_mlib_rm_orphan_bam_mrep.map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
                           .groupTuple(by: [0])
@@ -1452,7 +1452,7 @@ process MergeReplicateBAM {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 4.4.2 Read depth normalised bigWig
+ * STEP 8.1 Read depth normalised bigWig
  */
 process MergeReplicateBigWig {
     tag "$name"
@@ -1492,7 +1492,7 @@ process MergeReplicateBigWig {
 }
 
 /*
- * STEP 4.5.1 Call peaks with MACS2 and calculate FRiP score
+ * STEP 8.2 Call peaks with MACS2 and calculate FRiP score
  */
 process MergeReplicateMACSCallPeak {
     tag "$name"
@@ -1547,7 +1547,7 @@ process MergeReplicateMACSCallPeak {
 }
 
 /*
- * STEP 4.5.2 Annotate peaks with HOMER
+ * STEP 8.3 Annotate peaks with HOMER
  */
 process MergeReplicateAnnotatePeaks {
     tag "$name"
@@ -1579,7 +1579,7 @@ process MergeReplicateAnnotatePeaks {
 }
 
 /*
- * STEP 4.5.3 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
+ * STEP 8.4 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
 process MergeReplicatePeakQC {
     label "process_medium"
@@ -1618,7 +1618,7 @@ process MergeReplicatePeakQC {
 }
 
 /*
- * STEP 4.5.4 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
+ * STEP 8.5 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
 process MergeReplicateCreateConsensusPeakSet {
     label 'process_long'
@@ -1671,7 +1671,7 @@ process MergeReplicateCreateConsensusPeakSet {
 }
 
 /*
- * STEP 4.5.5 Annotate consensus peaks with HOMER, and add annotation to boolean output file
+ * STEP 8.6 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
 process MergeReplicateAnnotateConsensusPeakSet {
     label "process_medium"
@@ -1706,7 +1706,7 @@ process MergeReplicateAnnotateConsensusPeakSet {
 }
 
 /*
- * STEP 4.5.6 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
+ * STEP 8.7 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
  */
 process MergeReplicateDeseqConsensusPeakSet {
     label 'process_medium'
@@ -1770,7 +1770,7 @@ process MergeReplicateDeseqConsensusPeakSet {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 6 - Create IGV session file
+ * STEP 9 - Create IGV session file
  */
 process IGV {
     publishDir "${params.outdir}/igv/${peaktype}", mode: 'copy'
@@ -1834,7 +1834,7 @@ process get_software_versions {
     samtools --version > v_samtools.txt
     bedtools --version > v_bedtools.txt
     echo \$(bamtools --version 2>&1) > v_bamtools.txt
-    #echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt || true
+    echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt || true
     picard MarkDuplicates --version &> v_picard.txt  || true
     echo \$(R --version 2>&1) > v_R.txt
     python -c "import pysam; print(pysam.__version__)" > v_pysam.txt
@@ -1842,7 +1842,7 @@ process get_software_versions {
     touch v_homer.txt
     echo \$(ataqv --version 2>&1) > v_ataqv.txt
     echo \$(featureCounts -v 2>&1) > v_featurecounts.txt
-    #preseq &> v_preseq.txt
+    preseq &> v_preseq.txt
     multiqc --version > v_multiqc.txt
     scrape_software_versions.py &> software_versions_mqc.yaml
     """
@@ -1867,7 +1867,7 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
 }
 
 /*
- * STEP 7 - MultiQC
+ * STEP 10 - MultiQC
  */
 process MultiQC {
     publishDir "${params.outdir}/multiqc/${peaktype}", mode: 'copy'
@@ -1896,9 +1896,9 @@ process MultiQC {
     file ('macs/mergedLibrary/*') from ch_mlib_peak_qc_mqc.collect().ifEmpty([])
     file ('macs/mergedLibrary/consensus/*') from ch_mlib_macs_consensus_counts_mqc.collect().ifEmpty([])
     file ('macs/mergedLibrary/consensus/*') from ch_mlib_macs_consensus_deseq_mqc.collect().ifEmpty([])
-    //file ('preseq/*') from ch_mlib_preseq_mqc.collect().ifEmpty([])
-    //file ('deeptools/*') from ch_mlib_plotprofile_mqc.collect().ifEmpty([])
-    //file ('deeptools/*') from ch_mlib_plotfingerprint_mqc.collect().ifEmpty([])
+    file ('preseq/*') from ch_mlib_preseq_mqc.collect().ifEmpty([])
+    file ('deeptools/*') from ch_mlib_plotprofile_mqc.collect().ifEmpty([])
+    file ('deeptools/*') from ch_mlib_plotfingerprint_mqc.collect().ifEmpty([])
 
     file ('alignment/mergedReplicate/*') from ch_mrep_bam_flagstat_mqc.collect{it[1]}.ifEmpty([])
     file ('alignment/mergedReplicate/*') from ch_mrep_bam_stats_mqc.collect().ifEmpty([])
@@ -1934,7 +1934,7 @@ process MultiQC {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 8 - Output description HTML
+ * STEP 11 - Output description HTML
  */
 process output_documentation {
     publishDir "${params.outdir}/Documentation", mode: 'copy'
