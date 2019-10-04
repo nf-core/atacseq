@@ -372,6 +372,7 @@ The following options make this easy:
 | `--skipPreseq`          | Skip Preseq                        |
 | `--skipPlotProfile`     | Skip deepTools plotProfile         |
 | `--skipPlotFingerprint` | Skip deepTools plotFingerprint     |
+| `--skipAtaqv`           | Skip Ataqv                         |
 | `--skipIGV`             | Skip IGV                           |
 | `--skipMultiQC`         | Skip MultiQC                       |
 
