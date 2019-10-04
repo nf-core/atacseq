@@ -76,6 +76,7 @@ def helpMessage() {
       --skipPreseq                  Skip Preseq
       --skipPlotProfile             Skip deepTools plotProfile
       --skipPlotFingerprint         Skip deepTools plotFingerprint
+      --skipAtaqv                   Skip Ataqv
       --skipIGV                     Skip IGV
       --skipMultiQC                 Skip MultiQC
       --skipMultiQCStats            Exclude general statistics table from MultiQC report
@@ -255,6 +256,7 @@ if (params.skipPicardMetrics)   summary['Skip Picard Metrics'] = 'Yes'
 if (params.skipPreseq)          summary['Skip Preseq'] = 'Yes'
 if (params.skipPlotProfile)     summary['Skip plotProfile'] = 'Yes'
 if (params.skipPlotFingerprint) summary['Skip plotFingerprint'] = 'Yes'
+if (params.skipAtaqv) summary['Skip Ataqv'] = 'Yes'
 if (params.skipIGV)             summary['Skip IGV'] = 'Yes'
 if (params.skipMultiQC)         summary['Skip MultiQC'] = 'Yes'
 if (params.skipMultiQCStats)    summary['Skip MultiQC Stats'] = 'Yes'
@@ -843,7 +845,7 @@ if (params.singleEnd) {
 /*
  * STEP 5.1 preseq analysis after merging libraries and before filtering
  */
-process MergeLibraryBAMPreseq {
+process MergeLibraryPreseq {
     tag "$name"
     label 'process_low'
     publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: 'copy'
@@ -867,7 +869,7 @@ process MergeLibraryBAMPreseq {
 /*
  * STEP 5.2 Picard CollectMultipleMetrics after merging libraries
  */
-process MergeLibraryBAMMetrics {
+process MergeLibraryMetrics {
     tag "$name"
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
@@ -1156,7 +1158,7 @@ process MergeLibraryPeakQC {
 /*
  * STEP 6.4 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
-process MergeLibraryCreateConsensusPeakSet {
+process MergeLibraryConsensusPeakSet {
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus", mode: 'copy',
         saveAs: {filename ->
@@ -1210,7 +1212,7 @@ process MergeLibraryCreateConsensusPeakSet {
 /*
  * STEP 6.5 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
-process MergeLibraryAnnotateConsensusPeakSet {
+process MergeLibraryConsensusPeakSetAnnotate {
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus", mode: 'copy'
 
@@ -1245,7 +1247,7 @@ process MergeLibraryAnnotateConsensusPeakSet {
 /*
  * STEP 6.6 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
  */
-process MergeLibraryDeseqConsensusPeakSet {
+process MergeLibraryConsensusPeakSetDESeq {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus/deseq2", mode: 'copy',
         saveAs: {filename ->
@@ -1306,6 +1308,9 @@ process MergeLibraryAtaqv {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/ataqv", mode: 'copy'
 
+    when:
+    !skipAtaqv
+
     input:
     set val(name), file(bam), file(peak) from ch_mlib_bam_ataqv.join(ch_mlib_macs_ataqv, by: [0])
     file autosomes from ch_genome_autosomes.collect()
@@ -1338,6 +1343,9 @@ process MergeLibraryAtaqv {
 process MergeLibraryAtaqvMkarv {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/ataqv", mode: 'copy'
+
+    when:
+    !skipAtaqv
 
     input:
     file json from ch_mlib_ataqv.collect()
@@ -1620,7 +1628,7 @@ process MergeReplicatePeakQC {
 /*
  * STEP 8.5 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
-process MergeReplicateCreateConsensusPeakSet {
+process MergeReplicateConsensusPeakSet {
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}/consensus", mode: 'copy',
         saveAs: {filename ->
@@ -1673,7 +1681,7 @@ process MergeReplicateCreateConsensusPeakSet {
 /*
  * STEP 8.6 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
-process MergeReplicateAnnotateConsensusPeakSet {
+process MergeReplicateConsensusPeakSetAnnotate {
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}/consensus", mode: 'copy'
 
@@ -1708,7 +1716,7 @@ process MergeReplicateAnnotateConsensusPeakSet {
 /*
  * STEP 8.7 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
  */
-process MergeReplicateDeseqConsensusPeakSet {
+process MergeReplicateConsensusPeakSetDESeq {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}/consensus/deseq2", mode: 'copy',
         saveAs: {filename ->
