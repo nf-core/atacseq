@@ -12,6 +12,7 @@ regexes = {
     'Samtools': ['v_samtools.txt', r"samtools (\S+)"],
     'BEDTools': ['v_bedtools.txt', r"bedtools v(\S+)"],
     'BamTools': ['v_bamtools.txt', r"bamtools (\S+)"],
+    #'deepTools': ['v_deeptools.txt', r"plotFingerprint (\S+)"],
     'Picard': ['v_picard.txt', r"([\d\.]+)-SNAPSHOT"],
     'R': ['v_R.txt', r"R version (\S+)"],
     'Pysam': ['v_pysam.txt', r"(\S+)"],
@@ -19,6 +20,7 @@ regexes = {
     'HOMER': ['v_homer.txt', r"(\S+)"],
     'ataqv': ['v_ataqv.txt', r"(\S+)"],
     'featureCounts': ['v_featurecounts.txt', r"featureCounts v(\S+)"],
+    #'Preseq': ['v_preseq.txt', r"Version: (\S+)"],
     'MultiQC': ['v_multiqc.txt', r"multiqc, version (\S+)"],
 }
 
@@ -31,6 +33,7 @@ results['BWA'] = '<span style="color:#999999;\">N/A</span>'
 results['Samtools'] = '<span style="color:#999999;\">N/A</span>'
 results['BEDTools'] = '<span style="color:#999999;\">N/A</span>'
 results['BamTools'] = '<span style="color:#999999;\">N/A</span>'
+#results['deepTools'] = '<span style="color:#999999;\">N/A</span>'
 results['Picard'] = '<span style="color:#999999;\">N/A</span>'
 results['R'] = '<span style="color:#999999;\">N/A</span>'
 results['Pysam'] = '<span style="color:#999999;\">N/A</span>'
@@ -38,6 +41,7 @@ results['MACS2'] = '<span style="color:#999999;\">N/A</span>'
 results['HOMER'] = False
 results['ataqv'] = '<span style="color:#999999;\">N/A</span>'
 results['featureCounts'] = '<span style="color:#999999;\">N/A</span>'
+#results['Preseq'] = '<span style="color:#999999;\">N/A</span>'
 results['MultiQC'] = '<span style="color:#999999;\">N/A</span>'
 
 # Search each file using its regex
