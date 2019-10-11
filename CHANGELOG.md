@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 * [#35](https://github.com/nf-core/atacseq/issues/35) - Add deepTools plotFingerprint
 * [#46](https://github.com/nf-core/atacseq/issues/46) - Missing gene_bed path in igenomes config
-* [#46](https://github.com/nf-core/atacseq/issues/46) - Stage blacklist file in channel properly
 * Merged in TEMPLATE branch for automated syncing
 * Renamed all channels to start with `ch_` prefix
 * Capitalised process names
@@ -31,6 +30,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 * [#41](https://github.com/nf-core/atacseq/issues/41) - Docs: Add example plot images
 * [#44](https://github.com/nf-core/atacseq/issues/44) - Output directory missing: macs2/consensus/deseq2
+* [#45](https://github.com/nf-core/atacseq/issues/45) - Wrong x-axis scale for the HOMER: Peak annotation Counts tab plot?
+* [#46](https://github.com/nf-core/atacseq/issues/46) - Stage blacklist file in channel properly
 * Smaller logo for completion email
 * IGV uses relative instead of absolute paths
 
