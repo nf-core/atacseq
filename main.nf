@@ -493,14 +493,14 @@ process FastQC {
     if (params.singleEnd) {
         """
         [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
-        fastqc -q ${name}.fastq.gz
+        fastqc -q -t $task.cpus ${name}.fastq.gz
         """
     } else {
         """
         [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
         [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
-        fastqc -q ${name}_1.fastq.gz
-        fastqc -q ${name}_2.fastq.gz
+        fastqc -q -t $task.cpus ${name}_1.fastq.gz
+        fastqc -q -t $task.cpus ${name}_2.fastq.gz
         """
     }
 }
@@ -979,7 +979,7 @@ process MergeLibraryPlotProfile {
         --afterRegionStartLength 3000 \\
         --skipZeros \\
         --smartLabels \\
-        -p $task.cpus
+        --numberOfProcessors $task.cpus
 
     plotProfile --matrixFile ${prefix}.computeMatrix.mat.gz \\
         --outFileName ${prefix}.plotProfile.pdf \\
@@ -1017,8 +1017,8 @@ process MergeLibraryPlotFingerprint {
         --outRawCounts ${prefix}.plotFingerprint.raw.txt \\
         --outQualityMetrics ${prefix}.plotFingerprint.qcmetrics.txt \\
         --skipZeros \\
-        --numberOfProcessors ${task.cpus} \\
-        --numberOfSamples ${params.fingerprint_bins}
+        --numberOfProcessors $task.cpus \\
+        --numberOfSamples $params.fingerprint_bins
     """
 }
 
@@ -1071,8 +1071,8 @@ process MergeLibraryMACSCallPeak {
          -t ${bam[0]} \\
          $broad \\
          -f $format \\
-         -g ${params.macs_gsize} \\
-         -n ${prefix} \\
+         -g $params.macs_gsize \\
+         -n $prefix \\
          $pileup \\
          --keep-dup all \\
          --nomodel
@@ -1114,6 +1114,7 @@ process MergeLibraryAnnotatePeaks {
         $fasta \\
         -gid \\
         -gtf $gtf \\
+        -cpu $task.cpus \\
         > ${prefix}_peaks.annotatePeaks.txt
     """
 }
@@ -1239,6 +1240,7 @@ process MergeLibraryConsensusPeakSetAnnotate {
         $fasta \\
         -gid \\
         -gtf $gtf \\
+        -cpu $task.cpus \\
         > ${prefix}.annotatePeaks.txt
 
     cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
@@ -1541,8 +1543,8 @@ process MergeReplicateMACSCallPeak {
          -t ${bam[0]} \\
          $broad \\
          -f $format \\
-         -g ${params.macs_gsize} \\
-         -n ${prefix} \\
+         -g $params.macs_gsize \\
+         -n $prefix \\
          $pileup \\
          --keep-dup all \\
          --nomodel
@@ -1584,6 +1586,7 @@ process MergeReplicateAnnotatePeaks {
         $fasta \\
         -gid \\
         -gtf $gtf \\
+        -cpu $task.cpus \\
         > ${prefix}_peaks.annotatePeaks.txt
     """
 }
@@ -1708,6 +1711,7 @@ process MergeReplicateConsensusPeakSetAnnotate {
         $fasta \\
         -gid \\
         -gtf $gtf \\
+        -cpu $task.cpus \\
         > ${prefix}.annotatePeaks.txt
 
     cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
