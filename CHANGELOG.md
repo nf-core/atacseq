@@ -24,7 +24,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * `--saveMACSPileup`
   * `--skipDiffAnalysis`
   * `--skip*` for skipping QC steps
-* Update template to tools v1.7
+* Update template to tools `1.7`
+* Bump Nextflow version to `19.04.0`
 
 ### `Fixed`
 
