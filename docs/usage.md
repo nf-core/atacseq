@@ -2,6 +2,9 @@
 
 ## Table of contents
 
+<!-- Install Atom plugin markdown-toc-auto for this ToC to auto-update on save -->
+<!-- TOC START min:2 max:3 link:true asterisk:true update:true -->
+* [Table of contents](#table-of-contents)
 * [Introduction](#introduction)
 * [Running the pipeline](#running-the-pipeline)
   * [Updating the pipeline](#updating-the-pipeline)
@@ -11,8 +14,9 @@
   * [`--design`](#--design)
 * [Generic arguments](#generic-arguments)
   * [`--singleEnd`](#--singleend)
-  * [`--narrowPeak`](#--narrowpeak)
+  * [`--seq_center`](#--seq_center)
   * [`--fragment_size`](#--fragment_size)
+  * [`--fingerprint_bins`](#--fingerprint_bins)
 * [Reference genomes](#reference-genomes)
   * [`--genome` (using iGenomes)](#--genome-using-igenomes)
   * [`--fasta`](#--fasta)
@@ -20,9 +24,9 @@
   * [`--bwa_index`](#--bwa_index)
   * [`--gene_bed`](#--gene_bed)
   * [`--tss_bed`](#--tss_bed)
-  * [`--mito_name`](#--mito_name)
   * [`--macs_gsize`](#--macs_gsize)
   * [`--blacklist`](#--blacklist)
+  * [`--mito_name`](#--mito_name)
   * [`--saveGenomeIndex`](#--savegenomeindex)
   * [`--igenomesIgnore`](#--igenomesignore)
 * [Adapter trimming](#adapter-trimming)
@@ -34,6 +38,13 @@
   * [`--keepMultiMap`](#--keepmultimap)
   * [`--skipMergeReplicates`](#--skipmergereplicates)
   * [`--saveAlignedIntermediates`](#--savealignedintermediates)
+* [Peaks](#peaks)
+  * [`--narrowPeak`](#--narrowpeak)
+  * [`--broad_cutoff`](#--broad_cutoff)
+  * [`--min_reps_consensus`](#--min_reps_consensus)
+  * [`--saveMACSPileup`](#--savemacspileup)
+  * [`--skipDiffAnalysis`](#--skipdiffanalysis)
+* [Skipping QC steps](#skipping-qc-steps)
 * [Job resources](#job-resources)
   * [Automatic resubmission](#automatic-resubmission)
   * [Custom resource requests](#custom-resource-requests)
@@ -43,6 +54,7 @@
 * [Other command line parameters](#other-command-line-parameters)
   * [`--outdir`](#--outdir)
   * [`--email`](#--email)
+  * [`--email_on_fail`](#--email_on_fail)
   * [`-name`](#-name)
   * [`-resume`](#-resume)
   * [`-c`](#-c)
@@ -54,6 +66,8 @@
   * [`--plaintext_email`](#--plaintext_email)
   * [`--monochrome_logs`](#--monochrome_logs)
   * [`--multiqc_config`](#--multiqc_config)
+<!-- TOC END -->
+
 
 ## Introduction
 Nextflow handles job submissions on SLURM or other environments, and supervises running the jobs. Thus the Nextflow process must run until the pipeline is finished. We recommend that you put the process running in the background through `screen` / `tmux` or similar tool. Alternatively you can run nextflow within a cluster job submitted your job scheduler.
@@ -96,6 +110,7 @@ First, go to the [nf-core/atacseq releases page](https://github.com/nf-core/atac
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future.
 
+
 ## Main arguments
 
 ### `-profile`
@@ -104,7 +119,7 @@ Use this parameter to choose a configuration profile. Profiles can give configur
 If `-profile` is not specified at all the pipeline will be run locally and expects all software to be installed and available on the `PATH`.
 
 * `awsbatch`
-  * A generic configuration profile to be used with AWS Batch
+  * A generic configuration profile to be used with AWS Batch.
 * `conda`
   * A generic configuration profile to be used with [conda](https://conda.io/docs/)
   * Pulls most software from [Bioconda](https://bioconda.github.io/)
@@ -113,7 +128,7 @@ If `-profile` is not specified at all the pipeline will be run locally and expec
   * Pulls software from dockerhub: [`nfcore/atacseq`](http://hub.docker.com/r/nfcore/atacseq/)
 * `singularity`
   * A generic configuration profile to be used with [Singularity](http://singularity.lbl.gov/)
-  * Pulls software from dockerhub: [`nfcore/atacseq`](http://hub.docker.com/r/nfcore/atacseq/)
+  * Pulls software from DockerHub: [`nfcore/atacseq`](http://hub.docker.com/r/nfcore/atacseq/)
 * `test`
   * A profile with a complete configuration for automated testing
   * Includes links to test data so needs no other parameters
@@ -179,11 +194,18 @@ By default, the pipeline expects paired-end data. If you have single-end data, s
 
 It is not possible to run a mixture of single-end and paired-end files in one run.
 
-### `--narrowPeak`
-MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.
+### `--seq_center`
+Sequencing center information that will be added to read groups in BAM files.
 
 ### `--fragment_size`
-Number of base pairs to extend single-end reads when creating bigWig files. Default: `0`
+Number of base pairs to extend single-end reads when creating bigWig files.
+
+Default: `0`
+
+### `--fingerprint_bins`
+Number of genomic bins to use when generating the deepTools fingerprint plot. Larger numbers will give a smoother profile, but take longer to run.
+
+Default: `500000`
 
 ## Reference genomes
 
@@ -201,7 +223,7 @@ You can find the keys to specify the genomes in the [iGenomes config file](../co
 * _Drosophila_
   * `--genome BDGP6`
 * _S. cerevisiae_
-  * `--genome R64-1-1`
+  * `--genome 'R64-1-1'`
 
 > There are numerous others - check the config file for more.
 
@@ -242,31 +264,24 @@ Full path to an existing BWA index for your reference genome including the base 
 ```
 
 ### `--gene_bed`
-The full path to BED file for genome-wide gene intervals. This will be created from the GTF file if it isnt specified.
+The full path to BED file for genome-wide gene intervals. This will be created from the GTF file if not specified.
 
 ```bash
 --gene_bed '[path to gene BED file]'
 ```
 
 ### `--tss_bed`
-The full path to BED file for genome-wide transcription start sites. This will be created from the gene BED file if it isnt specified.
+The full path to BED file for genome-wide transcription start sites. This will be created from the gene BED file if not specified.
 
 ```bash
 --tss_bed '[path to tss BED file]'
 ```
 
 ### `--macs_gsize`
-[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter isnt specified then the MACS2 peak-calling and differential analysis will be skipped.
+[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. These have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter is not specified then the MACS2 peak-calling and differential analysis will be skipped.
 
 ```bash
 --macs_gsize 2.7e9
-```
-
-### `--mito_name`
-Name of mitochondrial chomosome in reference assembly. Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the [`igenomes.config`](../conf/igenomes.config).
-
-```bash
---mito_name chrM
 ```
 
 ### `--blacklist`
@@ -274,6 +289,13 @@ If provided, alignments that overlap with the regions in this file will be filte
 
 ```bash
 --blacklist '[path to blacklisted regions]'
+```
+
+### `--mito_name`
+Name of mitochondrial chomosome in reference assembly. Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the [`igenomes.config`](../conf/igenomes.config).
+
+```bash
+--mito_name chrM
 ```
 
 ### `--saveGenomeIndex`
@@ -318,6 +340,45 @@ An additional series of steps are performed by the pipeline by merging the repli
 ### `--saveAlignedIntermediates`
 By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set to true to also save other intermediate BAM files.
 
+## Peaks
+
+### `--narrowPeak`
+MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.
+
+### `--broad_cutoff`
+Specifies broad cut-off value for MACS2. Only used when `--narrowPeak` isnt specified. Default: 0.1
+
+### `--min_reps_consensus`
+Number of biological replicates required from a given condition for a peak to contribute to a consensus peak . If you are confident you have good reproducibility amongst your replicates then you can increase the value of this parameter to create a "reproducible" set of consensus of peaks. For example, a value of 2 will mean peaks that have been called in at least 2 replicates will contribute to the consensus set of peaks, and as such peaks that are unique to a given replicate will be discarded.
+
+```bash
+-- min_reps_consensus 1
+```
+
+### `--saveMACSPileup`
+Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters.
+
+### `--skipDiffAnalysis`
+Skip read counting and differential analysis step.
+
+## Skipping QC steps
+
+The pipeline contains a large number of quality control steps. Sometimes, it may not be desirable to run all of them if time and compute resources are limited.
+The following options make this easy:
+
+| Step                    | Description                        |
+|-------------------------|------------------------------------|
+| `--skipFastQC`          | Skip FastQC                        |
+| `--skipPicardMetrics`   | Skip Picard CollectMultipleMetrics |
+| `--skipPreseq`          | Skip Preseq                        |
+| `--skipPlotProfile`     | Skip deepTools plotProfile         |
+| `--skipPlotFingerprint` | Skip deepTools plotFingerprint     |
+| `--skipAtaqv`           | Skip Ataqv                         |
+| `--skipIGV`             | Skip IGV                           |
+| `--skipMultiQC`         | Skip MultiQC                       |
+
+`--skipMultiQCStats` allows you to exclude the [general statistics table](https://multiqc.info/docs/#general-statistics-table) from the MultiQC report.
+
 ## Job resources
 ### Automatic resubmission
 Each step in the pipeline has a default set of requirements for number of CPUs, memory and time. For most of the steps in the pipeline, if the job exits with an error code of `143` (exceeded requested resources) it will automatically resubmit with higher requests (2 x original, then 3 x original). If it still fails after three times then the pipeline is stopped.
@@ -327,7 +388,7 @@ Wherever process-specific requirements are set in the pipeline, the default valu
 
 If you are likely to be running `nf-core` pipelines regularly it may be a good idea to request that your custom config file is uploaded to the `nf-core/configs` git repository. Before you do this please can you test that the config file works with your pipeline of choice using the `-c` parameter (see definition below). You can then create a pull request to the `nf-core/configs` repository with the addition of your config file, associated documentation file (see examples in [`nf-core/configs/docs`](https://github.com/nf-core/configs/tree/master/docs)), and amending [`nfcore_custom.config`](https://github.com/nf-core/configs/blob/master/nfcore_custom.config) to include your custom profile.
 
-If you have any questions or issues please send us a message on [Slack](https://nf-core-invite.herokuapp.com/).
+If you have any questions or issues please send us a message on [Slack](https://nf-co.re/join/slack/).
 
 ## AWS Batch specific parameters
 Running the pipeline on AWS Batch requires a couple of specific parameters to be set according to your AWS Batch configuration. Please use the `-awsbatch` profile and then specify all of the following parameters.
@@ -345,6 +406,9 @@ The output directory where the results will be saved.
 
 ### `--email`
 Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.
+
+### `--email_on_fail`
+This works exactly as with `--email`, except emails are only sent if the workflow is not successful.
 
 ### `-name`
 Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic.

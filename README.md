@@ -1,7 +1,7 @@
-# ![nfcore/atacseq](docs/images/nfcore-atacseq_logo.png)
+# ![nfcore/atacseq](docs/images/nf-core-atacseq_logo.png)
 
 [![Build Status](https://travis-ci.org/nf-core/atacseq.svg?branch=master)](https://travis-ci.org/nf-core/atacseq)
-[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.32.0-brightgreen.svg)](https://www.nextflow.io/)
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.04.0-brightgreen.svg)](https://www.nextflow.io/)
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/)
 [![Docker](https://img.shields.io/docker/automated/nfcore/atacseq.svg)](https://hub.docker.com/r/nfcore/atacseq)
@@ -96,11 +96,17 @@ The pipeline was developed by [Harshil Patel](mailto:harshil.patel@crick.ac.uk).
 
 The [nf-core/rnaseq](https://github.com/nf-core/rnaseq) and [nf-core/chipseq](https://github.com/nf-core/chipseq) pipelines developed by Phil Ewels were initially used as a template for this pipeline. Many thanks to Phil for all of his help and advice, and the team at SciLifeLab.
 
-Many thanks to others who have helped out along the way too, including (but not limited to): [@apeltzer](https://github.com/apeltzer), [@sven1103](https://github.com/sven1103), [@MaxUlysse](https://github.com/MaxUlysse), [@micans](https://github.com/micans), [@pditommaso](https://github.com/pditommaso).
+Many thanks to others who have helped out along the way too, including (but not limited to): [@apeltzer](https://github.com/apeltzer), [@sven1103](https://github.com/sven1103), [@MaxUlysse](https://github.com/MaxUlysse), [@micans](https://github.com/micans), [@jinmingda](https://github.com/jinmingda), [@ktrns](https://github.com/ktrns), [@crickbabs](https://github.com/crickbabs), [@pditommaso](https://github.com/pditommaso).
+
+## Contributions and Support
+
+If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
+
+For further information or help, don't hesitate to get in touch on [Slack](https://nfcore.slack.com/channels/atacseq) (you can join with [this invite](https://nf-co.re/join/slack)).
 
 ## Citation
 
 If you use nf-core/atacseq for your analysis, please cite it using the following doi: [10.5281/zenodo.2634132](https://doi.org/10.5281/zenodo.2634132)
 
 You can cite the `nf-core` pre-print as follows:  
-Ewels PA, Peltzer A, Fillinger S, Alneberg JA, Patel H, Wilm A, Garcia MU, Di Tommaso P, Nahnsen S. **nf-core: Community curated bioinformatics pipelines**. *bioRxiv*. 2019. p. 610741. [doi: 10.1101/610741](https://www.biorxiv.org/content/10.1101/610741v1).
+> Ewels PA, Peltzer A, Fillinger S, Alneberg JA, Patel H, Wilm A, Garcia MU, Di Tommaso P, Nahnsen S. **nf-core: Community curated bioinformatics pipelines**. *bioRxiv*. 2019. p. 610741. [doi: 10.1101/610741](https://www.biorxiv.org/content/10.1101/610741v1).
