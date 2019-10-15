@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * `--saveMACSPileup`
   * `--skipDiffAnalysis`
   * `--skip*` for skipping QC steps
+* Change parameter `saveGenomeIndex` to `saveReference`
 * Update template to tools `1.7`
 * Bump Nextflow version to `19.04.0`
 
