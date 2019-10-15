@@ -247,9 +247,9 @@ The library-level alignments associated with the same sample are merged and subs
     Please see [ataqv homepage](https://parkerlab.github.io/ataqv/) for documentation and an example report.
 
     *Output directories*:
-    * `bwa/mergedLibrary/ataqv/`  
+    * `bwa/mergedLibrary/ataqv/<PEAK_TYPE>/`  
       `.json` files containing ATAC-seq specific metrics for each sample.
-    * `bwa/mergedLibrary/ataqv/html/`  
+    * `bwa/mergedLibrary/ataqv/<PEAK_TYPE>/html/`  
       Folder containing ataqv results aggregated across all samples for visualisation via an internet browser.
 
 ## Merged replicate-level analysis
@@ -277,7 +277,7 @@ You can skip this portion of the analysis by specifying the `--skipMergeReplicat
     The pipeline has special steps which also allow the software versions to be reported in the MultiQC output for future traceability. For more information about how to use MultiQC reports, see <http://multiqc.info>.
 
     *Output directories*:
-    * `multiqc/`  
+    * `multiqc/<PEAK_TYPE>/`  
       * `multiqc_report.html` - a standalone HTML file that can be viewed in your web browser.
       * `multiqc_data/` - directory containing parsed statistics from the different tools used in the pipeline.
       * `multiqc_plots/` - directory containing static images from the report in various formats.
@@ -301,7 +301,7 @@ You can skip this portion of the analysis by specifying the `--skipMergeReplicat
     ![IGV screenshot](images/igv_screenshot.png)  
 
     *Output directories*:
-    * `igv/`  
+    * `igv/<PEAK_TYPE>/`  
       * `igv_session.xml` file.  
       * `igv_files.txt` file containing a listing of the files used to create the IGV session, and their allocated colours.
 

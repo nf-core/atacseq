@@ -1306,7 +1306,7 @@ process MergeLibraryConsensusPeakSetDESeq {
 process MergeLibraryAtaqv {
     tag "$name"
     label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/ataqv", mode: 'copy'
+    publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${peaktype}", mode: 'copy'
 
     when:
     !skipAtaqv
@@ -1320,6 +1320,7 @@ process MergeLibraryAtaqv {
     file "*.json" into ch_mlib_ataqv
 
     script:
+    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
     peak_param = params.macs_gsize ? "--peak-file ${peak}" : ""
     mito_param = params.mito_name ? "--mitochondrial-reference-name ${params.mito_name}" : ""
     """
@@ -1342,7 +1343,7 @@ process MergeLibraryAtaqv {
  */
 process MergeLibraryAtaqvMkarv {
     label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/ataqv", mode: 'copy'
+    publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${peaktype}", mode: 'copy'
 
     when:
     !skipAtaqv
@@ -1354,6 +1355,7 @@ process MergeLibraryAtaqvMkarv {
     file "html" into ch_mlib_ataqv_mkarv
 
     script:
+    peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
     """
     mkarv \\
         --concurrency $task.cpus \\
