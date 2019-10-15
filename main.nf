@@ -9,14 +9,6 @@
 ----------------------------------------------------------------------------------------
 */
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                             PARAMETERS                              -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 def helpMessage() {
     log.info nfcoreHeader()
     log.info"""
@@ -572,7 +564,7 @@ if (params.skipTrimming) {
 /*
  * STEP 3.1 - Align read 1 with bwa
  */
-process BWAmem {
+process BWAMem {
     tag "$name"
     label 'process_high'
 
@@ -585,9 +577,9 @@ process BWAmem {
 
     script:
     prefix = "${name}.Lb"
-    rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
+    rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
     if (params.seq_center) {
-        rg="\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
+        rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
     }
     """
     bwa mem \\
@@ -869,7 +861,7 @@ process MergeLibraryPreseq {
 }
 
 /*
- * STEP 5.2 Picard CollectMultipleMetrics after merging libraries
+ * STEP 5.2 Picard CollectMultipleMetrics after merging libraries and filtering
  */
 process MergeLibraryMetrics {
     tag "$name"
@@ -1068,14 +1060,14 @@ process MergeLibraryMACSCallPeak {
     pileup = params.saveMACSPileup ? "-B --SPMR" : ""
     """
     macs2 callpeak \\
-         -t ${bam[0]} \\
-         $broad \\
-         -f $format \\
-         -g $params.macs_gsize \\
-         -n $prefix \\
-         $pileup \\
-         --keep-dup all \\
-         --nomodel
+        -t ${bam[0]} \\
+        $broad \\
+        -f $format \\
+        -g $params.macs_gsize \\
+        -n $prefix \\
+        $pileup \\
+        --keep-dup all \\
+        --nomodel
 
     cat ${prefix}_peaks.${peaktype} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $mlib_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
 
@@ -1191,7 +1183,7 @@ process MergeLibraryConsensusPeakSet {
     expandparam = params.narrowPeak ? "--is_narrow_peak" : ""
     """
     sort -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
-         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
+        | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
 
     macs2_merged_expand.py \\
         ${prefix}.txt \\
@@ -1255,8 +1247,8 @@ process MergeLibraryConsensusPeakSetDESeq {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus/deseq2", mode: 'copy',
         saveAs: {filename ->
-                if (filename.endsWith(".igv.txt")) null
-                else filename
+                    if (filename.endsWith(".igv.txt")) null
+                    else filename
         }
 
     when:
@@ -1540,14 +1532,14 @@ process MergeReplicateMACSCallPeak {
     pileup = params.saveMACSPileup ? "-B --SPMR" : ""
     """
     macs2 callpeak \\
-         -t ${bam[0]} \\
-         $broad \\
-         -f $format \\
-         -g $params.macs_gsize \\
-         -n $prefix \\
-         $pileup \\
-         --keep-dup all \\
-         --nomodel
+        -t ${bam[0]} \\
+        $broad \\
+        -f $format \\
+        -g $params.macs_gsize \\
+        -n $prefix \\
+        $pileup \\
+        --keep-dup all \\
+        --nomodel
 
     cat ${prefix}_peaks.${peaktype} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $mrep_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
 
@@ -1663,7 +1655,7 @@ process MergeReplicateConsensusPeakSet {
     expandparam = params.narrowPeak ? "--is_narrow_peak" : ""
     """
     sort -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
-         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
+        | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
 
     macs2_merged_expand.py \\
         ${prefix}.txt \\
@@ -1835,7 +1827,7 @@ process get_software_versions {
         }
 
     output:
-    file 'software_versions_mqc.yaml' into software_versions_mqc
+    file 'software_versions_mqc.yaml' into ch_software_versions_mqc
     file "software_versions.csv"
 
     script:
@@ -1892,7 +1884,7 @@ process MultiQC {
     input:
     file multiqc_config from ch_multiqc_config
 
-    file ('software_versions/*') from software_versions_mqc.collect()
+    file ('software_versions/*') from ch_software_versions_mqc.collect()
     file ('workflow_summary/*') from create_workflow_summary(summary)
 
     file ('fastqc/*') from ch_fastqc_reports_mqc.collect().ifEmpty([])
@@ -2040,7 +2032,7 @@ workflow.onComplete {
     // Send the HTML e-mail
     if (email_address) {
         try {
-          if ( params.plaintext_email ){ throw GroovyException('Send plaintext e-mail, not HTML') }
+          if (params.plaintext_email) { throw GroovyException('Send plaintext e-mail, not HTML') }
           // Try to send HTML e-mail using sendmail
           [ 'sendmail', '-t' ].execute() << sendmail_html
           log.info "[nf-core/atacseq] Sent summary e-mail to $email_address (sendmail)"
@@ -2089,7 +2081,7 @@ workflow.onComplete {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-def nfcoreHeader(){
+def nfcoreHeader() {
     // Log colors ANSI codes
     c_reset = params.monochrome_logs ? '' : "\033[0m";
     c_dim = params.monochrome_logs ? '' : "\033[2m";
