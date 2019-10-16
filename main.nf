@@ -72,7 +72,6 @@ def helpMessage() {
       --skipAtaqv                   Skip Ataqv
       --skipIGV                     Skip IGV
       --skipMultiQC                 Skip MultiQC
-      --skipMultiQCStats            Exclude general statistics table from MultiQC report
 
     Other
       --outdir                      The output directory where the results will be saved
@@ -253,7 +252,6 @@ if (params.skipPlotFingerprint) summary['Skip plotFingerprint'] = 'Yes'
 if (params.skipAtaqv) summary['Skip Ataqv'] = 'Yes'
 if (params.skipIGV)             summary['Skip IGV'] = 'Yes'
 if (params.skipMultiQC)         summary['Skip MultiQC'] = 'Yes'
-if (params.skipMultiQCStats)    summary['Skip MultiQC Stats'] = 'Yes'
 summary['Max Resources']        = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
 if (workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
 summary['Output Dir']           = params.outdir
@@ -1930,11 +1928,9 @@ process MultiQC {
     peaktype = params.narrowPeak ? "narrowPeak" : "broadPeak"
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
-    mqcstats = params.skipMultiQCStats ? '--cl_config "skip_generalstats: true"' : ''
     """
     multiqc . -f $rtitle $rfilename --config $multiqc_config \\
-        -m custom_content -m fastqc -m cutadapt -m samtools -m picard -m preseq -m featureCounts -m deeptools \\
-        $mqcstats
+        -m custom_content -m fastqc -m cutadapt -m samtools -m picard -m preseq -m featureCounts -m deeptools
     """
 }
 
