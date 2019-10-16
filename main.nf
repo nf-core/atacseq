@@ -53,6 +53,7 @@ def helpMessage() {
       --keepMito                    Reads mapping to mitochondrial contig are not filtered from alignments
       --keepDups                    Duplicate reads are not filtered from alignments
       --keepMultiMap                Reads mapping to multiple locations are not filtered from alignments
+      --skipMergeReplicates         Do not perform alignment merging and downstream analysis by merging replicates i.e. only do this by merging resequenced libraries
       --saveAlignedIntermediates    Save the intermediate BAM files from the alignment step - not done by default
 
     Peaks
