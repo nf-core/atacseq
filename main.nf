@@ -123,6 +123,9 @@ params.mito_name = params.genome ? params.genomes[ params.genome ].mito_name ?: 
 params.macs_gsize = params.genome ? params.genomes[ params.genome ].macs_gsize ?: false : false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
 
+// Global variables
+def PEAK_TYPE = params.narrow_peak ? "narrowPeak" : "broadPeak"
+
 // Has the run name been specified by the user?
 //  this has the bonus effect of catching both -name and --name
 custom_runName = params.name
@@ -1045,7 +1048,7 @@ process MergedLibPlotFingerprint {
 process MergedLibMACSCallPeak {
     tag "$name"
     label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}", mode: 'copy',
+    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: 'copy',
         saveAs: { filename ->
                       if (filename.endsWith(".tsv")) "qc/$filename"
                       else if (filename.endsWith(".igv.txt")) null
@@ -1062,16 +1065,15 @@ process MergedLibMACSCallPeak {
 
     output:
     set val(name), file("*.{bed,xls,gappedPeak,bdg}") into ch_mlib_macs_output
-    set val(name), file("*$peaktype") into ch_mlib_macs_homer,
-                                           ch_mlib_macs_qc,
-                                           ch_mlib_macs_consensus,
-                                           ch_mlib_macs_ataqv
+    set val(name), file("*$PEAK_TYPE") into ch_mlib_macs_homer,
+                                            ch_mlib_macs_qc,
+                                            ch_mlib_macs_consensus,
+                                            ch_mlib_macs_ataqv
     file "*igv.txt" into ch_mlib_macs_igv
     file "*_mqc.tsv" into ch_mlib_macs_mqc
 
     script:
     prefix = "${name}.mLb.clN"
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
     format = params.single_end ? "BAM" : "BAMPE"
     pileup = params.save_macs_pileup ? "-B --SPMR" : ""
@@ -1086,12 +1088,12 @@ process MergedLibMACSCallPeak {
         --keep-dup all \\
         --nomodel
 
-    cat ${prefix}_peaks.${peaktype} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $mlib_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
+    cat ${prefix}_peaks.${PEAK_TYPE} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $mlib_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
 
-    READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks.${peaktype} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
+    READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks.${PEAK_TYPE} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
     grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' | cat $mlib_frip_score_header - > ${prefix}_peaks.FRiP_mqc.tsv
 
-    find * -type f -name "*.${peaktype}" -exec echo -e "bwa/mergedLibrary/macs/${peaktype}/"{}"\\t0,0,178" \\; > ${prefix}_peaks.igv.txt
+    find * -type f -name "*.${PEAK_TYPE}" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/"{}"\\t0,0,178" \\; > ${prefix}_peaks.igv.txt
     """
 }
 
@@ -1101,7 +1103,7 @@ process MergedLibMACSCallPeak {
 process MergedLibAnnotatePeaks {
     tag "$name"
     label "process_medium"
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}", mode: 'copy'
+    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: 'copy'
 
     when:
     params.macs_gsize
@@ -1116,7 +1118,6 @@ process MergedLibAnnotatePeaks {
 
     script:
     prefix = "${name}.mLb.clN"
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     """
     annotatePeaks.pl \\
         $peak \\
@@ -1133,7 +1134,7 @@ process MergedLibAnnotatePeaks {
  */
 process MergedLibPeakQC {
     label "process_medium"
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/qc", mode: 'copy'
+    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/qc", mode: 'copy'
 
     when:
     params.macs_gsize
@@ -1149,11 +1150,10 @@ process MergedLibPeakQC {
 
     script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
     suffix = 'mLb.clN'
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     """
     plot_macs_qc.r \\
         -i ${peaks.join(',')} \\
-        -s ${peaks.join(',').replaceAll(".${suffix}_peaks.${peaktype}","")} \\
+        -s ${peaks.join(',').replaceAll(".${suffix}_peaks.${PEAK_TYPE}","")} \\
         -o ./ \\
         -p macs_peak.${suffix}
 
@@ -1172,7 +1172,7 @@ process MergedLibPeakQC {
  */
 process MergedLibConsensusPeakSet {
     label 'process_long'
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus", mode: 'copy',
+    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: 'copy',
         saveAs: { filename ->
                       if (filename.endsWith(".igv.txt")) null
                       else filename
@@ -1194,7 +1194,6 @@ process MergedLibConsensusPeakSet {
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     suffix = 'mLb.clN'
     prefix = "consensus_peaks.${suffix}"
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     mergecols = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
     collapsecols = params.narrow_peak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
     expandparam = params.narrow_peak ? "--is_narrow_peak" : ""
@@ -1204,7 +1203,7 @@ process MergedLibConsensusPeakSet {
 
     macs2_merged_expand.py \\
         ${prefix}.txt \\
-        ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${peaktype}","")} \\
+        ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${PEAK_TYPE}","")} \\
         ${prefix}.boolean.txt \\
         --min_replicates $params.min_reps_consensus \\
         $expandparam
@@ -1217,7 +1216,7 @@ process MergedLibConsensusPeakSet {
     sed -i 's/.${suffix}//g' ${prefix}.boolean.intersect.txt
     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
 
-    find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedLibrary/macs/${peaktype}/consensus/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
+    find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
     """
 }
 
@@ -1226,7 +1225,7 @@ process MergedLibConsensusPeakSet {
  */
 process MergedLibConsensusPeakSetAnnotate {
     label "process_medium"
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus", mode: 'copy'
+    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: 'copy'
 
     when:
     params.macs_gsize && (multipleGroups || replicatesExist)
@@ -1242,7 +1241,6 @@ process MergedLibConsensusPeakSetAnnotate {
 
     script:
     prefix = "consensus_peaks.mLb.clN"
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     """
     annotatePeaks.pl \\
         $bed \\
@@ -1262,7 +1260,7 @@ process MergedLibConsensusPeakSetAnnotate {
  */
 process MergedLibConsensusPeakSetDESeq {
     label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus/deseq2", mode: 'copy',
+    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/deseq2", mode: 'copy',
         saveAs: { filename ->
                       if (filename.endsWith(".igv.txt")) null
                       else filename
@@ -1289,7 +1287,6 @@ process MergedLibConsensusPeakSetDESeq {
 
     script:
     prefix = "consensus_peaks.mLb.clN"
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
     pe_params = params.single_end ? '' : "-p --donotsort"
@@ -1309,7 +1306,7 @@ process MergedLibConsensusPeakSetDESeq {
     cat $mlib_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $mlib_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
 
-    find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${peaktype}/consensus/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
+    find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
     """
 }
 
@@ -1319,7 +1316,7 @@ process MergedLibConsensusPeakSetDESeq {
 process MergedLibAtaqv {
     tag "$name"
     label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${peaktype}", mode: 'copy'
+    publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${PEAK_TYPE}", mode: 'copy'
 
     when:
     !params.skip_ataqv
@@ -1333,7 +1330,6 @@ process MergedLibAtaqv {
     file "*.json" into ch_mlib_ataqv
 
     script:
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     peak_param = params.macs_gsize ? "--peak-file ${peak}" : ""
     mito_param = params.mito_name ? "--mitochondrial-reference-name ${params.mito_name}" : ""
     """
@@ -1356,7 +1352,7 @@ process MergedLibAtaqv {
  */
 process MergedLibAtaqvMkarv {
     label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${peaktype}", mode: 'copy'
+    publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${PEAK_TYPE}", mode: 'copy'
 
     when:
     !params.skip_ataqv
@@ -1368,7 +1364,6 @@ process MergedLibAtaqvMkarv {
     file "html" into ch_mlib_ataqv_mkarv
 
     script:
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     """
     mkarv \\
         --concurrency $task.cpus \\
@@ -1521,7 +1516,7 @@ process MergedRepBigWig {
 process MergedRepMACSCallPeak {
     tag "$name"
     label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}", mode: 'copy',
+    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}", mode: 'copy',
         saveAs: { filename ->
                       if (filename.endsWith(".tsv")) "qc/$filename"
                       else if (filename.endsWith(".igv.txt")) null
@@ -1538,15 +1533,14 @@ process MergedRepMACSCallPeak {
 
     output:
     set val(name), file("*.{bed,xls,gappedPeak,bdg}") into ch_mrep_macs_output
-    set val(name), file("*$peaktype") into ch_mrep_macs_homer,
-                                           ch_mrep_macs_qc,
-                                           ch_mrep_macs_consensus
+    set val(name), file("*$PEAK_TYPE") into ch_mrep_macs_homer,
+                                            ch_mrep_macs_qc,
+                                            ch_mrep_macs_consensus
     file "*igv.txt" into ch_mrep_macs_igv
     file "*_mqc.tsv" into ch_mrep_macs_mqc
 
     script:
     prefix = "${name}.mRp.clN"
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
     format = params.single_end ? "BAM" : "BAMPE"
     pileup = params.save_macs_pileup ? "-B --SPMR" : ""
@@ -1561,12 +1555,12 @@ process MergedRepMACSCallPeak {
         --keep-dup all \\
         --nomodel
 
-    cat ${prefix}_peaks.${peaktype} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $mrep_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
+    cat ${prefix}_peaks.${PEAK_TYPE} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $mrep_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
 
-    READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks.${peaktype} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
+    READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks.${PEAK_TYPE} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
     grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' | cat $mrep_frip_score_header - > ${prefix}_peaks.FRiP_mqc.tsv
 
-    find * -type f -name "*.${peaktype}" -exec echo -e "bwa/mergedReplicate/macs/${peaktype}/"{}"\\t0,0,178" \\; > ${prefix}_peaks.igv.txt
+    find * -type f -name "*.${PEAK_TYPE}" -exec echo -e "bwa/mergedReplicate/macs/${PEAK_TYPE}/"{}"\\t0,0,178" \\; > ${prefix}_peaks.igv.txt
     """
 }
 
@@ -1576,7 +1570,7 @@ process MergedRepMACSCallPeak {
 process MergedRepAnnotatePeaks {
     tag "$name"
     label "process_medium"
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}", mode: 'copy'
+    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}", mode: 'copy'
 
     when:
     !params.skip_merge_replicates && replicatesExist && params.macs_gsize
@@ -1591,7 +1585,6 @@ process MergedRepAnnotatePeaks {
 
     script:
     prefix = "${name}.mRp.clN"
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     """
     annotatePeaks.pl \\
         $peak \\
@@ -1608,7 +1601,7 @@ process MergedRepAnnotatePeaks {
  */
 process MergedRepPeakQC {
     label "process_medium"
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}/qc", mode: 'copy'
+    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/qc", mode: 'copy'
 
     when:
     !params.skip_merge_replicates && replicatesExist && params.macs_gsize
@@ -1624,11 +1617,10 @@ process MergedRepPeakQC {
 
     script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
     suffix = 'mRp.clN'
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     """
     plot_macs_qc.r \\
         -i ${peaks.join(',')} \\
-        -s ${peaks.join(',').replaceAll(".${suffix}_peaks.${peaktype}","")} \\
+        -s ${peaks.join(',').replaceAll(".${suffix}_peaks.${PEAK_TYPE}","")} \\
         -o ./ \\
         -p macs_peak.${suffix}
 
@@ -1647,7 +1639,7 @@ process MergedRepPeakQC {
  */
 process MergedRepConsensusPeakSet {
     label 'process_long'
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}/consensus", mode: 'copy',
+    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: 'copy',
         saveAs: { filename ->
                       if (filename.endsWith(".igv.txt")) null
                       else filename
@@ -1669,7 +1661,6 @@ process MergedRepConsensusPeakSet {
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     suffix = 'mRp.clN'
     prefix = "consensus_peaks.${suffix}"
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     mergecols = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
     collapsecols = params.narrow_peak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
     expandparam = params.narrow_peak ? "--is_narrow_peak" : ""
@@ -1679,7 +1670,7 @@ process MergedRepConsensusPeakSet {
 
     macs2_merged_expand.py \\
         ${prefix}.txt \\
-        ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${peaktype}","")} \\
+        ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${PEAK_TYPE}","")} \\
         ${prefix}.boolean.txt \\
         $expandparam
 
@@ -1691,7 +1682,7 @@ process MergedRepConsensusPeakSet {
     sed -i 's/.${suffix}//g' ${prefix}.boolean.intersect.txt
     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
 
-    find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedReplicate/macs/${peaktype}/consensus/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
+    find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
     """
 }
 
@@ -1700,7 +1691,7 @@ process MergedRepConsensusPeakSet {
  */
 process MergedRepConsensusPeakSetAnnotate {
     label "process_medium"
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}/consensus", mode: 'copy'
+    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: 'copy'
 
     when:
     !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups
@@ -1716,7 +1707,6 @@ process MergedRepConsensusPeakSetAnnotate {
 
     script:
     prefix = "consensus_peaks.mRp.clN"
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     """
     annotatePeaks.pl \\
         $bed \\
@@ -1736,7 +1726,7 @@ process MergedRepConsensusPeakSetAnnotate {
  */
 process MergedRepConsensusPeakSetDESeq {
     label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}/consensus/deseq2", mode: 'copy',
+    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus/deseq2", mode: 'copy',
         saveAs: { filename ->
                       if (filename.endsWith(".igv.txt")) null
                       else filename
@@ -1763,7 +1753,6 @@ process MergedRepConsensusPeakSetDESeq {
 
     script:
     prefix = "consensus_peaks.mRp.clN"
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
     pe_params = params.single_end ? '' : "-p --donotsort"
@@ -1783,7 +1772,7 @@ process MergedRepConsensusPeakSetDESeq {
     cat $mrep_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $mrep_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
 
-    find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedReplicate/macs/${peaktype}/consensus/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
+    find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
     """
 }
 
@@ -1799,7 +1788,7 @@ process MergedRepConsensusPeakSetDESeq {
  * STEP 9 - Create IGV session file
  */
 process IGV {
-    publishDir "${params.outdir}/igv/${peaktype}", mode: 'copy'
+    publishDir "${params.outdir}/igv/${PEAK_TYPE}", mode: 'copy'
 
     when:
     !params.skip_igv
@@ -1821,7 +1810,6 @@ process IGV {
     file "*.{txt,xml}" into ch_igv_session
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     """
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt ../../reference_genome/${fasta.getName()} --path_prefix '../../'
@@ -1896,7 +1884,7 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
  * STEP 10 - MultiQC
  */
 process MultiQC {
-    publishDir "${params.outdir}/multiqc/${peaktype}", mode: 'copy'
+    publishDir "${params.outdir}/multiqc/${PEAK_TYPE}", mode: 'copy'
 
     when:
     !params.skip_multiqc
@@ -1940,7 +1928,6 @@ process MultiQC {
     file "multiqc_plots"
 
     script:
-    peaktype = params.narrow_peak ? "narrowPeak" : "broadPeak"
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     """
