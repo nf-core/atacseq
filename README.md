@@ -127,20 +127,8 @@ You can cite the `nf-core` pre-print as follows:
 [BamTools](https://www.ncbi.nlm.nih.gov/pubmed/21493652/)
 > Barnett DW, Garrison EK, Quinlan AR, Strömberg MP, Marth GT. BamTools: a C++ API and toolkit for analyzing and managing BAM files. Bioinformatics. 2011 Jun 15;27(12):1691-2. doi: 10.1093/bioinformatics/btr174. Epub 2011 Apr 14. PubMed PMID: 21493652; PubMed Central PMCID: PMC3106182.
 
-[Kent tools](https://www.ncbi.nlm.nih.gov/pubmed/20639541/)
+[UCSC tools](https://www.ncbi.nlm.nih.gov/pubmed/20639541/)
 > Kent WJ, Zweig AS, Barber G, Hinrichs AS, Karolchik D. BigWig and BigBed: enabling browsing of large distributed datasets. Bioinformatics. 2010 Sep 1;26(17):2204-7. doi: 10.1093/bioinformatics/btq351. Epub 2010 Jul 17. PubMed PMID: 20639541; PubMed Central PMCID: PMC2922891.
-
-[MACS2](https://www.ncbi.nlm.nih.gov/pubmed/18798982/)
-> Zhang Y, Liu T, Meyer CA, Eeckhoute J, Johnson DS, Bernstein BE, Nusbaum C, Myers RM, Brown M, Li W, Liu XS. Model-based analysis of ChIP-Seq (MACS). Genome Biol. 2008;9(9):R137. doi: 10.1186/gb-2008-9-9-r137. Epub 2008 Sep 17. PubMed PMID: 18798982; PubMed Central PMCID: PMC2592715.
-
-[HOMER](https://www.ncbi.nlm.nih.gov/pubmed/20513432/)
-> Heinz S, Benner C, Spann N, Bertolino E, Lin YC, Laslo P, Cheng JX, Murre C, Singh H, Glass CK. Simple combinations of lineage-determining transcription factors prime cis-regulatory elements required for macrophage and B cell identities. Mol Cell. 2010 May 28;38(4):576-89. doi: 10.1016/j.molcel.2010.05.004. PubMed PMID: 20513432; PubMed Central PMCID: PMC2898526.
-
-[DESeq2](https://www.ncbi.nlm.nih.gov/pubmed/25516281/)
-> Love MI, Huber W, Anders S. Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2. Genome Biol. 2014;15(12):550. PubMed PMID: 25516281; PubMed Central PMCID: PMC4302049.
-
-[featureCounts](https://www.ncbi.nlm.nih.gov/pubmed/24227677/)
-> Liao Y, Smyth GK, Shi W. featureCounts: an efficient general purpose program for assigning sequence reads to genomic features. Bioinformatics. 2014 Apr 1;30(7):923-30. doi: 10.1093/bioinformatics/btt656. Epub 2013 Nov 13. PubMed PMID: 24227677.
 
 [preseq](https://www.ncbi.nlm.nih.gov/pubmed/23435259/)
 > Daley T, Smith AD. Predicting the molecular complexity of sequencing libraries. Nat Methods. 2013 Apr;10(4):325-7. doi: 10.1038/nmeth.2375. Epub 2013 Feb 24. PubMed PMID: 23435259; PubMed Central PMCID: PMC3612374.
@@ -148,18 +136,30 @@ You can cite the `nf-core` pre-print as follows:
 [deepTools](https://www.ncbi.nlm.nih.gov/pubmed/27079975/)
 > Ramírez F, Ryan DP, Grüning B, Bhardwaj V, Kilpert F, Richter AS, Heyne S, Dündar F, Manke T. deepTools2: a next generation web server for deep-sequencing data analysis. Nucleic Acids Res. 2016 Jul 8;44(W1):W160-5. doi: 10.1093/nar/gkw257. Epub 2016 Apr 13. PubMed PMID: 27079975; PubMed Central PMCID: PMC4987876.
 
+[MACS2](https://www.ncbi.nlm.nih.gov/pubmed/18798982/)
+> Zhang Y, Liu T, Meyer CA, Eeckhoute J, Johnson DS, Bernstein BE, Nusbaum C, Myers RM, Brown M, Li W, Liu XS. Model-based analysis of ChIP-Seq (MACS). Genome Biol. 2008;9(9):R137. doi: 10.1186/gb-2008-9-9-r137. Epub 2008 Sep 17. PubMed PMID: 18798982; PubMed Central PMCID: PMC2592715.
+
+[HOMER](https://www.ncbi.nlm.nih.gov/pubmed/20513432/)
+> Heinz S, Benner C, Spann N, Bertolino E, Lin YC, Laslo P, Cheng JX, Murre C, Singh H, Glass CK. Simple combinations of lineage-determining transcription factors prime cis-regulatory elements required for macrophage and B cell identities. Mol Cell. 2010 May 28;38(4):576-89. doi: 10.1016/j.molcel.2010.05.004. PubMed PMID: 20513432; PubMed Central PMCID: PMC2898526.
+
+[featureCounts](https://www.ncbi.nlm.nih.gov/pubmed/24227677/)
+> Liao Y, Smyth GK, Shi W. featureCounts: an efficient general purpose program for assigning sequence reads to genomic features. Bioinformatics. 2014 Apr 1;30(7):923-30. doi: 10.1093/bioinformatics/btt656. Epub 2013 Nov 13. PubMed PMID: 24227677.
+
+[DESeq2](https://www.ncbi.nlm.nih.gov/pubmed/25516281/)
+> Love MI, Huber W, Anders S. Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2. Genome Biol. 2014;15(12):550. PubMed PMID: 25516281; PubMed Central PMCID: PMC4302049.
+
 [MultiQC](https://www.ncbi.nlm.nih.gov/pubmed/27312411/)
 > Ewels P, Magnusson M, Lundin S, Käller M. MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics. 2016 Oct 1;32(19):3047-8. doi: 10.1093/bioinformatics/btw354. Epub 2016 Jun 16. PubMed PMID: 27312411; PubMed Central PMCID: PMC5039924.
 
-[fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+[FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
 
-[trimgalore](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
+[Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
+
+[picard-tools](http://broadinstitute.github.io/picard)
 
 [pysam](https://github.com/pysam-developers/pysam)
 
 [ataqv](https://github.com/ParkerLab/ataqv)
-
-[picard-tools](http://broadinstitute.github.io/picard)
 
 ### R packages
 
