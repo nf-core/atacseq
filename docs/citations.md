@@ -1,4 +1,4 @@
-# Citations
+# nf-core/atacseq: Citations
 
 ## Pipeline tools
 
