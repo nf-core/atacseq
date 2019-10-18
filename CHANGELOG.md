@@ -11,23 +11,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 * [#35](https://github.com/nf-core/atacseq/issues/35) - Add deepTools plotFingerprint
 * [#46](https://github.com/nf-core/atacseq/issues/46) - Missing gene_bed path in igenomes config
-* Merged in TEMPLATE branch for automated syncing
-* Renamed all channels to start with `ch_` prefix
 * Capitalised process names
 * Add quick start information to main README
+* Merged in TEMPLATE branch for automated syncing
+* Update template to tools `1.7`
 * Add parameters:
   * `--seq_center`
+  * `--trim_nextseq`
   * `--fingerprint_bins`
   * `--broad_cutoff`
   * `--min_reps_consensus`
   * `--save_macs_pileup`
   * `--skip_diff_analysis`
   * `--skip*` for skipping QC steps
-* Change parameter `saveGenomeIndex` to `save_reference`
-* Update template to tools `1.7`
-* Bump Nextflow version to `19.04.0`
-* Change all parameters from `camelCase` to `snake_case`
-* Change `--design` parameter to `--input` for standardisation
 
 ### `Fixed`
 
@@ -36,11 +32,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [#45](https://github.com/nf-core/atacseq/issues/45) - Wrong x-axis scale for the HOMER: Peak annotation Counts tab plot?
 * [#46](https://github.com/nf-core/atacseq/issues/46) - Stage blacklist file in channel properly
 * [#50](https://github.com/nf-core/atacseq/issues/50) - HOMER number of peaks does not correspond to found MACS2 peaks
+* Renamed all channels to start with `ch_` prefix
+* Change all parameters from `camelCase` to `snake_case`
+* Change parameter `saveGenomeIndex` to `save_reference`
+* Change `--design` parameter to `--input`
 * Smaller logo for completion email
 * IGV uses relative instead of absolute paths
+* Fixed bug in UpSetR peak intersection plot
 
 ### `Dependencies`
 
+* Bump Nextflow version to `19.04.0`
 * Added preseq v2.0.3
 * Added deeptools v3.2.1
 * Added r-xfun v0.3
