@@ -20,12 +20,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   * `--fingerprint_bins`
   * `--broad_cutoff`
   * `--min_reps_consensus`
-  * `--saveMACSPileup`
-  * `--skipDiffAnalysis`
+  * `--save_macs_pileup`
+  * `--skip_diff_analysis`
   * `--skip*` for skipping QC steps
-* Change parameter `saveGenomeIndex` to `saveReference`
+* Change parameter `saveGenomeIndex` to `save_reference`
 * Update template to tools `1.7`
 * Bump Nextflow version to `19.04.0`
+* Change all parameters from `camelCase` to `snake_case`
 
 ### `Fixed`
 
