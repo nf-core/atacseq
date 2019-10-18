@@ -1179,7 +1179,7 @@ process MergedLibConsensusPeakSet {
                 }
 
     when:
-    params.macs_gsize && (multipleGroups || replicatesExist)
+    params.macs_gsize && (replicatesExist || multipleGroups)
 
     input:
     file peaks from ch_mlib_macs_consensus.collect{ it[1] }
@@ -1228,7 +1228,7 @@ process MergedLibConsensusPeakSetAnnotate {
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: 'copy'
 
     when:
-    params.macs_gsize && (multipleGroups || replicatesExist)
+    params.macs_gsize && (replicatesExist || multipleGroups)
 
     input:
     file bed from ch_mlib_macs_consensus_bed
@@ -1267,7 +1267,7 @@ process MergedLibConsensusPeakSetDESeq {
                 }
 
     when:
-    params.macs_gsize && !params.skip_diff_analysis && multipleGroups && replicatesExist
+    params.macs_gsize && replicatesExist && multipleGroups && !params.skip_diff_analysis
 
     input:
     file bams from ch_mlib_name_bam_mlib_counts.collect{ it[1] }
@@ -1733,7 +1733,7 @@ process MergedRepConsensusPeakSetDESeq {
                 }
 
     when:
-    !params.skip_merge_replicates && !params.skip_diff_analysis && replicatesExist && params.macs_gsize && multipleGroups
+    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_diff_analysis
 
     input:
     file bams from ch_mlib_name_bam_mrep_counts.collect{ it[1] }
