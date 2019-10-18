@@ -181,8 +181,9 @@ if (params.bwa_index) {
     lastPath = params.bwa_index.lastIndexOf(File.separator)
     bwa_dir =  params.bwa_index.substring(0,lastPath+1)
     bwa_base = params.bwa_index.substring(lastPath+1)
-    ch_bwa_index = Channel
+    Channel
         .fromPath(bwa_dir, checkIfExists: true)
+        .set { ch_bwa_index }
 }
 
 ////////////////////////////////////////////////////
@@ -321,33 +322,37 @@ process CheckDesign {
  * Create channels for input fastq files
  */
 if (params.single_end) {
-    ch_design_reads_csv.splitCsv(header:true, sep:',')
-                       .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true) ] ] }
-                       .into { ch_raw_reads_fastqc;
-                               ch_raw_reads_trimgalore;
-                               design_replicates_exist;
-                               design_multiple_samples }
+    ch_design_reads_csv
+        .splitCsv(header:true, sep:',')
+        .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true) ] ] }
+        .into { ch_raw_reads_fastqc;
+                ch_raw_reads_trimgalore;
+                design_replicates_exist;
+                design_multiple_samples }
 } else {
-    ch_design_reads_csv.splitCsv(header:true, sep:',')
-                       .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true), file(row.fastq_2, checkIfExists: true) ] ] }
-                       .into { ch_raw_reads_fastqc;
-                               ch_raw_reads_trimgalore;
-                               design_replicates_exist;
-                               design_multiple_samples }
+    ch_design_reads_csv
+        .splitCsv(header:true, sep:',')
+        .map { row -> [ row.sample_id, [ file(row.fastq_1, checkIfExists: true), file(row.fastq_2, checkIfExists: true) ] ] }
+        .into { ch_raw_reads_fastqc;
+                ch_raw_reads_trimgalore;
+                design_replicates_exist;
+                design_multiple_samples }
 }
 
 // Boolean value for replicates existing in design
-replicatesExist = design_replicates_exist.map { it -> it[0].split('_')[-2].replaceAll('R','').toInteger() }
-                                         .flatten()
-                                         .max()
-                                         .val > 1
+replicatesExist = design_replicates_exist
+                      .map { it -> it[0].split('_')[-2].replaceAll('R','').toInteger() }
+                      .flatten()
+                      .max()
+                      .val > 1
 
 // Boolean value for multiple groups existing in design
-multipleGroups = design_multiple_samples.map { it -> it[0].split('_')[0..-3].join('_') }
-                                        .flatten()
-                                        .unique()
-                                        .count()
-                                        .val > 1
+multipleGroups = design_multiple_samples
+                     .map { it -> it[0].split('_')[0..-3].join('_') }
+                     .flatten()
+                     .unique()
+                     .count()
+                     .val > 1
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -641,12 +646,13 @@ process SortBAM {
 /*
  * STEP 4.1 Merge BAM files for all libraries from same replicate
  */
-ch_sort_bam_merge.map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
-                 .groupTuple(by: [0])
-                 .map { it ->  [ it[0], it[1].flatten() ] }
-                 .set { ch_sort_bam_merge }
+ch_sort_bam_merge
+    .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
+    .groupTuple(by: [0])
+    .map { it ->  [ it[0], it[1].flatten() ] }
+    .set { ch_sort_bam_merge }
 
-process MergeLibraryBAM {
+process MergedLibBAM {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
@@ -723,7 +729,7 @@ process MergeLibraryBAM {
 /*
  * STEP 4.2 Filter BAM file at merged library-level
  */
-process MergeLibraryBAMFilter {
+process MergedLibBAMFilter {
     tag "$name"
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
@@ -779,19 +785,24 @@ process MergeLibraryBAMFilter {
  * STEP 4.3 Remove orphan reads from paired-end BAM file
  */
 if (params.single_end) {
-    ch_mlib_filter_bam.into { ch_mlib_rm_orphan_bam_metrics;
-                              ch_mlib_rm_orphan_bam_bigwig;
-                              ch_mlib_rm_orphan_bam_macs;
-                              ch_mlib_rm_orphan_bam_plotfingerprint;
-                              ch_mlib_rm_orphan_bam_mrep;
-                              ch_mlib_name_bam_mlib_counts;
-                              ch_mlib_name_bam_mrep_counts }
-    ch_mlib_filter_bam_flagstat.into { ch_mlib_rm_orphan_flagstat_bigwig;
-                                       ch_mlib_rm_orphan_flagstat_macs;
-                                       ch_mlib_rm_orphan_flagstat_mqc }
-    ch_mlib_filter_bam_stats_mqc.set { ch_mlib_rm_orphan_stats_mqc }
+    ch_mlib_filter_bam
+        .into { ch_mlib_rm_orphan_bam_metrics;
+                ch_mlib_rm_orphan_bam_bigwig;
+                ch_mlib_rm_orphan_bam_macs;
+                ch_mlib_rm_orphan_bam_plotfingerprint;
+                ch_mlib_rm_orphan_bam_mrep;
+                ch_mlib_name_bam_mlib_counts;
+                ch_mlib_name_bam_mrep_counts }
+
+    ch_mlib_filter_bam_flagstat
+        .into { ch_mlib_rm_orphan_flagstat_bigwig;
+                ch_mlib_rm_orphan_flagstat_macs;
+                ch_mlib_rm_orphan_flagstat_mqc }
+
+    ch_mlib_filter_bam_stats_mqc
+        .set { ch_mlib_rm_orphan_stats_mqc }
 } else {
-    process MergeLibraryBAMRemoveOrphan {
+    process MergedLibBAMRemoveOrphan {
         tag "$name"
         label 'process_medium'
         publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
@@ -845,7 +856,7 @@ if (params.single_end) {
 /*
  * STEP 5.1 preseq analysis after merging libraries and before filtering
  */
-process MergeLibraryPreseq {
+process MergedLibPreseq {
     tag "$name"
     label 'process_low'
     publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: 'copy'
@@ -869,7 +880,7 @@ process MergeLibraryPreseq {
 /*
  * STEP 5.2 Picard CollectMultipleMetrics after merging libraries and filtering
  */
-process MergeLibraryMetrics {
+process MergedLibMetrics {
     tag "$name"
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
@@ -911,7 +922,7 @@ process MergeLibraryMetrics {
 /*
  * STEP 5.3 Read depth normalised bigWig
  */
-process MergeLibraryBigWig {
+process MergedLibBigWig {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/bigwig", mode: 'copy',
@@ -948,7 +959,7 @@ process MergeLibraryBigWig {
 /*
  * STEP 5.4 generate gene body coverage plot with deepTools
  */
-process MergeLibraryPlotProfile {
+process MergedLibPlotProfile {
     tag "$name"
     label 'process_high'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotProfile", mode: 'copy'
@@ -988,7 +999,7 @@ process MergeLibraryPlotProfile {
 /*
  * STEP 5.5 deepTools plotFingerprint
  */
-process MergeLibraryPlotFingerprint {
+process MergedLibPlotFingerprint {
     tag "$name"
     label 'process_high'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: 'copy'
@@ -1031,7 +1042,7 @@ process MergeLibraryPlotFingerprint {
 /*
  * STEP 6.1 Call peaks with MACS2 and calculate FRiP score
  */
-process MergeLibraryMACSCallPeak {
+process MergedLibMACSCallPeak {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}", mode: 'copy',
@@ -1087,7 +1098,7 @@ process MergeLibraryMACSCallPeak {
 /*
  * STEP 6.2 Annotate peaks with HOMER
  */
-process MergeLibraryAnnotatePeaks {
+process MergedLibAnnotatePeaks {
     tag "$name"
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}", mode: 'copy'
@@ -1120,7 +1131,7 @@ process MergeLibraryAnnotatePeaks {
 /*
  * STEP 6.3 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
-process MergeLibraryPeakQC {
+process MergedLibPeakQC {
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/qc", mode: 'copy'
 
@@ -1159,7 +1170,7 @@ process MergeLibraryPeakQC {
 /*
  * STEP 6.4 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
-process MergeLibraryConsensusPeakSet {
+process MergedLibConsensusPeakSet {
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus", mode: 'copy',
         saveAs: { filename ->
@@ -1213,7 +1224,7 @@ process MergeLibraryConsensusPeakSet {
 /*
  * STEP 6.5 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
-process MergeLibraryConsensusPeakSetAnnotate {
+process MergedLibConsensusPeakSetAnnotate {
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus", mode: 'copy'
 
@@ -1249,7 +1260,7 @@ process MergeLibraryConsensusPeakSetAnnotate {
 /*
  * STEP 6.6 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
  */
-process MergeLibraryConsensusPeakSetDESeq {
+process MergedLibConsensusPeakSetDESeq {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${peaktype}/consensus/deseq2", mode: 'copy',
         saveAs: { filename ->
@@ -1305,7 +1316,7 @@ process MergeLibraryConsensusPeakSetDESeq {
 /*
  * STEP 6.7 Run ataqv on BAM file and corresponding peaks
  */
-process MergeLibraryAtaqv {
+process MergedLibAtaqv {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${peaktype}", mode: 'copy'
@@ -1343,7 +1354,7 @@ process MergeLibraryAtaqv {
 /*
  * STEP 6.8 run ataqv mkarv on all JSON files to render web app
  */
-process MergeLibraryAtaqvMkarv {
+process MergedLibAtaqvMkarv {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${peaktype}", mode: 'copy'
 
@@ -1378,12 +1389,13 @@ process MergeLibraryAtaqvMkarv {
 /*
  * STEP 7 Merge library BAM files across all replicates
  */
-ch_mlib_rm_orphan_bam_mrep.map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
-                          .groupTuple(by: [0])
-                          .map { it ->  [ it[0], it[1].flatten() ] }
-                          .set { ch_mlib_rm_orphan_bam_mrep }
+ch_mlib_rm_orphan_bam_mrep
+    .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
+    .groupTuple(by: [0])
+    .map { it ->  [ it[0], it[1].flatten() ] }
+    .set { ch_mlib_rm_orphan_bam_mrep }
 
-process MergeReplicateBAM {
+process MergedRepBAM {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate", mode: 'copy',
@@ -1466,7 +1478,7 @@ process MergeReplicateBAM {
 /*
  * STEP 8.1 Read depth normalised bigWig
  */
-process MergeReplicateBigWig {
+process MergedRepBigWig {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate/bigwig", mode: 'copy',
@@ -1506,7 +1518,7 @@ process MergeReplicateBigWig {
 /*
  * STEP 8.2 Call peaks with MACS2 and calculate FRiP score
  */
-process MergeReplicateMACSCallPeak {
+process MergedRepMACSCallPeak {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}", mode: 'copy',
@@ -1561,7 +1573,7 @@ process MergeReplicateMACSCallPeak {
 /*
  * STEP 8.3 Annotate peaks with HOMER
  */
-process MergeReplicateAnnotatePeaks {
+process MergedRepAnnotatePeaks {
     tag "$name"
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}", mode: 'copy'
@@ -1594,7 +1606,7 @@ process MergeReplicateAnnotatePeaks {
 /*
  * STEP 8.4 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
-process MergeReplicatePeakQC {
+process MergedRepPeakQC {
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}/qc", mode: 'copy'
 
@@ -1633,7 +1645,7 @@ process MergeReplicatePeakQC {
 /*
  * STEP 8.5 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
  */
-process MergeReplicateConsensusPeakSet {
+process MergedRepConsensusPeakSet {
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}/consensus", mode: 'copy',
         saveAs: { filename ->
@@ -1686,7 +1698,7 @@ process MergeReplicateConsensusPeakSet {
 /*
  * STEP 8.6 Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
-process MergeReplicateConsensusPeakSetAnnotate {
+process MergedRepConsensusPeakSetAnnotate {
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}/consensus", mode: 'copy'
 
@@ -1722,7 +1734,7 @@ process MergeReplicateConsensusPeakSetAnnotate {
 /*
  * STEP 8.7 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
  */
-process MergeReplicateConsensusPeakSetDESeq {
+process MergedRepConsensusPeakSetDESeq {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${peaktype}/consensus/deseq2", mode: 'copy',
         saveAs: { filename ->
@@ -2050,13 +2062,13 @@ workflow.onComplete {
     }
 
     // Write summary e-mail HTML to a file
-    def output_d = new File( "${params.outdir}/pipeline_info/" )
+    def output_d = new File("${params.outdir}/pipeline_info/")
     if (!output_d.exists()) {
       output_d.mkdirs()
     }
-    def output_hf = new File( output_d, "pipeline_report.html" )
+    def output_hf = new File(output_d, "pipeline_report.html")
     output_hf.withWriter { w -> w << email_html }
-    def output_tf = new File( output_d, "pipeline_report.txt" )
+    def output_tf = new File(output_d, "pipeline_report.txt")
     output_tf.withWriter { w -> w << email_txt }
 
     c_reset = params.monochrome_logs ? '' : "\033[0m";
