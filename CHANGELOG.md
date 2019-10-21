@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Add quick start information to main README
 * Merged in TEMPLATE branch for automated syncing
 * Update template to tools `1.7`
+* Added `CITATIONS.md` file
 * Add parameters:
   * `--seq_center`
   * `--trim_nextseq`
