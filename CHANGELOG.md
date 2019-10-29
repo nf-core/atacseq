@@ -52,5 +52,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.0.0] - 2019-04-09
 
 ### `Added`
+
 Initial release of nf-core/atacseq
 Created with version 1.1 of the [nf-core](http://nf-co.re/) template.

@@ -1,6 +1,6 @@
 # ![nfcore/atacseq](docs/images/nf-core-atacseq_logo.png)
 
-[![Build Status](https://travis-ci.org/nf-core/atacseq.svg?branch=master)](https://travis-ci.org/nf-core/atacseq)
+[![Build Status](https://travis-ci.com/nf-core/atacseq.svg?branch=master)](https://travis-ci.com/nf-core/atacseq)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.04.0-brightgreen.svg)](https://www.nextflow.io/)
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/)
@@ -65,18 +65,21 @@ ii. Install one of [`docker`](https://docs.docker.com/engine/installation/), [`s
 iii. Download the pipeline and test it on a minimal dataset with a single command
 
 ```bash
-nextflow run nf-core/atacseq -profile test,<docker/singularity/conda>
+nextflow run nf-core/atacseq -profile test,<docker/singularity/conda/institute>
 ```
+
+> Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile institute` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.
 
 iv. Start running your own analysis!
 
 ```bash
-nextflow run nf-core/atacseq -profile <docker/singularity/conda> --input design.csv --genome GRCh37
+nextflow run nf-core/atacseq -profile <docker/singularity/conda/institute> --input design.csv --genome GRCh37
 ```
 
 See [usage docs](docs/usage.md) for all of the available options when running the pipeline.
 
 ## Documentation
+
 The nf-core/atacseq pipeline comes with documentation about the pipeline, found in the `docs/` directory:
 
 1. [Installation](https://nf-co.re/usage/installation)
