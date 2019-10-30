@@ -4,5 +4,5 @@ LABEL authors="Harshil Patel" \
 
 COPY environment.yml /
 RUN conda env create -f /environment.yml && conda clean -a
-RUN conda env export --name nf-core-atacseq-1.0.1dev > nf-core-atacseq-1.0.1dev.yml
-ENV PATH /opt/conda/envs/nf-core-atacseq-1.0.1dev/bin:$PATH
+RUN conda env export --name nf-core-atacseq-1.1.0 > nf-core-atacseq-1.1.0.yml
+ENV PATH /opt/conda/envs/nf-core-atacseq-1.1.0/bin:$PATH
