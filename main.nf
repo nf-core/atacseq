@@ -1998,7 +1998,7 @@ workflow.onComplete {
 
     // On success try attach the multiqc report
     def mqc_report = null
-    try {
+    try
         if (workflow.success) {
             mqc_report = ch_multiqc_report.getVal()
             if (mqc_report.getClass() == ArrayList) {
