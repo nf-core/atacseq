@@ -11,6 +11,3 @@ ENV PATH /opt/conda/envs/nf-core-atacseq-1.1.0/bin:$PATH
 
 # Dump the details of the installed packages to a file for posterity
 RUN conda env export --name nf-core-atacseq-1.1.0 > nf-core-atacseq-1.1.0.yml
-
-# Prevent Python from loading packages from outside the container
-ENV PYTHONNOUSERSITE=1
