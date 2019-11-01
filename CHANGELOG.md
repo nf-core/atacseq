@@ -57,8 +57,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 | `--saveGenomeIndex`          | `--save_reference`        |
 | `--skipTrimming`             | `--skip_trimming`         |
 | `--saveTrimmed`              | `--save_trimmed`          |
+| `--keepMito`                 | `--keep_mito`             |
 | `--keepDups`                 | `--keep_dups`             |
 | `--keepMultiMap`             | `--keep_multi_map`        |
+| `--skipMergeReplicates`      | `--skip_merge_replicates` |
 | `--saveAlignedIntermediates` | `--save_align_intermeds`  |
 | `--narrowPeak`               | `--narrow_peak`           |
 
