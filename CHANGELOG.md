@@ -42,7 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### `Dependencies`
 
-* Update Nextflow `0.32.0` -> `19.04.0`
+* Update Nextflow `0.32.0` -> `19.10.0`
 * Add preseq `2.0.3`
 * Add deeptools `3.2.1`
 * Add r-xfun `0.3`
