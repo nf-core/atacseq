@@ -6,7 +6,9 @@ We try to manage the required tasks for nf-core/atacseq using GitHub issues, you
 
 However, don't be put off by this template - other more general issues and suggestions are welcome! Contributions to the code are even more welcome ;)
 
-> If you need help using or modifying nf-core/atacseq then the best place to ask is the nf-core `atacseq` channel on [Slack](https://nf-core-invite.herokuapp.com/).
+> If you need help using or modifying nf-core/atacseq then the best place to ask is on the pipeline channel on [Slack](https://nf-co.re/join/slack/).
+
+
 
 ## Contribution workflow
 If you'd like to write some code for nf-core/atacseq, the standard workflow
@@ -24,13 +26,13 @@ If you're not used to this workflow with git, you can start with some [basic doc
 
 
 ## Tests
-When you create a pull request with changes, [Travis CI](https://travis-ci.org/) will run automatic tests.
+When you create a pull request with changes, [Travis CI](https://travis-ci.com/) will run automatic tests.
 Typically, pull-requests are only fully reviewed when these tests are passing, though of course we can help out before then.
 
 There are typically two types of tests that run:
 
 ### Lint Tests
-The nf-core has a [set of guidelines](http://nf-co.re/guidelines) which all pipelines must adhere to.
+The nf-core has a [set of guidelines](https://nf-co.re/developers/guidelines) which all pipelines must adhere to.
 To enforce these and ensure that all pipelines stay in sync, we have developed a helper tool which runs checks on the pipeline code. This is in the [nf-core/tools repository](https://github.com/nf-core/tools) and once installed can be run locally with the `nf-core lint <pipeline-directory>` command.
 
 If any failures or warnings are encountered, please follow the listed URL for more documentation.
@@ -42,4 +44,4 @@ If there are any failures then the automated tests fail.
 These tests are run both with the latest available version of Nextflow and also the minimum required version that is stated in the pipeline code.
 
 ## Getting help
-For further information/help, please consult the [nf-core/atacseq documentation](https://github.com/nf-core/atacseq#documentation) and don't hesitate to get in touch on the nf-core `atacseq` channel on [Slack](https://nf-core-invite.herokuapp.com/).
+For further information/help, please consult the [nf-core/atacseq documentation](https://github.com/nf-core/atacseq#documentation) and don't hesitate to get in touch on the [nf-core/atacseq pipeline channel](https://nfcore.slack.com/channels/atacseq) on [Slack](https://nf-co.re/join/slack/).
