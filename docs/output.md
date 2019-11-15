@@ -64,7 +64,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 
     *Output directories*:
     * `bwa/library/`  
-      The files resulting from the alignment of individual libraries are not saved by default so this directory will not be present in your results. You can override this behaviour with the use of the `--saveAlignedIntermediates` flag in which case it will contain the coordinate sorted alignment files in [`*.bam`](https://samtools.github.io/hts-specs/SAMv1.pdf) format.
+      The files resulting from the alignment of individual libraries are not saved by default so this directory will not be present in your results. You can override this behaviour with the use of the `--save_align_intermeds` flag in which case it will contain the coordinate sorted alignment files in [`*.bam`](https://samtools.github.io/hts-specs/SAMv1.pdf) format.
     * `bwa/library/samtools_stats/`  
       SAMtools `*.flagstat`, `*.idxstats` and `*.stats` files generated from the alignment files.
 
@@ -100,7 +100,7 @@ The library-level alignments associated with the same sample are merged and subs
 
     *Output directories*:
     * `bwa/mergedLibrary/`  
-      Merged library-level, coordinate sorted `*.bam` files after the marking of duplicates, and filtering based on various criteria. The file suffix for the final filtered files will be `*.mLb.clN.*`. If you specify the `--saveAlignedIntermediates` parameter then two additional sets of files will be present. These represent the unfiltered alignments with duplicates marked (`*.mLb.mkD.*`), and in the case of paired-end datasets the filtered alignments before the removal of orphan read pairs (`*.mLb.flT.*`).
+      Merged library-level, coordinate sorted `*.bam` files after the marking of duplicates, and filtering based on various criteria. The file suffix for the final filtered files will be `*.mLb.clN.*`. If you specify the `--save_align_intermeds` parameter then two additional sets of files will be present. These represent the unfiltered alignments with duplicates marked (`*.mLb.mkD.*`), and in the case of paired-end datasets the filtered alignments before the removal of orphan read pairs (`*.mLb.flT.*`).
     * `bwa/mergedLibrary/samtools_stats/`  
       SAMtools `*.flagstat`, `*.idxstats` and `*.stats` files generated from the alignment files.
     * `bwa/mergedLibrary/picard_metrics/`  
@@ -259,7 +259,7 @@ The alignments associated with all of the replicates from the same experimental 
 
 File names in the resulting directory (i.e. `bwa/mergedReplicate/`) will have the '`.mRp.`' suffix to denote **m**erged **R**e**p**licates.
 
-You can skip this portion of the analysis by specifying the `--skipMergeReplicate` parameter.  
+You can skip this portion of the analysis by specifying the `--skip_merge_replicates` parameter.  
 
 >NB: Merged library-level alignments will be used for read counting relative to the consensus merged replicate-level peakset. This is the only way in which differential analysis can be performed at the merged replicate-level.
 
