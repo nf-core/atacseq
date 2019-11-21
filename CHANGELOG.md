@@ -9,11 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### `Added`
 
+* [#63](https://github.com/nf-core/atacseq/issues/63) - Added multicore support for Trim Galore!
+
 ### `Fixed`
 
 * [#118](https://github.com/nf-core/chipseq/issues/118) - Running on with SGE
 * Make executables in `bin/` compatible with Python 3
-* [#63](https://github.com/nf-core/atacseq/issues/63) - Added multicore support for Trim Galore!
 
 ### `Dependencies`
 
