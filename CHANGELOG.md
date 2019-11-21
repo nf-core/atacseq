@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 * [#118](https://github.com/nf-core/chipseq/issues/118) - Running on with SGE
 * Make executables in `bin/` compatible with Python 3
+* [#63](https://github.com/nf-core/atacseq/issues/63) - Added multicore support for Trim Galore!
 
 ### `Dependencies`
 
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update homer `4.9.1` -> `4.10`
 * Update bioconductor-deseq2 `1.20.0` -> `1.26.0`
 * Update bioconductor-vsn `3.46.0` -> `3.54.0`
+* Added pigz `2.3.4`
 
 ### `Deprecated`
 
