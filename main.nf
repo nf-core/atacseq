@@ -553,7 +553,7 @@ if (params.skip_trimming) {
         if (params.single_end) {
             """
             [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
-            trim_galore -j $task.cpus --fastqc --gzip $c_r1 $tpc_r1 $nextseq ${name}.fastq.gz
+            trim_galore --cores $task.cpus --fastqc --gzip $c_r1 $tpc_r1 $nextseq ${name}.fastq.gz
             """
         } else {
             """
