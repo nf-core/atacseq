@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 * Add genrich `0.6`
 * Add r-stringi `1.4.3`
+* Add pigz `2.3.4`
 * Update gawk `4.2.1` -> `5.0.1`
 * Update r-base `3.4.1` -> `3.6.1`
 * Update r-optparse `1.6.0` -> `1.6.4`
@@ -27,8 +28,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update r-pheatmap `1.0.10` -> `1.0.12`
 * Update r-lattice `0.20_35` -> `0.20_38`
 * Update r-upsetr `1.3.3` -> `1.4.0`
+* Update r-scales `1.0.0` -> `1.1.0`  
 * Update r-xfun `0.3` -> `0.11`
-* Update trim-galore `0.5.0` -> `0.6.4`
+* Update trim-galore `0.5.0` -> `0.6.5`
 * Update picard `2.19.0` -> `2.21.3`
 * Update pysam `0.15.2` -> `0.15.3`
 * Update bedtools `2.27.1` -> `2.29.0`
@@ -36,9 +38,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update deeptools `3.2.1` -> `3.3.1`
 * Update macs2 `2.1.2` -> `2.2.5`
 * Update homer `4.9.1` -> `4.10`
+* Update multiqc `1.7` -> `1.8`
 * Update bioconductor-deseq2 `1.20.0` -> `1.26.0`
 * Update bioconductor-vsn `3.46.0` -> `3.54.0`
-* Add pigz `2.3.4`
 
 ### `Deprecated`
 
