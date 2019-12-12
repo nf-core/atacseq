@@ -84,6 +84,7 @@ def helpMessage() {
     AWSBatch
       --awsqueue [str]                The AWSBatch JobQueue that needs to be set when running on AWSBatch
       --awsregion [str]               The AWS Region for your AWS Batch job to run on
+      --awscli [str]                  Path to the AWS CLI tool
     """.stripIndent()
 }
 
@@ -265,9 +266,10 @@ summary['Launch Dir']             = workflow.launchDir
 summary['Working Dir']            = workflow.workDir
 summary['Script Dir']             = workflow.projectDir
 summary['User']                   = workflow.userName
-if (workflow.profile == 'awsbatch') {
+if (workflow.profile.contains('awsbatch')) {
     summary['AWS Region']         = params.awsregion
     summary['AWS Queue']          = params.awsqueue
+    summary['AWS CLI']            = params.awscli
 }
 summary['Config Profile']         = workflow.profile
 if (params.config_profile_description) summary['Config Description'] = params.config_profile_description
@@ -554,7 +556,7 @@ if (params.skip_trimming) {
                 cores = tcores
             }
         }
-  
+
 
         // Added soft-links to original fastqs for consistent naming in MultiQC
         c_r1 = params.clip_r1 > 0 ? "--clip_r1 ${params.clip_r1}" : ''
@@ -562,7 +564,7 @@ if (params.skip_trimming) {
         tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
         tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
         nextseq = params.trim_nextseq > 0 ? "--nextseq ${params.trim_nextseq}" : ''
-        
+
         // Added soft-links to original fastqs for consistent naming in MultiQC
         if (params.single_end) {
             """
