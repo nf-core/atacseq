@@ -1,6 +1,6 @@
-FROM nfcore/base:1.7
+FROM nfcore/base:dev
 LABEL authors="Harshil Patel" \
-      description="Docker image containing all requirements for nf-core/atacseq pipeline"
+      description="Docker image containing all software requirements for the nf-core/atacseq pipeline"
 
 # Install the conda environment
 COPY environment.yml /
