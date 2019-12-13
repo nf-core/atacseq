@@ -1,6 +1,8 @@
 # ![nfcore/atacseq](docs/images/nf-core-atacseq_logo.png)
 
 [![Build Status](https://travis-ci.com/nf-core/atacseq.svg?branch=master)](https://travis-ci.com/nf-core/atacseq)
+[![GitHub Actions CI Status](https://github.com/nf-core/atacseq/workflows/nf-core%20CI/badge.svg)](https://github.com/nf-core/atacseq/actions)
+[![GitHub Actions Linting Status](https://github.com/nf-core/atacseq/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/atacseq/actions)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.10.0-brightgreen.svg)](https://www.nextflow.io/)
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/)
