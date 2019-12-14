@@ -1,4 +1,4 @@
-FROM nfcore/base:dev
+FROM nfcore/base:1.7
 LABEL authors="Harshil Patel" \
       description="Docker image containing all software requirements for the nf-core/atacseq pipeline"
 
