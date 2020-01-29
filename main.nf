@@ -123,6 +123,7 @@ params.gene_bed = params.genome ? params.genomes[ params.genome ].bed12 ?: false
 params.mito_name = params.genome ? params.genomes[ params.genome ].mito_name ?: false : false
 params.macs_gsize = params.genome ? params.genomes[ params.genome ].macs_gsize ?: false : false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
+params.anno_readme = params.genome ? params.genomes[ params.genome ].readme ?: false : false
 
 // Global variables
 def PEAK_TYPE = params.narrow_peak ? "narrowPeak" : "broadPeak"
@@ -167,11 +168,12 @@ ch_mrep_deseq2_clustering_header = file("$baseDir/assets/multiqc/mrep_deseq2_clu
 ////////////////////////////////////////////////////
 
 // Validate inputs
-if (params.input)     { ch_input = file(params.input, checkIfExists: true) } else { exit 1, "Samples design file not specified!" }
-if (params.gtf)       { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, "GTF annotation file not specified!" }
-if (params.gene_bed)  { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
-if (params.tss_bed)   { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
-if (params.blacklist) { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
+if (params.input)       { ch_input = file(params.input, checkIfExists: true) } else { exit 1, "Samples design file not specified!" }
+if (params.gtf)         { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, "GTF annotation file not specified!" }
+if (params.gene_bed)    { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
+if (params.tss_bed)     { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
+if (params.blacklist)   { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
+if (params.anno_readme) { ch_anno_readme = Channel.fromPath(params.anno_readme) } else { ch_anno_readme = Channel.empty() }
 
 if (params.fasta) {
     lastPath = params.fasta.lastIndexOf(File.separator)
@@ -1906,6 +1908,7 @@ process MultiQC {
 
     input:
     file multiqc_config from ch_multiqc_config
+    file readme from ch_anno_readme.collect().ifEmpty([])
 
     file ('software_versions/*') from ch_software_versions_mqc.collect()
     file ('workflow_summary/*') from create_workflow_summary(summary)
