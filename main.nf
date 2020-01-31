@@ -123,6 +123,7 @@ params.gene_bed = params.genome ? params.genomes[ params.genome ].bed12 ?: false
 params.mito_name = params.genome ? params.genomes[ params.genome ].mito_name ?: false : false
 params.macs_gsize = params.genome ? params.genomes[ params.genome ].macs_gsize ?: false : false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
+params.anno_readme = params.genome ? params.genomes[ params.genome ].readme ?: false : false
 
 // Global variables
 def PEAK_TYPE = params.narrow_peak ? "narrowPeak" : "broadPeak"
@@ -167,11 +168,12 @@ ch_mrep_deseq2_clustering_header = file("$baseDir/assets/multiqc/mrep_deseq2_clu
 ////////////////////////////////////////////////////
 
 // Validate inputs
-if (params.input)     { ch_input = file(params.input, checkIfExists: true) } else { exit 1, "Samples design file not specified!" }
-if (params.gtf)       { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, "GTF annotation file not specified!" }
-if (params.gene_bed)  { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
-if (params.tss_bed)   { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
-if (params.blacklist) { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
+if (params.input)       { ch_input = file(params.input, checkIfExists: true) } else { exit 1, "Samples design file not specified!" }
+if (params.gtf)         { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, "GTF annotation file not specified!" }
+if (params.gene_bed)    { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
+if (params.tss_bed)     { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
+if (params.blacklist)   { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
+if (params.anno_readme && file(params.anno_readme).exists()) { ch_anno_readme = Channel.fromPath(params.anno_readme) } else { ch_anno_readme = Channel.empty() }
 
 if (params.fasta) {
     lastPath = params.fasta.lastIndexOf(File.separator)
@@ -444,10 +446,12 @@ process MakeGenomeFilter {
     input:
     file fasta from ch_fasta
     file blacklist from ch_blacklist.ifEmpty([])
+    file readme from ch_anno_readme.ifEmpty([])
 
     output:
-    file "$fasta" into ch_genome_fasta                 // FASTA FILE FOR IGV
-    file "*.fai" into ch_genome_fai                    // FAI INDEX FOR REFERENCE GENOME
+    file "$fasta"                                      // FASTA FILE FOR IGV
+    file "$readme"                                     // AWS IGENOMES FILE CONTAINING ANNOTATION VERSION
+    file "*.fai"                                       // FAI INDEX FOR REFERENCE GENOME
     file "*.bed" into ch_genome_filter_regions         // BED FILE WITHOUT BLACKLIST REGIONS & MITOCHONDRIAL CONTIG FOR FILTERING
     file "*.txt" into ch_genome_autosomes              // TEXT FILE CONTAINING LISTING OF AUTOSOMAL CHROMOSOMES FOR ATAQV
     file "*.sizes" into ch_genome_sizes_mlib_bigwig,   // CHROMOSOME SIZES FILE FOR BEDTOOLS
@@ -1271,7 +1275,42 @@ process MergedLibConsensusPeakSetAnnotate {
 }
 
 /*
- * STEP 6.6 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
+ * STEP 6.6 Count reads in consensus peaks with featureCounts
+ */
+process MergedLibConsensusPeakSetCounts {
+    label 'process_medium'
+    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: 'copy'
+
+    when:
+    params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
+
+    input:
+    file bams from ch_mlib_name_bam_mlib_counts.collect{ it[1] }
+    file saf from ch_mlib_macs_consensus_saf.collect()
+
+    output:
+    file "*featureCounts.txt" into ch_mlib_macs_consensus_counts
+    file "*featureCounts.txt.summary" into ch_mlib_macs_consensus_counts_mqc
+
+    script:
+    prefix = "consensus_peaks.mLb.clN"
+    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+    pe_params = params.single_end ? '' : "-p --donotsort"
+    """
+    featureCounts \\
+        -F SAF \\
+        -O \\
+        --fracOverlap 0.2 \\
+        -T $task.cpus \\
+        $pe_params \\
+        -a $saf \\
+        -o ${prefix}.featureCounts.txt \\
+        ${bam_files.join(' ')}
+    """
+}
+
+/*
+ * STEP 6.7 Perform differential analysis with DESeq2
  */
 process MergedLibConsensusPeakSetDESeq {
     label 'process_medium'
@@ -1285,14 +1324,11 @@ process MergedLibConsensusPeakSetDESeq {
     params.macs_gsize && replicatesExist && multipleGroups && !params.skip_consensus_peaks
 
     input:
-    file bams from ch_mlib_name_bam_mlib_counts.collect{ it[1] }
-    file saf from ch_mlib_macs_consensus_saf.collect()
+    file counts from ch_mlib_macs_consensus_counts
     file mlib_deseq2_pca_header from ch_mlib_deseq2_pca_header
     file mlib_deseq2_clustering_header from ch_mlib_deseq2_clustering_header
 
     output:
-    file "*featureCounts.txt" into ch_mlib_macs_consensus_counts
-    file "*featureCounts.txt.summary" into ch_mlib_macs_consensus_counts_mqc
     file "*.{RData,results.txt,pdf,log}" into ch_mlib_macs_consensus_deseq_results
     file "sizeFactors" into ch_mlib_macs_consensus_deseq_factors
     file "*vs*/*.{pdf,txt}" into ch_mlib_macs_consensus_deseq_comp_results
@@ -1302,21 +1338,9 @@ process MergedLibConsensusPeakSetDESeq {
 
     script:
     prefix = "consensus_peaks.mLb.clN"
-    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
-    pe_params = params.single_end ? '' : "-p --donotsort"
     """
-    featureCounts \\
-        -F SAF \\
-        -O \\
-        --fracOverlap 0.2 \\
-        -T $task.cpus \\
-        $pe_params \\
-        -a $saf \\
-        -o ${prefix}.featureCounts.txt \\
-        ${bam_files.join(' ')}
-
-    featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix -s .mLb
+    featurecounts_deseq2.r -i $counts -b '$bam_ext' -o ./ -p $prefix -s .mLb
 
     cat $mlib_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $mlib_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
@@ -1326,7 +1350,7 @@ process MergedLibConsensusPeakSetDESeq {
 }
 
 /*
- * STEP 6.7 Run ataqv on BAM file and corresponding peaks
+ * STEP 6.8 Run ataqv on BAM file and corresponding peaks
  */
 process MergedLibAtaqv {
     tag "$name"
@@ -1363,7 +1387,7 @@ process MergedLibAtaqv {
 }
 
 /*
- * STEP 6.8 run ataqv mkarv on all JSON files to render web app
+ * STEP 6.9 run ataqv mkarv on all JSON files to render web app
  */
 process MergedLibAtaqvMkarv {
     label 'process_medium'
@@ -1737,7 +1761,42 @@ process MergedRepConsensusPeakSetAnnotate {
 }
 
 /*
- * STEP 8.7 Count reads in consensus peaks with featureCounts and perform differential analysis with DESeq2
+ * STEP 8.7 Count reads in consensus peaks with featureCounts
+ */
+process MergedRepConsensusPeakSetCounts {
+    label 'process_medium'
+    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: 'copy'
+
+    when:
+    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks
+
+    input:
+    file bams from ch_mlib_name_bam_mrep_counts.collect{ it[1] }
+    file saf from ch_mrep_macs_consensus_saf.collect()
+
+    output:
+    file "*featureCounts.txt" into ch_mrep_macs_consensus_counts
+    file "*featureCounts.txt.summary" into ch_mrep_macs_consensus_counts_mqc
+
+    script:
+    prefix = "consensus_peaks.mRp.clN"
+    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+    pe_params = params.single_end ? '' : "-p --donotsort"
+    """
+    featureCounts \\
+        -F SAF \\
+        -O \\
+        --fracOverlap 0.2 \\
+        -T $task.cpus \\
+        $pe_params \\
+        -a $saf \\
+        -o ${prefix}.featureCounts.txt \\
+        ${bam_files.join(' ')}
+    """
+}
+
+/*
+ * STEP 8.8 Perform differential analysis with DESeq2
  */
 process MergedRepConsensusPeakSetDESeq {
     label 'process_medium'
@@ -1751,14 +1810,11 @@ process MergedRepConsensusPeakSetDESeq {
     !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks
 
     input:
-    file bams from ch_mlib_name_bam_mrep_counts.collect{ it[1] }
-    file saf from ch_mrep_macs_consensus_saf.collect()
+    file counts from ch_mrep_macs_consensus_counts
     file mrep_deseq2_pca_header from ch_mrep_deseq2_pca_header
     file mrep_deseq2_clustering_header from ch_mrep_deseq2_clustering_header
 
     output:
-    file "*featureCounts.txt" into ch_mrep_macs_consensus_counts
-    file "*featureCounts.txt.summary" into ch_mrep_macs_consensus_counts_mqc
     file "*.{RData,results.txt,pdf,log}" into ch_mrep_macs_consensus_deseq_results
     file "sizeFactors" into ch_mrep_macs_consensus_deseq_factors
     file "*vs*/*.{pdf,txt}" into ch_mrep_macs_consensus_deseq_comp_results
@@ -1768,21 +1824,9 @@ process MergedRepConsensusPeakSetDESeq {
 
     script:
     prefix = "consensus_peaks.mRp.clN"
-    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
-    pe_params = params.single_end ? '' : "-p --donotsort"
     """
-    featureCounts \\
-        -F SAF \\
-        -O \\
-        --fracOverlap 0.2 \\
-        -T $task.cpus \\
-        $pe_params \\
-        -a $saf \\
-        -o ${prefix}.featureCounts.txt \\
-        ${bam_files.join(' ')}
-
-    featurecounts_deseq2.r -i ${prefix}.featureCounts.txt -b '$bam_ext' -o ./ -p $prefix -s .mLb
+    featurecounts_deseq2.r -i $counts -b '$bam_ext' -o ./ -p $prefix -s .mLb
 
     cat $mrep_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $mrep_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
