@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [#63](https://github.com/nf-core/atacseq/issues/63) - Added multicore support for Trim Galore!
 * [#75](https://github.com/nf-core/atacseq/issues/75) - Include gene annotation versions in multiqc report
 * [#76](https://github.com/nf-core/atacseq/issues/76) - featureCounts coupled to DESeq2
+* [#80](https://github.com/nf-core/atacseq/pull/80) - Added social preview image
 * Added GitHub Actions CI tests
 
 ### `Fixed`
