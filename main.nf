@@ -62,7 +62,8 @@ def helpMessage() {
       --broad_cutoff [float]          Specifies broad cutoff value for MACS2. Only used when --narrow_peak isnt specified (Default: 0.1)
       --min_reps_consensus [int]      Number of biological replicates required from a given condition for a peak to contribute to a consensus peak (Default: 1)
       --save_macs_pileup [bool]       Instruct MACS2 to create bedGraph files normalised to signal per million reads
-      --skip_consensus_peaks [bool]   Skip consensus peak generation and differential binding analysis
+      --skip_consensus_peaks [bool]   Skip consensus peak generation
+      --skip_diff_analysis [bool]     Skip differential accessibility analysis
 
     QC
       --skip_fastqc [bool]            Skip FastQC
@@ -254,6 +255,7 @@ if (params.save_align_intermeds)  summary['Save Intermeds'] =  'Yes'
 if (params.save_macs_pileup)      summary['Save MACS2 Pileup'] = 'Yes'
 if (params.skip_merge_replicates) summary['Skip Merge Replicates'] = 'Yes'
 if (params.skip_consensus_peaks)  summary['Skip Consensus Peaks'] = 'Yes'
+if (params.skip_diff_analysis)    summary['Skip Differential Analysis'] = 'Yes'
 if (params.skip_fastqc)           summary['Skip FastQC'] = 'Yes'
 if (params.skip_picard_metrics)   summary['Skip Picard Metrics'] = 'Yes'
 if (params.skip_preseq)           summary['Skip Preseq'] = 'Yes'
@@ -1322,7 +1324,7 @@ process MergedLibConsensusPeakSetDESeq {
                 }
 
     when:
-    params.macs_gsize && replicatesExist && multipleGroups && !params.skip_consensus_peaks
+    params.macs_gsize && replicatesExist && multipleGroups && !params.skip_consensus_peaks && !params.skip_diff_analysis
 
     input:
     file counts from ch_mlib_macs_consensus_counts
@@ -1808,7 +1810,7 @@ process MergedRepConsensusPeakSetDESeq {
                 }
 
     when:
-    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks
+    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks && !params.skip_diff_analysis
 
     input:
     file counts from ch_mrep_macs_consensus_counts
