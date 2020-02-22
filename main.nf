@@ -1343,7 +1343,13 @@ process MergedLibConsensusPeakSetDESeq {
     prefix = "consensus_peaks.mLb.clN"
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
     """
-    featurecounts_deseq2.r -i $counts -b '$bam_ext' -o ./ -p $prefix -s .mLb
+    featurecounts_deseq2.r \\
+        --featurecount_file $counts \\
+        --bam_suffix '$bam_ext' \\
+        --outdir ./ \\
+        --outprefix $prefix \\
+        --outsuffix .mLb \\
+        --cores $task.cpus
 
     cat $mlib_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $mlib_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
@@ -1829,7 +1835,13 @@ process MergedRepConsensusPeakSetDESeq {
     prefix = "consensus_peaks.mRp.clN"
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
     """
-    featurecounts_deseq2.r -i $counts -b '$bam_ext' -o ./ -p $prefix -s .mLb
+    featurecounts_deseq2.r \\
+        --featurecount_file $counts \\
+        --bam_suffix '$bam_ext' \\
+        --outdir ./ \\
+        --outprefix $prefix \\
+        --outsuffix .mRp \\
+        --cores $task.cpus
 
     cat $mrep_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $mrep_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
