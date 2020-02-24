@@ -1351,7 +1351,7 @@ process MergedLibConsensusPeakSetDESeq {
         --bam_suffix '$bam_ext' \\
         --outdir ./ \\
         --outprefix $prefix \\
-        --outsuffix .mLb \\
+        --outsuffix .mLb.clN \\
         --cores $task.cpus
 
     cat $mlib_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
@@ -1381,6 +1381,7 @@ process MergedLibAtaqv {
     file "*.json" into ch_mlib_ataqv
 
     script:
+    suffix = 'mLb.clN'
     peak_param = params.macs_gsize ? "--peak-file ${peak}" : ""
     mito_param = params.mito_name ? "--mitochondrial-reference-name ${params.mito_name}" : ""
     """
@@ -1388,7 +1389,7 @@ process MergedLibAtaqv {
         --threads $task.cpus \\
         $peak_param  \\
         --tss-file $tss_bed \\
-        --metrics-file  ${name}.ataqv.json \\
+        --metrics-file  ${name}.${suffix}.ataqv.json \\
         --name $name \\
         --ignore-read-groups \\
         --autosomal-reference-file $autosomes \\
@@ -1843,7 +1844,7 @@ process MergedRepConsensusPeakSetDESeq {
         --bam_suffix '$bam_ext' \\
         --outdir ./ \\
         --outprefix $prefix \\
-        --outsuffix .mRp \\
+        --outsuffix .mRp.clN \\
         --cores $task.cpus
 
     cat $mrep_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
