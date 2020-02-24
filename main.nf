@@ -175,7 +175,12 @@ if (params.gtf)         { ch_gtf = file(params.gtf, checkIfExists: true) } else 
 if (params.gene_bed)    { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
 if (params.tss_bed)     { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
 if (params.blacklist)   { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
-if (params.anno_readme && file(params.anno_readme).exists()) { ch_anno_readme = Channel.fromPath(params.anno_readme) } else { ch_anno_readme = Channel.empty() }
+
+// Save AWS IGenomes file conatining annotation version
+if (params.anno_readme && file(params.anno_readme).exists()) {
+    file("${params.outdir}/genome/").mkdirs()
+    file(params.anno_readme).copyTo("${params.outdir}/genome/")
+}
 
 if (params.fasta) {
     lastPath = params.fasta.lastIndexOf(File.separator)
@@ -379,7 +384,7 @@ if (!params.bwa_index) {
     process BWAIndex {
         tag "$fasta"
         label 'process_high'
-        publishDir path: { params.save_reference ? "${params.outdir}/reference_genome" : params.outdir },
+        publishDir path: { params.save_reference ? "${params.outdir}/genome" : params.outdir },
             saveAs: { params.save_reference ? it : null }, mode: 'copy'
 
         input:
@@ -403,7 +408,7 @@ if (!params.gene_bed) {
     process MakeGeneBED {
         tag "$gtf"
         label 'process_low'
-        publishDir "${params.outdir}/reference_genome", mode: 'copy'
+        publishDir "${params.outdir}/genome", mode: 'copy'
 
         input:
         file gtf from ch_gtf
@@ -424,7 +429,7 @@ if (!params.gene_bed) {
 if (!params.tss_bed) {
     process MakeTSSBED {
         tag "$bed"
-        publishDir "${params.outdir}/reference_genome", mode: 'copy'
+        publishDir "${params.outdir}/genome", mode: 'copy'
 
         input:
         file bed from ch_gene_bed
@@ -444,17 +449,15 @@ if (!params.tss_bed) {
  */
 process MakeGenomeFilter {
     tag "$fasta"
-    publishDir "${params.outdir}/reference_genome", mode: 'copy'
+    publishDir "${params.outdir}/genome", mode: 'copy'
 
     input:
     file fasta from ch_fasta
     file blacklist from ch_blacklist.ifEmpty([])
-    file readme from ch_anno_readme.ifEmpty([])
 
     output:
     file "$fasta"                                      // FASTA FILE FOR IGV
     file "*.fai"                                       // FAI INDEX FOR REFERENCE GENOME
-    //file "$readme"                                     // AWS IGENOMES FILE CONTAINING ANNOTATION VERSION
     file "*.bed" into ch_genome_filter_regions         // BED FILE WITHOUT BLACKLIST REGIONS & MITOCHONDRIAL CONTIG FOR FILTERING
     file "*.txt" into ch_genome_autosomes              // TEXT FILE CONTAINING LISTING OF AUTOSOMAL CHROMOSOMES FOR ATAQV
     file "*.sizes" into ch_genome_sizes_mlib_bigwig,   // CHROMOSOME SIZES FILE FOR BEDTOOLS
@@ -517,1637 +520,1637 @@ process FastQC {
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                        ADAPTER TRIMMING                             -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 2 - Trim Galore!
- */
-if (params.skip_trimming) {
-    ch_trimmed_reads = ch_raw_reads_trimgalore
-    ch_trimgalore_results_mqc = Channel.empty()
-    ch_trimgalore_fastqc_reports_mqc = Channel.empty()
-} else {
-    process TrimGalore {
-        tag "$name"
-        label 'process_high'
-        publishDir "${params.outdir}/trim_galore", mode: 'copy',
-            saveAs: { filename ->
-                          if (filename.endsWith(".html")) "fastqc/$filename"
-                          else if (filename.endsWith(".zip")) "fastqc/zips/$filename"
-                          else if (filename.endsWith("trimming_report.txt")) "logs/$filename"
-                          else params.save_trimmed ? filename : null
-                    }
-
-        input:
-        set val(name), file(reads) from ch_raw_reads_trimgalore
-
-        output:
-        set val(name), file("*.fq.gz") into ch_trimmed_reads
-        file "*.txt" into ch_trimgalore_results_mqc
-        file "*.{zip,html}" into ch_trimgalore_fastqc_reports_mqc
-
-        script:
-        // Calculate number of --cores for TrimGalore based on value of task.cpus
-        // See: https://github.com/FelixKrueger/TrimGalore/blob/master/Changelog.md#version-060-release-on-1-mar-2019
-        // See: https://github.com/nf-core/atacseq/pull/65
-        def cores = 1
-        if (task.cpus) {
-            cores = (task.cpus as int) - 4
-            if (params.single_end) cores = (task.cpus as int) - 3
-            if (cores < 1) cores = 1
-            if (cores > 4) cores = 4
-        }
-
-        // Added soft-links to original fastqs for consistent naming in MultiQC
-        c_r1 = params.clip_r1 > 0 ? "--clip_r1 ${params.clip_r1}" : ''
-        c_r2 = params.clip_r2 > 0 ? "--clip_r2 ${params.clip_r2}" : ''
-        tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
-        tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
-        nextseq = params.trim_nextseq > 0 ? "--nextseq ${params.trim_nextseq}" : ''
-
-        // Added soft-links to original fastqs for consistent naming in MultiQC
-        if (params.single_end) {
-            """
-            [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
-            trim_galore --cores $cores --fastqc --gzip $c_r1 $tpc_r1 $nextseq ${name}.fastq.gz
-            """
-        } else {
-            """
-            [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
-            [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
-            trim_galore --cores $cores --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $nextseq ${name}_1.fastq.gz ${name}_2.fastq.gz
-            """
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                        ALIGN                                        -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 3.1 - Align read 1 with bwa
- */
-process BWAMem {
-    tag "$name"
-    label 'process_high'
-
-    input:
-    set val(name), file(reads) from ch_trimmed_reads
-    file index from ch_bwa_index.collect()
-
-    output:
-    set val(name), file("*.bam") into ch_bwa_bam
-
-    script:
-    prefix = "${name}.Lb"
-    rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
-    if (params.seq_center) {
-        rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
-    }
-    """
-    bwa mem \\
-        -t $task.cpus \\
-        -M \\
-        -R $rg \\
-        ${index}/${bwa_base} \\
-        $reads \\
-        | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -
-    """
-}
-
-/*
- * STEP 3.2 - Convert .bam to coordinate sorted .bam
- */
-process SortBAM {
-    tag "$name"
-    label 'process_medium'
-    if (params.save_align_intermeds) {
-        publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
-            saveAs: { filename ->
-                          if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
-                          else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
-                          else if (filename.endsWith(".stats")) "samtools_stats/$filename"
-                          else filename
-                    }
-    }
-
-    input:
-    set val(name), file(bam) from ch_bwa_bam
-
-    output:
-    set val(name), file("*.sorted.{bam,bam.bai}") into ch_sort_bam_merge
-    file "*.{flagstat,idxstats,stats}" into ch_sort_bam_flagstat_mqc
-
-    script:
-    prefix = "${name}.Lb"
-    """
-    samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $name $bam
-    samtools index ${prefix}.sorted.bam
-    samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-    samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
-    samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
-    """
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                    MERGE LIBRARY BAM                                -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 4.1 Merge BAM files for all libraries from same replicate
- */
-ch_sort_bam_merge
-    .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
-    .groupTuple(by: [0])
-    .map { it ->  [ it[0], it[1].flatten() ] }
-    .set { ch_sort_bam_merge }
-
-process MergedLibBAM {
-    tag "$name"
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
-                      else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
-                      else if (filename.endsWith(".stats")) "samtools_stats/$filename"
-                      else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
-                      else params.save_align_intermeds ? filename : null
-                }
-
-    input:
-    set val(name), file(bams) from ch_sort_bam_merge
-
-    output:
-    set val(name), file("*${prefix}.sorted.{bam,bam.bai}") into ch_mlib_bam_filter,
-                                                                ch_mlib_bam_preseq,
-                                                                ch_mlib_bam_ataqv
-    file "*.{flagstat,idxstats,stats}" into ch_mlib_bam_stats_mqc
-    file "*.txt" into ch_mlib_bam_metrics_mqc
-
-    script:
-    prefix = "${name}.mLb.mkD"
-    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    def avail_mem = 3
-    if (!task.memory) {
-        log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
-    } else {
-        avail_mem = task.memory.toGiga()
-    }
-    if (bam_files.size() > 1) {
-        """
-        picard -Xmx${avail_mem}g MergeSamFiles \\
-            ${'INPUT='+bam_files.join(' INPUT=')} \\
-            OUTPUT=${name}.sorted.bam \\
-            SORT_ORDER=coordinate \\
-            VALIDATION_STRINGENCY=LENIENT \\
-            TMP_DIR=tmp
-        samtools index ${name}.sorted.bam
-
-        picard -Xmx${avail_mem}g MarkDuplicates \\
-            INPUT=${name}.sorted.bam \\
-            OUTPUT=${prefix}.sorted.bam \\
-            ASSUME_SORTED=true \\
-            REMOVE_DUPLICATES=false \\
-            METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt \\
-            VALIDATION_STRINGENCY=LENIENT \\
-            TMP_DIR=tmp
-
-        samtools index ${prefix}.sorted.bam
-        samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
-        samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-        samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
-        """
-    } else {
-      """
-      picard -Xmx${avail_mem}g MarkDuplicates \\
-          INPUT=${bam_files[0]} \\
-          OUTPUT=${prefix}.sorted.bam \\
-          ASSUME_SORTED=true \\
-          REMOVE_DUPLICATES=false \\
-          METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt \\
-          VALIDATION_STRINGENCY=LENIENT \\
-          TMP_DIR=tmp
-
-      samtools index ${prefix}.sorted.bam
-      samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
-      samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-      samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
-      """
-    }
-}
-
-/*
- * STEP 4.2 Filter BAM file at merged library-level
- */
-process MergedLibBAMFilter {
-    tag "$name"
-    label 'process_medium'
-    publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
-        saveAs: { filename ->
-                      if (params.single_end || params.save_align_intermeds) {
-                          if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
-                          else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
-                          else if (filename.endsWith(".stats")) "samtools_stats/$filename"
-                          else if (filename.endsWith(".sorted.bam")) filename
-                          else if (filename.endsWith(".sorted.bam.bai")) filename
-                          else null
-                      }
-                }
-
-    input:
-    set val(name), file(bam) from ch_mlib_bam_filter
-    file bed from ch_genome_filter_regions.collect()
-    file bamtools_filter_config from ch_bamtools_filter_config
-
-    output:
-    set val(name), file("*.{bam,bam.bai}") into ch_mlib_filter_bam
-    set val(name), file("*.flagstat") into ch_mlib_filter_bam_flagstat
-    file "*.{idxstats,stats}" into ch_mlib_filter_bam_stats_mqc
-
-    script:
-    prefix = params.single_end ? "${name}.mLb.clN" : "${name}.mLb.flT"
-    filter_params = params.single_end ? "-F 0x004" : "-F 0x004 -F 0x0008 -f 0x001"
-    dup_params = params.keep_dups ? "" : "-F 0x0400"
-    multimap_params = params.keep_multi_map ? "" : "-q 1"
-    blacklist_params = params.blacklist ? "-L $bed" : ""
-    name_sort_bam = params.single_end ? "" : "samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${prefix}.sorted.bam"
-    """
-    samtools view \\
-        $filter_params \\
-        $dup_params \\
-        $multimap_params \\
-        $blacklist_params \\
-        -b ${bam[0]} \\
-        | bamtools filter \\
-            -out ${prefix}.sorted.bam \\
-            -script $bamtools_filter_config
-
-    samtools index ${prefix}.sorted.bam
-    samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-    samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
-    samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
-
-    $name_sort_bam
-    """
-}
-
-/*
- * STEP 4.3 Remove orphan reads from paired-end BAM file
- */
-if (params.single_end) {
-    ch_mlib_filter_bam
-        .into { ch_mlib_rm_orphan_bam_metrics;
-                ch_mlib_rm_orphan_bam_bigwig;
-                ch_mlib_rm_orphan_bam_macs;
-                ch_mlib_rm_orphan_bam_plotfingerprint;
-                ch_mlib_rm_orphan_bam_mrep;
-                ch_mlib_name_bam_mlib_counts;
-                ch_mlib_name_bam_mrep_counts }
-
-    ch_mlib_filter_bam_flagstat
-        .into { ch_mlib_rm_orphan_flagstat_bigwig;
-                ch_mlib_rm_orphan_flagstat_macs;
-                ch_mlib_rm_orphan_flagstat_mqc }
-
-    ch_mlib_filter_bam_stats_mqc
-        .set { ch_mlib_rm_orphan_stats_mqc }
-} else {
-    process MergedLibBAMRemoveOrphan {
-        tag "$name"
-        label 'process_medium'
-        publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
-            saveAs: { filename ->
-                          if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
-                          else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
-                          else if (filename.endsWith(".stats")) "samtools_stats/$filename"
-                          else if (filename.endsWith(".sorted.bam")) filename
-                          else if (filename.endsWith(".sorted.bam.bai")) filename
-                          else null
-                    }
-
-        input:
-        set val(name), file(bam) from ch_mlib_filter_bam
-
-        output:
-        set val(name), file("*.sorted.{bam,bam.bai}") into ch_mlib_rm_orphan_bam_metrics,
-                                                           ch_mlib_rm_orphan_bam_bigwig,
-                                                           ch_mlib_rm_orphan_bam_macs,
-                                                           ch_mlib_rm_orphan_bam_plotfingerprint,
-                                                           ch_mlib_rm_orphan_bam_mrep
-        set val(name), file("${prefix}.bam") into ch_mlib_name_bam_mlib_counts,
-                                                  ch_mlib_name_bam_mrep_counts
-        set val(name), file("*.flagstat") into ch_mlib_rm_orphan_flagstat_bigwig,
-                                               ch_mlib_rm_orphan_flagstat_macs,
-                                               ch_mlib_rm_orphan_flagstat_mqc
-        file "*.{idxstats,stats}" into ch_mlib_rm_orphan_stats_mqc
-
-        script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
-        prefix = "${name}.mLb.clN"
-        """
-        bampe_rm_orphan.py ${bam[0]} ${prefix}.bam --only_fr_pairs
-
-        samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $prefix ${prefix}.bam
-        samtools index ${prefix}.sorted.bam
-        samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-        samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
-        samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
-        """
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                 MERGE LIBRARY BAM POST-ANALYSIS                     -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 5.1 preseq analysis after merging libraries and before filtering
- */
-process MergedLibPreseq {
-    tag "$name"
-    label 'process_low'
-    publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: 'copy'
-
-    when:
-    !params.skip_preseq
-
-    input:
-    set val(name), file(bam) from ch_mlib_bam_preseq
-
-    output:
-    file "*.ccurve.txt" into ch_mlib_preseq_mqc
-
-    script:
-    prefix = "${name}.mLb.mkD"
-    """
-    preseq lc_extrap -v -output ${prefix}.ccurve.txt -bam ${bam[0]}
-    """
-}
-
-/*
- * STEP 5.2 Picard CollectMultipleMetrics after merging libraries and filtering
- */
-process MergedLibMetrics {
-    tag "$name"
-    label 'process_medium'
-    publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.endsWith("_metrics")) "picard_metrics/$filename"
-                      else if (filename.endsWith(".pdf")) "picard_metrics/pdf/$filename"
-                      else null
-                }
-
-    when:
-    !params.skip_picard_metrics
-
-    input:
-    set val(name), file(bam) from ch_mlib_rm_orphan_bam_metrics
-    file fasta from ch_fasta
-
-    output:
-    file "*_metrics" into ch_mlib_collectmetrics_mqc
-    file "*.pdf" into ch_mlib_collectmetrics_pdf
-
-    script:
-    prefix = "${name}.mLb.clN"
-    def avail_mem = 3
-    if (!task.memory) {
-        log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
-    } else {
-        avail_mem = task.memory.toGiga()
-    }
-    """
-    picard -Xmx${avail_mem}g CollectMultipleMetrics \\
-        INPUT=${bam[0]} \\
-        OUTPUT=${prefix}.CollectMultipleMetrics \\
-        REFERENCE_SEQUENCE=$fasta \\
-        VALIDATION_STRINGENCY=LENIENT \\
-        TMP_DIR=tmp
-    """
-}
-
-/*
- * STEP 5.3 Read depth normalised bigWig
- */
-process MergedLibBigWig {
-    tag "$name"
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/bigwig", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.endsWith("scale_factor.txt")) "scale/$filename"
-                      else if (filename.endsWith(".bigWig")) "$filename"
-                      else null
-                }
-
-    input:
-    set val(name), file(bam), file(flagstat) from ch_mlib_rm_orphan_bam_bigwig.join(ch_mlib_rm_orphan_flagstat_bigwig, by: [0])
-    file sizes from ch_genome_sizes_mlib_bigwig.collect()
-
-    output:
-    set val(name), file("*.bigWig") into ch_mlib_bigwig_plotprofile
-    file "*scale_factor.txt" into ch_mlib_bigwig_scale
-    file "*igv.txt" into ch_mlib_bigwig_igv
-
-    script:
-    prefix = "${name}.mLb.clN"
-    pe_fragment = params.single_end ? "" : "-pc"
-    extend = (params.single_end && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
-    """
-    SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
-    echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
-    genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -T '.' -k1,1 -k2,2n >  ${prefix}.bedGraph
-
-    bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
-
-    find * -type f -name "*.bigWig" -exec echo -e "bwa/mergedLibrary/bigwig/"{}"\\t0,0,178" \\; > ${prefix}.bigWig.igv.txt
-    """
-}
-
-/*
- * STEP 5.4 generate gene body coverage plot with deepTools
- */
-process MergedLibPlotProfile {
-    tag "$name"
-    label 'process_high'
-    publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotProfile", mode: 'copy'
-
-    when:
-    !params.skip_plot_profile
-
-    input:
-    set val(name), file(bigwig) from ch_mlib_bigwig_plotprofile
-    file bed from ch_gene_bed
-
-    output:
-    file '*.{gz,pdf}' into ch_mlib_plotprofile_results
-    file '*.plotProfile.tab' into ch_mlib_plotprofile_mqc
-
-    script:
-    prefix = "${name}.mLb.clN"
-    """
-    computeMatrix scale-regions \\
-        --regionsFileName $bed \\
-        --scoreFileName $bigwig \\
-        --outFileName ${prefix}.computeMatrix.mat.gz \\
-        --outFileNameMatrix ${prefix}.computeMatrix.vals.mat.gz \\
-        --regionBodyLength 1000 \\
-        --beforeRegionStartLength 3000 \\
-        --afterRegionStartLength 3000 \\
-        --skipZeros \\
-        --smartLabels \\
-        --numberOfProcessors $task.cpus
-
-    plotProfile --matrixFile ${prefix}.computeMatrix.mat.gz \\
-        --outFileName ${prefix}.plotProfile.pdf \\
-        --outFileNameData ${prefix}.plotProfile.tab
-    """
-}
-
-/*
- * STEP 5.5 deepTools plotFingerprint
- */
-process MergedLibPlotFingerprint {
-    tag "$name"
-    label 'process_high'
-    publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: 'copy'
-
-    when:
-    !params.skip_plot_fingerprint
-
-    input:
-    set val(name), file(bam) from ch_mlib_rm_orphan_bam_plotfingerprint
-
-    output:
-    file '*.{txt,pdf}' into ch_mlib_plotfingerprint_results
-    file '*.raw.txt' into ch_mlib_plotfingerprint_mqc
-
-    script:
-    prefix = "${name}.mLb.clN"
-    extend = (params.single_end && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
-    """
-    plotFingerprint \\
-        --bamfiles ${bam[0]} \\
-        --plotFile ${prefix}.plotFingerprint.pdf \\
-        $extend \\
-        --labels $prefix \\
-        --outRawCounts ${prefix}.plotFingerprint.raw.txt \\
-        --outQualityMetrics ${prefix}.plotFingerprint.qcmetrics.txt \\
-        --skipZeros \\
-        --numberOfProcessors $task.cpus \\
-        --numberOfSamples $params.fingerprint_bins
-    """
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                 MERGE LIBRARY PEAK ANALYSIS                         -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 6.1 Call peaks with MACS2 and calculate FRiP score
- */
-process MergedLibMACSCallPeak {
-    tag "$name"
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.endsWith(".tsv")) "qc/$filename"
-                      else if (filename.endsWith(".igv.txt")) null
-                      else filename
-                }
-
-    when:
-    params.macs_gsize
-
-    input:
-    set val(name), file(bam), file(flagstat) from ch_mlib_rm_orphan_bam_macs.join(ch_mlib_rm_orphan_flagstat_macs, by: [0])
-    file mlib_peak_count_header from ch_mlib_peak_count_header
-    file mlib_frip_score_header from ch_mlib_frip_score_header
-
-    output:
-    set val(name), file("*.{bed,xls,gappedPeak,bdg}") into ch_mlib_macs_output
-    set val(name), file("*$PEAK_TYPE") into ch_mlib_macs_homer,
-                                            ch_mlib_macs_qc,
-                                            ch_mlib_macs_consensus,
-                                            ch_mlib_macs_ataqv
-    file "*igv.txt" into ch_mlib_macs_igv
-    file "*_mqc.tsv" into ch_mlib_macs_mqc
-
-    script:
-    prefix = "${name}.mLb.clN"
-    broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
-    format = params.single_end ? "BAM" : "BAMPE"
-    pileup = params.save_macs_pileup ? "-B --SPMR" : ""
-    """
-    macs2 callpeak \\
-        -t ${bam[0]} \\
-        $broad \\
-        -f $format \\
-        -g $params.macs_gsize \\
-        -n $prefix \\
-        $pileup \\
-        --keep-dup all \\
-        --nomodel
-
-    cat ${prefix}_peaks.${PEAK_TYPE} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $mlib_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
-
-    READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks.${PEAK_TYPE} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
-    grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' | cat $mlib_frip_score_header - > ${prefix}_peaks.FRiP_mqc.tsv
-
-    find * -type f -name "*.${PEAK_TYPE}" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/"{}"\\t0,0,178" \\; > ${prefix}_peaks.igv.txt
-    """
-}
-
-/*
- * STEP 6.2 Annotate peaks with HOMER
- */
-process MergedLibAnnotatePeaks {
-    tag "$name"
-    label "process_medium"
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: 'copy'
-
-    when:
-    params.macs_gsize
-
-    input:
-    set val(name), file(peak) from ch_mlib_macs_homer
-    file fasta from ch_fasta
-    file gtf from ch_gtf
-
-    output:
-    file "*.txt" into ch_mlib_macs_annotate
-
-    script:
-    prefix = "${name}.mLb.clN"
-    """
-    annotatePeaks.pl \\
-        $peak \\
-        $fasta \\
-        -gid \\
-        -gtf $gtf \\
-        -cpu $task.cpus \\
-        > ${prefix}_peaks.annotatePeaks.txt
-    """
-}
-
-/*
- * STEP 6.3 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
- */
-process MergedLibPeakQC {
-    label "process_medium"
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/qc", mode: 'copy'
-
-    when:
-    params.macs_gsize
-
-    input:
-    file peaks from ch_mlib_macs_qc.collect{ it[1] }
-    file annos from ch_mlib_macs_annotate.collect()
-    file mlib_peak_annotation_header from ch_mlib_peak_annotation_header
-
-    output:
-    file "*.{txt,pdf}" into ch_mlib_peak_qc
-    file "*.tsv" into ch_mlib_peak_qc_mqc
-
-    script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
-    suffix = 'mLb.clN'
-    """
-    plot_macs_qc.r \\
-        -i ${peaks.join(',')} \\
-        -s ${peaks.join(',').replaceAll(".${suffix}_peaks.${PEAK_TYPE}","")} \\
-        -o ./ \\
-        -p macs_peak.${suffix}
-
-    plot_homer_annotatepeaks.r \\
-        -i ${annos.join(',')} \\
-        -s ${annos.join(',').replaceAll(".${suffix}_peaks.annotatePeaks.txt","")} \\
-        -o ./ \\
-        -p macs_annotatePeaks.${suffix}
-
-    cat $mlib_peak_annotation_header macs_annotatePeaks.${suffix}.summary.txt > macs_annotatePeaks.${suffix}.summary_mqc.tsv
-    """
-}
-
-/*
- * STEP 6.4 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
- */
-process MergedLibConsensusPeakSet {
-    label 'process_long'
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.endsWith(".igv.txt")) null
-                      else filename
-                }
-
-    when:
-    params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
-
-    input:
-    file peaks from ch_mlib_macs_consensus.collect{ it[1] }
-
-    output:
-    file "*.bed" into ch_mlib_macs_consensus_bed
-    file "*.saf" into ch_mlib_macs_consensus_saf
-    file "*.boolean.txt" into ch_mlib_macs_consensus_bool
-    file "*.intersect.{txt,plot.pdf}" into ch_mlib_macs_consensus_intersect
-    file "*igv.txt" into ch_mlib_macs_consensus_igv
-
-    script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
-    suffix = 'mLb.clN'
-    prefix = "consensus_peaks.${suffix}"
-    mergecols = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
-    collapsecols = params.narrow_peak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
-    expandparam = params.narrow_peak ? "--is_narrow_peak" : ""
-    """
-    sort -T '.' -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
-        | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
-
-    macs2_merged_expand.py \\
-        ${prefix}.txt \\
-        ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${PEAK_TYPE}","")} \\
-        ${prefix}.boolean.txt \\
-        --min_replicates $params.min_reps_consensus \\
-        $expandparam
-
-    awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
-
-    echo -e "GeneID\tChr\tStart\tEnd\tStrand" > ${prefix}.saf
-    awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
-
-    sed -i 's/.${suffix}//g' ${prefix}.boolean.intersect.txt
-    plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
-
-    find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
-    """
-}
-
-/*
- * STEP 6.5 Annotate consensus peaks with HOMER, and add annotation to boolean output file
- */
-process MergedLibConsensusPeakSetAnnotate {
-    label "process_medium"
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: 'copy'
-
-    when:
-    params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
-
-    input:
-    file bed from ch_mlib_macs_consensus_bed
-    file bool from ch_mlib_macs_consensus_bool
-    file fasta from ch_fasta
-    file gtf from ch_gtf
-
-    output:
-    file "*.annotatePeaks.txt" into ch_mlib_macs_consensus_annotate
-
-    script:
-    prefix = "consensus_peaks.mLb.clN"
-    """
-    annotatePeaks.pl \\
-        $bed \\
-        $fasta \\
-        -gid \\
-        -gtf $gtf \\
-        -cpu $task.cpus \\
-        > ${prefix}.annotatePeaks.txt
-
-    cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-    paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
-    """
-}
-
-/*
- * STEP 6.6 Count reads in consensus peaks with featureCounts
- */
-process MergedLibConsensusPeakSetCounts {
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: 'copy'
-
-    when:
-    params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
-
-    input:
-    file bams from ch_mlib_name_bam_mlib_counts.collect{ it[1] }
-    file saf from ch_mlib_macs_consensus_saf.collect()
-
-    output:
-    file "*featureCounts.txt" into ch_mlib_macs_consensus_counts
-    file "*featureCounts.txt.summary" into ch_mlib_macs_consensus_counts_mqc
-
-    script:
-    prefix = "consensus_peaks.mLb.clN"
-    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    pe_params = params.single_end ? '' : "-p --donotsort"
-    """
-    featureCounts \\
-        -F SAF \\
-        -O \\
-        --fracOverlap 0.2 \\
-        -T $task.cpus \\
-        $pe_params \\
-        -a $saf \\
-        -o ${prefix}.featureCounts.txt \\
-        ${bam_files.join(' ')}
-    """
-}
-
-/*
- * STEP 6.7 Perform differential analysis with DESeq2
- */
-process MergedLibConsensusPeakSetDESeq {
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/deseq2", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.endsWith(".igv.txt")) null
-                      else filename
-                }
-
-    when:
-    params.macs_gsize && replicatesExist && multipleGroups && !params.skip_consensus_peaks && !params.skip_diff_analysis
-
-    input:
-    file counts from ch_mlib_macs_consensus_counts
-    file mlib_deseq2_pca_header from ch_mlib_deseq2_pca_header
-    file mlib_deseq2_clustering_header from ch_mlib_deseq2_clustering_header
-
-    output:
-    file "*.{RData,results.txt,pdf,log}" into ch_mlib_macs_consensus_deseq_results
-    file "sizeFactors" into ch_mlib_macs_consensus_deseq_factors
-    file "*vs*/*.{pdf,txt}" into ch_mlib_macs_consensus_deseq_comp_results
-    file "*vs*/*.bed" into ch_mlib_macs_consensus_deseq_comp_bed
-    file "*igv.txt" into ch_mlib_macs_consensus_deseq_comp_igv
-    file "*.tsv" into ch_mlib_macs_consensus_deseq_mqc
-
-    script:
-    prefix = "consensus_peaks.mLb.clN"
-    bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
-    """
-    featurecounts_deseq2.r \\
-        --featurecount_file $counts \\
-        --bam_suffix '$bam_ext' \\
-        --outdir ./ \\
-        --outprefix $prefix \\
-        --outsuffix .mLb \\
-        --cores $task.cpus
-
-    cat $mlib_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
-    cat $mlib_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
-
-    find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
-    """
-}
-
-/*
- * STEP 6.8 Run ataqv on BAM file and corresponding peaks
- */
-process MergedLibAtaqv {
-    tag "$name"
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${PEAK_TYPE}", mode: 'copy'
-
-    when:
-    !params.skip_ataqv
-
-    input:
-    set val(name), file(bam), file(peak) from ch_mlib_bam_ataqv.join(ch_mlib_macs_ataqv, by: [0])
-    file autosomes from ch_genome_autosomes.collect()
-    file tss_bed from ch_tss_bed
-
-    output:
-    file "*.json" into ch_mlib_ataqv
-
-    script:
-    peak_param = params.macs_gsize ? "--peak-file ${peak}" : ""
-    mito_param = params.mito_name ? "--mitochondrial-reference-name ${params.mito_name}" : ""
-    """
-    ataqv \\
-        --threads $task.cpus \\
-        $peak_param  \\
-        --tss-file $tss_bed \\
-        --metrics-file  ${name}.ataqv.json \\
-        --name $name \\
-        --ignore-read-groups \\
-        --autosomal-reference-file $autosomes \\
-        $mito_param \\
-        NA \\
-        ${bam[0]}
-    """
-}
-
-/*
- * STEP 6.9 run ataqv mkarv on all JSON files to render web app
- */
-process MergedLibAtaqvMkarv {
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${PEAK_TYPE}", mode: 'copy'
-
-    when:
-    !params.skip_ataqv
-
-    input:
-    file json from ch_mlib_ataqv.collect()
-
-    output:
-    file "html" into ch_mlib_ataqv_mkarv
-
-    script:
-    """
-    mkarv \\
-        --concurrency $task.cpus \\
-        --force \\
-        ./html/ \\
-        ${json.join(' ')}
-    """
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                    MERGE REPLICATE BAM                              -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 7 Merge library BAM files across all replicates
- */
-ch_mlib_rm_orphan_bam_mrep
-    .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
-    .groupTuple(by: [0])
-    .map { it ->  [ it[0], it[1].flatten() ] }
-    .set { ch_mlib_rm_orphan_bam_mrep }
-
-process MergedRepBAM {
-    tag "$name"
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedReplicate", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
-                      else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
-                      else if (filename.endsWith(".stats")) "samtools_stats/$filename"
-                      else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
-                      else filename
-                }
-
-    input:
-    set val(name), file(bams) from ch_mlib_rm_orphan_bam_mrep
-
-    output:
-    set val(name), file("*${prefix}.sorted.{bam,bam.bai}") into ch_mrep_bam_bigwig,
-                                                                ch_mrep_bam_macs
-    set val(name), file("*.flagstat") into ch_mrep_bam_flagstat_bigwig,
-                                           ch_mrep_bam_flagstat_macs,
-                                           ch_mrep_bam_flagstat_mqc
-    file "*.{idxstats,stats}" into ch_mrep_bam_stats_mqc
-    file "*.txt" into ch_mrep_bam_metrics_mqc
-
-    when:
-    !params.skip_merge_replicates && replicatesExist
-
-    script:
-    prefix = "${name}.mRp.clN"
-    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    def avail_mem = 3
-    if (!task.memory) {
-        log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
-    } else {
-        avail_mem = task.memory.toGiga()
-    }
-    if (bam_files.size() > 1) {
-        """
-        picard -Xmx${avail_mem}g MergeSamFiles \\
-            ${'INPUT='+bam_files.join(' INPUT=')} \\
-            OUTPUT=${name}.sorted.bam \\
-            SORT_ORDER=coordinate \\
-            VALIDATION_STRINGENCY=LENIENT \\
-            TMP_DIR=tmp
-        samtools index ${name}.sorted.bam
-
-        picard -Xmx${avail_mem}g MarkDuplicates \\
-            INPUT=${name}.sorted.bam \\
-            OUTPUT=${prefix}.sorted.bam \\
-            ASSUME_SORTED=true \\
-            REMOVE_DUPLICATES=true \\
-            METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt \\
-            VALIDATION_STRINGENCY=LENIENT \\
-            TMP_DIR=tmp
-
-        samtools index ${prefix}.sorted.bam
-        samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-        samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
-        samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
-        """
-    } else {
-      """
-      ln -s ${bams[0]} ${prefix}.sorted.bam
-      ln -s ${bams[1]} ${prefix}.sorted.bam.bai
-      touch ${prefix}.MarkDuplicates.metrics.txt
-      samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
-      samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
-      samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
-      """
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --              MERGE REPLICATE BAM POST-ANALYSIS                      -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 8.1 Read depth normalised bigWig
- */
-process MergedRepBigWig {
-    tag "$name"
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedReplicate/bigwig", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.endsWith("scale_factor.txt")) "scale/$filename"
-                      else if (filename.endsWith(".bigWig")) "$filename"
-                      else null
-                }
-
-    when:
-    !params.skip_merge_replicates && replicatesExist
-
-    input:
-    set val(name), file(bam), file(flagstat) from ch_mrep_bam_bigwig.join(ch_mrep_bam_flagstat_bigwig, by: [0])
-    file sizes from ch_genome_sizes_mrep_bigwig.collect()
-
-    output:
-    set val(name), file("*.bigWig") into ch_mrep_bigwig
-    file "*scale_factor.txt" into ch_mrep_bigwig_scale
-    file "*igv.txt" into ch_mrep_bigwig_igv
-
-    script:
-    prefix = "${name}.mRp.clN"
-    pe_fragment = params.single_end ? "" : "-pc"
-    extend = (params.single_end && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
-    """
-    SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
-    echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
-    genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -T '.' -k1,1 -k2,2n >  ${prefix}.bedGraph
-
-    bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
-
-    find * -type f -name "*.bigWig" -exec echo -e "bwa/mergedReplicate/bigwig/"{}"\\t0,0,178" \\; > ${prefix}.bigWig.igv.txt
-    """
-}
-
-/*
- * STEP 8.2 Call peaks with MACS2 and calculate FRiP score
- */
-process MergedRepMACSCallPeak {
-    tag "$name"
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.endsWith(".tsv")) "qc/$filename"
-                      else if (filename.endsWith(".igv.txt")) null
-                      else filename
-                }
-
-    when:
-    !params.skip_merge_replicates && replicatesExist && params.macs_gsize
-
-    input:
-    set val(name), file(bam), file(flagstat) from ch_mrep_bam_macs.join(ch_mrep_bam_flagstat_macs, by: [0])
-    file mrep_peak_count_header from ch_mrep_peak_count_header
-    file mrep_frip_score_header from ch_mrep_frip_score_header
-
-    output:
-    set val(name), file("*.{bed,xls,gappedPeak,bdg}") into ch_mrep_macs_output
-    set val(name), file("*$PEAK_TYPE") into ch_mrep_macs_homer,
-                                            ch_mrep_macs_qc,
-                                            ch_mrep_macs_consensus
-    file "*igv.txt" into ch_mrep_macs_igv
-    file "*_mqc.tsv" into ch_mrep_macs_mqc
-
-    script:
-    prefix = "${name}.mRp.clN"
-    broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
-    format = params.single_end ? "BAM" : "BAMPE"
-    pileup = params.save_macs_pileup ? "-B --SPMR" : ""
-    """
-    macs2 callpeak \\
-        -t ${bam[0]} \\
-        $broad \\
-        -f $format \\
-        -g $params.macs_gsize \\
-        -n $prefix \\
-        $pileup \\
-        --keep-dup all \\
-        --nomodel
-
-    cat ${prefix}_peaks.${PEAK_TYPE} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $mrep_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
-
-    READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks.${PEAK_TYPE} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
-    grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' | cat $mrep_frip_score_header - > ${prefix}_peaks.FRiP_mqc.tsv
-
-    find * -type f -name "*.${PEAK_TYPE}" -exec echo -e "bwa/mergedReplicate/macs/${PEAK_TYPE}/"{}"\\t0,0,178" \\; > ${prefix}_peaks.igv.txt
-    """
-}
-
-/*
- * STEP 8.3 Annotate peaks with HOMER
- */
-process MergedRepAnnotatePeaks {
-    tag "$name"
-    label "process_medium"
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}", mode: 'copy'
-
-    when:
-    !params.skip_merge_replicates && replicatesExist && params.macs_gsize
-
-    input:
-    set val(name), file(peak) from ch_mrep_macs_homer
-    file fasta from ch_fasta
-    file gtf from ch_gtf
-
-    output:
-    file "*.txt" into ch_mrep_macs_annotate
-
-    script:
-    prefix = "${name}.mRp.clN"
-    """
-    annotatePeaks.pl \\
-        $peak \\
-        $fasta \\
-        -gid \\
-        -gtf $gtf \\
-        -cpu $task.cpus \\
-        > ${prefix}_peaks.annotatePeaks.txt
-    """
-}
-
-/*
- * STEP 8.4 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
- */
-process MergedRepPeakQC {
-    label "process_medium"
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/qc", mode: 'copy'
-
-    when:
-    !params.skip_merge_replicates && replicatesExist && params.macs_gsize
-
-    input:
-    file peaks from ch_mrep_macs_qc.collect{ it[1] }
-    file annos from ch_mrep_macs_annotate.collect()
-    file mrep_peak_annotation_header from ch_mrep_peak_annotation_header
-
-    output:
-    file "*.{txt,pdf}" into ch_mrep_peak_qc
-    file "*.tsv" into ch_mrep_peak_qc_mqc
-
-    script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
-    suffix = 'mRp.clN'
-    """
-    plot_macs_qc.r \\
-        -i ${peaks.join(',')} \\
-        -s ${peaks.join(',').replaceAll(".${suffix}_peaks.${PEAK_TYPE}","")} \\
-        -o ./ \\
-        -p macs_peak.${suffix}
-
-    plot_homer_annotatepeaks.r \\
-        -i ${annos.join(',')} \\
-        -s ${annos.join(',').replaceAll(".${suffix}_peaks.annotatePeaks.txt","")} \\
-        -o ./ \\
-        -p macs_annotatePeaks.${suffix}
-
-    cat $mrep_peak_annotation_header macs_annotatePeaks.${suffix}.summary.txt > macs_annotatePeaks.${suffix}.summary_mqc.tsv
-    """
-}
-
-/*
- * STEP 8.5 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
- */
-process MergedRepConsensusPeakSet {
-    label 'process_long'
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.endsWith(".igv.txt")) null
-                      else filename
-                }
-
-    when:
-    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks
-
-    input:
-    file peaks from ch_mrep_macs_consensus.collect{ it[1] }
-
-    output:
-    file "*.bed" into ch_mrep_macs_consensus_bed
-    file "*.saf" into ch_mrep_macs_consensus_saf
-    file "*.boolean.txt" into ch_mrep_macs_consensus_bool
-    file "*.intersect.{txt,plot.pdf}" into ch_mrep_macs_consensus_intersect
-    file "*igv.txt" into ch_mrep_macs_consensus_igv
-
-    script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
-    suffix = 'mRp.clN'
-    prefix = "consensus_peaks.${suffix}"
-    mergecols = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
-    collapsecols = params.narrow_peak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
-    expandparam = params.narrow_peak ? "--is_narrow_peak" : ""
-    """
-    sort -T '.' -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
-        | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
-
-    macs2_merged_expand.py \\
-        ${prefix}.txt \\
-        ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${PEAK_TYPE}","")} \\
-        ${prefix}.boolean.txt \\
-        $expandparam
-
-    awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
-
-    echo -e "GeneID\tChr\tStart\tEnd\tStrand" > ${prefix}.saf
-    awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
-
-    sed -i 's/.${suffix}//g' ${prefix}.boolean.intersect.txt
-    plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
-
-    find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
-    """
-}
-
-/*
- * STEP 8.6 Annotate consensus peaks with HOMER, and add annotation to boolean output file
- */
-process MergedRepConsensusPeakSetAnnotate {
-    label "process_medium"
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: 'copy'
-
-    when:
-    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks
-
-    input:
-    file bed from ch_mrep_macs_consensus_bed
-    file bool from ch_mrep_macs_consensus_bool
-    file fasta from ch_fasta
-    file gtf from ch_gtf
-
-    output:
-    file "*.annotatePeaks.txt" into ch_mrep_macs_consensus_annotate
-
-    script:
-    prefix = "consensus_peaks.mRp.clN"
-    """
-    annotatePeaks.pl \\
-        $bed \\
-        $fasta \\
-        -gid \\
-        -gtf $gtf \\
-        -cpu $task.cpus \\
-        > ${prefix}.annotatePeaks.txt
-
-    cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-    paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
-    """
-}
-
-/*
- * STEP 8.7 Count reads in consensus peaks with featureCounts
- */
-process MergedRepConsensusPeakSetCounts {
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: 'copy'
-
-    when:
-    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks
-
-    input:
-    file bams from ch_mlib_name_bam_mrep_counts.collect{ it[1] }
-    file saf from ch_mrep_macs_consensus_saf.collect()
-
-    output:
-    file "*featureCounts.txt" into ch_mrep_macs_consensus_counts
-    file "*featureCounts.txt.summary" into ch_mrep_macs_consensus_counts_mqc
-
-    script:
-    prefix = "consensus_peaks.mRp.clN"
-    bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
-    pe_params = params.single_end ? '' : "-p --donotsort"
-    """
-    featureCounts \\
-        -F SAF \\
-        -O \\
-        --fracOverlap 0.2 \\
-        -T $task.cpus \\
-        $pe_params \\
-        -a $saf \\
-        -o ${prefix}.featureCounts.txt \\
-        ${bam_files.join(' ')}
-    """
-}
-
-/*
- * STEP 8.8 Perform differential analysis with DESeq2
- */
-process MergedRepConsensusPeakSetDESeq {
-    label 'process_medium'
-    publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus/deseq2", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.endsWith(".igv.txt")) null
-                      else filename
-                }
-
-    when:
-    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks && !params.skip_diff_analysis
-
-    input:
-    file counts from ch_mrep_macs_consensus_counts
-    file mrep_deseq2_pca_header from ch_mrep_deseq2_pca_header
-    file mrep_deseq2_clustering_header from ch_mrep_deseq2_clustering_header
-
-    output:
-    file "*.{RData,results.txt,pdf,log}" into ch_mrep_macs_consensus_deseq_results
-    file "sizeFactors" into ch_mrep_macs_consensus_deseq_factors
-    file "*vs*/*.{pdf,txt}" into ch_mrep_macs_consensus_deseq_comp_results
-    file "*vs*/*.bed" into ch_mrep_macs_consensus_deseq_comp_bed
-    file "*igv.txt" into ch_mrep_macs_consensus_deseq_comp_igv
-    file "*.tsv" into ch_mrep_macs_consensus_deseq_mqc
-
-    script:
-    prefix = "consensus_peaks.mRp.clN"
-    bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
-    """
-    featurecounts_deseq2.r \\
-        --featurecount_file $counts \\
-        --bam_suffix '$bam_ext' \\
-        --outdir ./ \\
-        --outprefix $prefix \\
-        --outsuffix .mRp \\
-        --cores $task.cpus
-
-    cat $mrep_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
-    cat $mrep_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
-
-    find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
-    """
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                             IGV                                     -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 9 - Create IGV session file
- */
-process IGV {
-    publishDir "${params.outdir}/igv/${PEAK_TYPE}", mode: 'copy'
-
-    when:
-    !params.skip_igv
-
-    input:
-    file fasta from ch_fasta
-
-    file bigwigs from ch_mlib_bigwig_igv.collect().ifEmpty([])
-    file peaks from ch_mlib_macs_igv.collect().ifEmpty([])
-    file consensus_peaks from ch_mlib_macs_consensus_igv.collect().ifEmpty([])
-    file differential_peaks from ch_mlib_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
-
-    file rbigwigs from ch_mrep_bigwig_igv.collect().ifEmpty([])
-    file rpeaks from ch_mrep_macs_igv.collect().ifEmpty([])
-    file rconsensus_peaks from ch_mrep_macs_consensus_igv.collect().ifEmpty([])
-    file rdifferential_peaks from ch_mrep_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
-
-    output:
-    file "*.{txt,xml}" into ch_igv_session
-
-    script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
-    """
-    cat *.txt > igv_files.txt
-    igv_files_to_session.py igv_session.xml igv_files.txt ../../reference_genome/${fasta.getName()} --path_prefix '../../'
-    """
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                          MULTIQC                                    -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * Parse software version numbers
- */
-process get_software_versions {
-    publishDir "${params.outdir}/pipeline_info", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.indexOf(".csv") > 0) filename
-                      else null
-                }
-
-    output:
-    file 'software_versions_mqc.yaml' into ch_software_versions_mqc
-    file "software_versions.csv"
-
-    script:
-    """
-    echo $workflow.manifest.version > v_pipeline.txt
-    echo $workflow.nextflow.version > v_nextflow.txt
-    fastqc --version > v_fastqc.txt
-    trim_galore --version > v_trim_galore.txt
-    echo \$(bwa 2>&1) > v_bwa.txt
-    samtools --version > v_samtools.txt
-    bedtools --version > v_bedtools.txt
-    echo \$(bamtools --version 2>&1) > v_bamtools.txt
-    echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt || true
-    picard MarkDuplicates --version &> v_picard.txt  || true
-    echo \$(R --version 2>&1) > v_R.txt
-    python -c "import pysam; print(pysam.__version__)" > v_pysam.txt
-    echo \$(macs2 --version 2>&1) > v_macs2.txt
-    touch v_homer.txt
-    echo \$(ataqv --version 2>&1) > v_ataqv.txt
-    echo \$(featureCounts -v 2>&1) > v_featurecounts.txt
-    preseq &> v_preseq.txt
-    multiqc --version > v_multiqc.txt
-    scrape_software_versions.py &> software_versions_mqc.yaml
-    """
-}
-
-Channel.from(summary.collect{ [it.key, it.value] })
-    .map { k,v -> "<dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }
-    .reduce { a, b -> return [a, b].join("\n            ") }
-    .map { x -> """
-    id: 'nf-core-chipseq-summary'
-    description: " - this information is collected when the pipeline is started."
-    section_name: 'nf-core/chipseq Workflow Summary'
-    section_href: 'https://github.com/nf-core/chipseq'
-    plot_type: 'html'
-    data: |
-        <dl class=\"dl-horizontal\">
-            $x
-        </dl>
-    """.stripIndent() }
-    .set { ch_workflow_summary }
-
-/*
- * STEP 10 - MultiQC
- */
-process MultiQC {
-    publishDir "${params.outdir}/multiqc/${PEAK_TYPE}", mode: 'copy'
-
-    when:
-    !params.skip_multiqc
-
-    input:
-    file (multiqc_config) from ch_multiqc_config
-    file (mqc_custom_config) from ch_multiqc_custom_config.collect().ifEmpty([])
-
-    file ('software_versions/*') from ch_software_versions_mqc.collect()
-    file workflow_summary from ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml")
-
-    file ('fastqc/*') from ch_fastqc_reports_mqc.collect().ifEmpty([])
-    file ('trimgalore/*') from ch_trimgalore_results_mqc.collect().ifEmpty([])
-    file ('trimgalore/fastqc/*') from ch_trimgalore_fastqc_reports_mqc.collect().ifEmpty([])
-
-    file ('alignment/library/*') from ch_sort_bam_flagstat_mqc.collect()
-
-    file ('alignment/mergedLibrary/*') from ch_mlib_bam_stats_mqc.collect()
-    file ('alignment/mergedLibrary/*') from ch_mlib_rm_orphan_flagstat_mqc.collect{it[1]}
-    file ('alignment/mergedLibrary/*') from ch_mlib_rm_orphan_stats_mqc.collect()
-    file ('alignment/mergedLibrary/picard_metrics/*') from ch_mlib_bam_metrics_mqc.collect()
-    file ('alignment/mergedLibrary/picard_metrics/*') from ch_mlib_collectmetrics_mqc.collect()
-    file ('macs/mergedLibrary/*') from ch_mlib_macs_mqc.collect().ifEmpty([])
-    file ('macs/mergedLibrary/*') from ch_mlib_peak_qc_mqc.collect().ifEmpty([])
-    file ('macs/mergedLibrary/consensus/*') from ch_mlib_macs_consensus_counts_mqc.collect().ifEmpty([])
-    file ('macs/mergedLibrary/consensus/*') from ch_mlib_macs_consensus_deseq_mqc.collect().ifEmpty([])
-    file ('preseq/*') from ch_mlib_preseq_mqc.collect().ifEmpty([])
-    file ('deeptools/*') from ch_mlib_plotprofile_mqc.collect().ifEmpty([])
-    file ('deeptools/*') from ch_mlib_plotfingerprint_mqc.collect().ifEmpty([])
-
-    file ('alignment/mergedReplicate/*') from ch_mrep_bam_flagstat_mqc.collect{it[1]}.ifEmpty([])
-    file ('alignment/mergedReplicate/*') from ch_mrep_bam_stats_mqc.collect().ifEmpty([])
-    file ('alignment/mergedReplicate/*') from ch_mrep_bam_metrics_mqc.collect().ifEmpty([])
-    file ('macs/mergedReplicate/*') from ch_mrep_macs_mqc.collect().ifEmpty([])
-    file ('macs/mergedReplicate/*') from ch_mrep_peak_qc_mqc.collect().ifEmpty([])
-    file ('macs/mergedReplicate/consensus/*') from ch_mrep_macs_consensus_counts_mqc.collect().ifEmpty([])
-    file ('macs/mergedReplicate/consensus/*') from ch_mrep_macs_consensus_deseq_mqc.collect().ifEmpty([])
-
-    output:
-    file "*multiqc_report.html" into ch_multiqc_report
-    file "*_data"
-    file "multiqc_plots"
-
-    script:
-    rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
-    rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
-    custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
-    """
-    multiqc . -f $rtitle $rfilename $custom_config_file \\
-        -m custom_content -m fastqc -m cutadapt -m samtools -m picard -m preseq -m featureCounts -m deeptools
-    """
-}
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-/* --                                                                     -- */
-/* --                       REPORTS/DOCUMENTATION                         -- */
-/* --                                                                     -- */
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-/*
- * STEP 11 - Output description HTML
- */
-process output_documentation {
-    publishDir "${params.outdir}/Documentation", mode: 'copy'
-
-    input:
-    file output_docs from ch_output_docs
-
-    output:
-    file "results_description.html"
-
-    script:
-    """
-    markdown_to_html.py $output_docs -o results_description.html
-    """
-}
-
-/*
- * Completion e-mail notification
- */
-workflow.onComplete {
-
-    // Set up the e-mail variables
-    def subject = "[nf-core/atacseq] Successful: $workflow.runName"
-    if (!workflow.success) {
-        subject = "[nf-core/atacseq] FAILED: $workflow.runName"
-    }
-    def email_fields = [:]
-    email_fields['version'] = workflow.manifest.version
-    email_fields['runName'] = custom_runName ?: workflow.runName
-    email_fields['success'] = workflow.success
-    email_fields['dateComplete'] = workflow.complete
-    email_fields['duration'] = workflow.duration
-    email_fields['exitStatus'] = workflow.exitStatus
-    email_fields['errorMessage'] = (workflow.errorMessage ?: 'None')
-    email_fields['errorReport'] = (workflow.errorReport ?: 'None')
-    email_fields['commandLine'] = workflow.commandLine
-    email_fields['projectDir'] = workflow.projectDir
-    email_fields['summary'] = summary
-    email_fields['summary']['Date Started'] = workflow.start
-    email_fields['summary']['Date Completed'] = workflow.complete
-    email_fields['summary']['Pipeline script file path'] = workflow.scriptFile
-    email_fields['summary']['Pipeline script hash ID'] = workflow.scriptId
-    if (workflow.repository) email_fields['summary']['Pipeline repository Git URL'] = workflow.repository
-    if (workflow.commitId) email_fields['summary']['Pipeline repository Git Commit'] = workflow.commitId
-    if (workflow.revision) email_fields['summary']['Pipeline Git branch/tag'] = workflow.revision
-    email_fields['summary']['Nextflow Version'] = workflow.nextflow.version
-    email_fields['summary']['Nextflow Build'] = workflow.nextflow.build
-    email_fields['summary']['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
-
-    // On success try attach the multiqc report
-    def mqc_report = null
-    try {
-        if (workflow.success) {
-            mqc_report = ch_multiqc_report.getVal()
-            if (mqc_report.getClass() == ArrayList) {
-                log.warn "[nf-core/atacseq] Found multiple reports from process 'multiqc', will use only one"
-                mqc_report = mqc_report[0]
-            }
-        }
-    } catch (all) {
-        log.warn "[nf-core/atacseq] Could not attach MultiQC report to summary email"
-    }
-
-    // Check if we are only sending emails on failure
-    email_address = params.email
-    if (!params.email && params.email_on_fail && !workflow.success) {
-        email_address = params.email_on_fail
-    }
-
-    // Render the TXT template
-    def engine = new groovy.text.GStringTemplateEngine()
-    def tf = new File("$baseDir/assets/email_template.txt")
-    def txt_template = engine.createTemplate(tf).make(email_fields)
-    def email_txt = txt_template.toString()
-
-    // Render the HTML template
-    def hf = new File("$baseDir/assets/email_template.html")
-    def html_template = engine.createTemplate(hf).make(email_fields)
-    def email_html = html_template.toString()
-
-    // Render the sendmail template
-    def smail_fields = [ email: email_address, subject: subject, email_txt: email_txt, email_html: email_html, baseDir: "$baseDir", mqcFile: mqc_report, mqcMaxSize: params.max_multiqc_email_size.toBytes() ]
-    def sf = new File("$baseDir/assets/sendmail_template.txt")
-    def sendmail_template = engine.createTemplate(sf).make(smail_fields)
-    def sendmail_html = sendmail_template.toString()
-
-    // Send the HTML e-mail
-    if (email_address) {
-        try {
-            if (params.plaintext_email) { throw GroovyException('Send plaintext e-mail, not HTML') }
-            // Try to send HTML e-mail using sendmail
-            [ 'sendmail', '-t' ].execute() << sendmail_html
-            log.info "[nf-core/atacseq] Sent summary e-mail to $email_address (sendmail)"
-        } catch (all) {
-            // Catch failures and try with plaintext
-            [ 'mail', '-s', subject, email_address ].execute() << email_txt
-            log.info "[nf-core/atacseq] Sent summary e-mail to $email_address (mail)"
-        }
-    }
-
-    // Write summary e-mail HTML to a file
-    def output_d = new File("${params.outdir}/pipeline_info/")
-    if (!output_d.exists()) {
-        output_d.mkdirs()
-    }
-    def output_hf = new File(output_d, "pipeline_report.html")
-    output_hf.withWriter { w -> w << email_html }
-    def output_tf = new File(output_d, "pipeline_report.txt")
-    output_tf.withWriter { w -> w << email_txt }
-
-    c_green = params.monochrome_logs ? '' : "\033[0;32m";
-    c_purple = params.monochrome_logs ? '' : "\033[0;35m";
-    c_red = params.monochrome_logs ? '' : "\033[0;31m";
-    c_reset = params.monochrome_logs ? '' : "\033[0m";
-
-    if (workflow.stats.ignoredCount > 0 && workflow.success) {
-        log.info "-${c_purple}Warning, pipeline completed, but with errored process(es) ${c_reset}-"
-        log.info "-${c_red}Number of ignored errored process(es) : ${workflow.stats.ignoredCount} ${c_reset}-"
-        log.info "-${c_green}Number of successfully ran process(es) : ${workflow.stats.succeedCount} ${c_reset}-"
-    }
-    if (workflow.success) {
-        log.info "-${c_purple}[nf-core/atacseq]${c_green} Pipeline completed successfully${c_reset}-"
-    } else {
-        checkHostname()
-        log.info "-${c_purple}[nf-core/atacseq]${c_red} Pipeline completed with errors${c_reset}-"
-    }
-
-}
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                        ADAPTER TRIMMING                             -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * STEP 2 - Trim Galore!
+//  */
+// if (params.skip_trimming) {
+//     ch_trimmed_reads = ch_raw_reads_trimgalore
+//     ch_trimgalore_results_mqc = Channel.empty()
+//     ch_trimgalore_fastqc_reports_mqc = Channel.empty()
+// } else {
+//     process TrimGalore {
+//         tag "$name"
+//         label 'process_high'
+//         publishDir "${params.outdir}/trim_galore", mode: 'copy',
+//             saveAs: { filename ->
+//                           if (filename.endsWith(".html")) "fastqc/$filename"
+//                           else if (filename.endsWith(".zip")) "fastqc/zips/$filename"
+//                           else if (filename.endsWith("trimming_report.txt")) "logs/$filename"
+//                           else params.save_trimmed ? filename : null
+//                     }
+//
+//         input:
+//         set val(name), file(reads) from ch_raw_reads_trimgalore
+//
+//         output:
+//         set val(name), file("*.fq.gz") into ch_trimmed_reads
+//         file "*.txt" into ch_trimgalore_results_mqc
+//         file "*.{zip,html}" into ch_trimgalore_fastqc_reports_mqc
+//
+//         script:
+//         // Calculate number of --cores for TrimGalore based on value of task.cpus
+//         // See: https://github.com/FelixKrueger/TrimGalore/blob/master/Changelog.md#version-060-release-on-1-mar-2019
+//         // See: https://github.com/nf-core/atacseq/pull/65
+//         def cores = 1
+//         if (task.cpus) {
+//             cores = (task.cpus as int) - 4
+//             if (params.single_end) cores = (task.cpus as int) - 3
+//             if (cores < 1) cores = 1
+//             if (cores > 4) cores = 4
+//         }
+//
+//         // Added soft-links to original fastqs for consistent naming in MultiQC
+//         c_r1 = params.clip_r1 > 0 ? "--clip_r1 ${params.clip_r1}" : ''
+//         c_r2 = params.clip_r2 > 0 ? "--clip_r2 ${params.clip_r2}" : ''
+//         tpc_r1 = params.three_prime_clip_r1 > 0 ? "--three_prime_clip_r1 ${params.three_prime_clip_r1}" : ''
+//         tpc_r2 = params.three_prime_clip_r2 > 0 ? "--three_prime_clip_r2 ${params.three_prime_clip_r2}" : ''
+//         nextseq = params.trim_nextseq > 0 ? "--nextseq ${params.trim_nextseq}" : ''
+//
+//         // Added soft-links to original fastqs for consistent naming in MultiQC
+//         if (params.single_end) {
+//             """
+//             [ ! -f  ${name}.fastq.gz ] && ln -s $reads ${name}.fastq.gz
+//             trim_galore --cores $cores --fastqc --gzip $c_r1 $tpc_r1 $nextseq ${name}.fastq.gz
+//             """
+//         } else {
+//             """
+//             [ ! -f  ${name}_1.fastq.gz ] && ln -s ${reads[0]} ${name}_1.fastq.gz
+//             [ ! -f  ${name}_2.fastq.gz ] && ln -s ${reads[1]} ${name}_2.fastq.gz
+//             trim_galore --cores $cores --paired --fastqc --gzip $c_r1 $c_r2 $tpc_r1 $tpc_r2 $nextseq ${name}_1.fastq.gz ${name}_2.fastq.gz
+//             """
+//         }
+//     }
+// }
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                        ALIGN                                        -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * STEP 3.1 - Align read 1 with bwa
+//  */
+// process BWAMem {
+//     tag "$name"
+//     label 'process_high'
+//
+//     input:
+//     set val(name), file(reads) from ch_trimmed_reads
+//     file index from ch_bwa_index.collect()
+//
+//     output:
+//     set val(name), file("*.bam") into ch_bwa_bam
+//
+//     script:
+//     prefix = "${name}.Lb"
+//     rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\'"
+//     if (params.seq_center) {
+//         rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
+//     }
+//     """
+//     bwa mem \\
+//         -t $task.cpus \\
+//         -M \\
+//         -R $rg \\
+//         ${index}/${bwa_base} \\
+//         $reads \\
+//         | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -
+//     """
+// }
+//
+// /*
+//  * STEP 3.2 - Convert .bam to coordinate sorted .bam
+//  */
+// process SortBAM {
+//     tag "$name"
+//     label 'process_medium'
+//     if (params.save_align_intermeds) {
+//         publishDir path: "${params.outdir}/bwa/library", mode: 'copy',
+//             saveAs: { filename ->
+//                           if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+//                           else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+//                           else if (filename.endsWith(".stats")) "samtools_stats/$filename"
+//                           else filename
+//                     }
+//     }
+//
+//     input:
+//     set val(name), file(bam) from ch_bwa_bam
+//
+//     output:
+//     set val(name), file("*.sorted.{bam,bam.bai}") into ch_sort_bam_merge
+//     file "*.{flagstat,idxstats,stats}" into ch_sort_bam_flagstat_mqc
+//
+//     script:
+//     prefix = "${name}.Lb"
+//     """
+//     samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $name $bam
+//     samtools index ${prefix}.sorted.bam
+//     samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+//     samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
+//     samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
+//     """
+// }
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                    MERGE LIBRARY BAM                                -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * STEP 4.1 Merge BAM files for all libraries from same replicate
+//  */
+// ch_sort_bam_merge
+//     .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
+//     .groupTuple(by: [0])
+//     .map { it ->  [ it[0], it[1].flatten() ] }
+//     .set { ch_sort_bam_merge }
+//
+// process MergedLibBAM {
+//     tag "$name"
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+//                       else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+//                       else if (filename.endsWith(".stats")) "samtools_stats/$filename"
+//                       else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
+//                       else params.save_align_intermeds ? filename : null
+//                 }
+//
+//     input:
+//     set val(name), file(bams) from ch_sort_bam_merge
+//
+//     output:
+//     set val(name), file("*${prefix}.sorted.{bam,bam.bai}") into ch_mlib_bam_filter,
+//                                                                 ch_mlib_bam_preseq,
+//                                                                 ch_mlib_bam_ataqv
+//     file "*.{flagstat,idxstats,stats}" into ch_mlib_bam_stats_mqc
+//     file "*.txt" into ch_mlib_bam_metrics_mqc
+//
+//     script:
+//     prefix = "${name}.mLb.mkD"
+//     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+//     def avail_mem = 3
+//     if (!task.memory) {
+//         log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
+//     } else {
+//         avail_mem = task.memory.toGiga()
+//     }
+//     if (bam_files.size() > 1) {
+//         """
+//         picard -Xmx${avail_mem}g MergeSamFiles \\
+//             ${'INPUT='+bam_files.join(' INPUT=')} \\
+//             OUTPUT=${name}.sorted.bam \\
+//             SORT_ORDER=coordinate \\
+//             VALIDATION_STRINGENCY=LENIENT \\
+//             TMP_DIR=tmp
+//         samtools index ${name}.sorted.bam
+//
+//         picard -Xmx${avail_mem}g MarkDuplicates \\
+//             INPUT=${name}.sorted.bam \\
+//             OUTPUT=${prefix}.sorted.bam \\
+//             ASSUME_SORTED=true \\
+//             REMOVE_DUPLICATES=false \\
+//             METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt \\
+//             VALIDATION_STRINGENCY=LENIENT \\
+//             TMP_DIR=tmp
+//
+//         samtools index ${prefix}.sorted.bam
+//         samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
+//         samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+//         samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
+//         """
+//     } else {
+//       """
+//       picard -Xmx${avail_mem}g MarkDuplicates \\
+//           INPUT=${bam_files[0]} \\
+//           OUTPUT=${prefix}.sorted.bam \\
+//           ASSUME_SORTED=true \\
+//           REMOVE_DUPLICATES=false \\
+//           METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt \\
+//           VALIDATION_STRINGENCY=LENIENT \\
+//           TMP_DIR=tmp
+//
+//       samtools index ${prefix}.sorted.bam
+//       samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
+//       samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+//       samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
+//       """
+//     }
+// }
+//
+// /*
+//  * STEP 4.2 Filter BAM file at merged library-level
+//  */
+// process MergedLibBAMFilter {
+//     tag "$name"
+//     label 'process_medium'
+//     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (params.single_end || params.save_align_intermeds) {
+//                           if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+//                           else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+//                           else if (filename.endsWith(".stats")) "samtools_stats/$filename"
+//                           else if (filename.endsWith(".sorted.bam")) filename
+//                           else if (filename.endsWith(".sorted.bam.bai")) filename
+//                           else null
+//                       }
+//                 }
+//
+//     input:
+//     set val(name), file(bam) from ch_mlib_bam_filter
+//     file bed from ch_genome_filter_regions.collect()
+//     file bamtools_filter_config from ch_bamtools_filter_config
+//
+//     output:
+//     set val(name), file("*.{bam,bam.bai}") into ch_mlib_filter_bam
+//     set val(name), file("*.flagstat") into ch_mlib_filter_bam_flagstat
+//     file "*.{idxstats,stats}" into ch_mlib_filter_bam_stats_mqc
+//
+//     script:
+//     prefix = params.single_end ? "${name}.mLb.clN" : "${name}.mLb.flT"
+//     filter_params = params.single_end ? "-F 0x004" : "-F 0x004 -F 0x0008 -f 0x001"
+//     dup_params = params.keep_dups ? "" : "-F 0x0400"
+//     multimap_params = params.keep_multi_map ? "" : "-q 1"
+//     blacklist_params = params.blacklist ? "-L $bed" : ""
+//     name_sort_bam = params.single_end ? "" : "samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${prefix}.sorted.bam"
+//     """
+//     samtools view \\
+//         $filter_params \\
+//         $dup_params \\
+//         $multimap_params \\
+//         $blacklist_params \\
+//         -b ${bam[0]} \\
+//         | bamtools filter \\
+//             -out ${prefix}.sorted.bam \\
+//             -script $bamtools_filter_config
+//
+//     samtools index ${prefix}.sorted.bam
+//     samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+//     samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
+//     samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
+//
+//     $name_sort_bam
+//     """
+// }
+//
+// /*
+//  * STEP 4.3 Remove orphan reads from paired-end BAM file
+//  */
+// if (params.single_end) {
+//     ch_mlib_filter_bam
+//         .into { ch_mlib_rm_orphan_bam_metrics;
+//                 ch_mlib_rm_orphan_bam_bigwig;
+//                 ch_mlib_rm_orphan_bam_macs;
+//                 ch_mlib_rm_orphan_bam_plotfingerprint;
+//                 ch_mlib_rm_orphan_bam_mrep;
+//                 ch_mlib_name_bam_mlib_counts;
+//                 ch_mlib_name_bam_mrep_counts }
+//
+//     ch_mlib_filter_bam_flagstat
+//         .into { ch_mlib_rm_orphan_flagstat_bigwig;
+//                 ch_mlib_rm_orphan_flagstat_macs;
+//                 ch_mlib_rm_orphan_flagstat_mqc }
+//
+//     ch_mlib_filter_bam_stats_mqc
+//         .set { ch_mlib_rm_orphan_stats_mqc }
+// } else {
+//     process MergedLibBAMRemoveOrphan {
+//         tag "$name"
+//         label 'process_medium'
+//         publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
+//             saveAs: { filename ->
+//                           if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+//                           else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+//                           else if (filename.endsWith(".stats")) "samtools_stats/$filename"
+//                           else if (filename.endsWith(".sorted.bam")) filename
+//                           else if (filename.endsWith(".sorted.bam.bai")) filename
+//                           else null
+//                     }
+//
+//         input:
+//         set val(name), file(bam) from ch_mlib_filter_bam
+//
+//         output:
+//         set val(name), file("*.sorted.{bam,bam.bai}") into ch_mlib_rm_orphan_bam_metrics,
+//                                                            ch_mlib_rm_orphan_bam_bigwig,
+//                                                            ch_mlib_rm_orphan_bam_macs,
+//                                                            ch_mlib_rm_orphan_bam_plotfingerprint,
+//                                                            ch_mlib_rm_orphan_bam_mrep
+//         set val(name), file("${prefix}.bam") into ch_mlib_name_bam_mlib_counts,
+//                                                   ch_mlib_name_bam_mrep_counts
+//         set val(name), file("*.flagstat") into ch_mlib_rm_orphan_flagstat_bigwig,
+//                                                ch_mlib_rm_orphan_flagstat_macs,
+//                                                ch_mlib_rm_orphan_flagstat_mqc
+//         file "*.{idxstats,stats}" into ch_mlib_rm_orphan_stats_mqc
+//
+//         script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
+//         prefix = "${name}.mLb.clN"
+//         """
+//         bampe_rm_orphan.py ${bam[0]} ${prefix}.bam --only_fr_pairs
+//
+//         samtools sort -@ $task.cpus -o ${prefix}.sorted.bam -T $prefix ${prefix}.bam
+//         samtools index ${prefix}.sorted.bam
+//         samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+//         samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
+//         samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
+//         """
+//     }
+// }
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                 MERGE LIBRARY BAM POST-ANALYSIS                     -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * STEP 5.1 preseq analysis after merging libraries and before filtering
+//  */
+// process MergedLibPreseq {
+//     tag "$name"
+//     label 'process_low'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: 'copy'
+//
+//     when:
+//     !params.skip_preseq
+//
+//     input:
+//     set val(name), file(bam) from ch_mlib_bam_preseq
+//
+//     output:
+//     file "*.ccurve.txt" into ch_mlib_preseq_mqc
+//
+//     script:
+//     prefix = "${name}.mLb.mkD"
+//     """
+//     preseq lc_extrap -v -output ${prefix}.ccurve.txt -bam ${bam[0]}
+//     """
+// }
+//
+// /*
+//  * STEP 5.2 Picard CollectMultipleMetrics after merging libraries and filtering
+//  */
+// process MergedLibMetrics {
+//     tag "$name"
+//     label 'process_medium'
+//     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (filename.endsWith("_metrics")) "picard_metrics/$filename"
+//                       else if (filename.endsWith(".pdf")) "picard_metrics/pdf/$filename"
+//                       else null
+//                 }
+//
+//     when:
+//     !params.skip_picard_metrics
+//
+//     input:
+//     set val(name), file(bam) from ch_mlib_rm_orphan_bam_metrics
+//     file fasta from ch_fasta
+//
+//     output:
+//     file "*_metrics" into ch_mlib_collectmetrics_mqc
+//     file "*.pdf" into ch_mlib_collectmetrics_pdf
+//
+//     script:
+//     prefix = "${name}.mLb.clN"
+//     def avail_mem = 3
+//     if (!task.memory) {
+//         log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
+//     } else {
+//         avail_mem = task.memory.toGiga()
+//     }
+//     """
+//     picard -Xmx${avail_mem}g CollectMultipleMetrics \\
+//         INPUT=${bam[0]} \\
+//         OUTPUT=${prefix}.CollectMultipleMetrics \\
+//         REFERENCE_SEQUENCE=$fasta \\
+//         VALIDATION_STRINGENCY=LENIENT \\
+//         TMP_DIR=tmp
+//     """
+// }
+//
+// /*
+//  * STEP 5.3 Read depth normalised bigWig
+//  */
+// process MergedLibBigWig {
+//     tag "$name"
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/bigwig", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (filename.endsWith("scale_factor.txt")) "scale/$filename"
+//                       else if (filename.endsWith(".bigWig")) "$filename"
+//                       else null
+//                 }
+//
+//     input:
+//     set val(name), file(bam), file(flagstat) from ch_mlib_rm_orphan_bam_bigwig.join(ch_mlib_rm_orphan_flagstat_bigwig, by: [0])
+//     file sizes from ch_genome_sizes_mlib_bigwig.collect()
+//
+//     output:
+//     set val(name), file("*.bigWig") into ch_mlib_bigwig_plotprofile
+//     file "*scale_factor.txt" into ch_mlib_bigwig_scale
+//     file "*igv.txt" into ch_mlib_bigwig_igv
+//
+//     script:
+//     prefix = "${name}.mLb.clN"
+//     pe_fragment = params.single_end ? "" : "-pc"
+//     extend = (params.single_end && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
+//     """
+//     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
+//     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
+//     genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -T '.' -k1,1 -k2,2n >  ${prefix}.bedGraph
+//
+//     bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
+//
+//     find * -type f -name "*.bigWig" -exec echo -e "bwa/mergedLibrary/bigwig/"{}"\\t0,0,178" \\; > ${prefix}.bigWig.igv.txt
+//     """
+// }
+//
+// /*
+//  * STEP 5.4 generate gene body coverage plot with deepTools
+//  */
+// process MergedLibPlotProfile {
+//     tag "$name"
+//     label 'process_high'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotProfile", mode: 'copy'
+//
+//     when:
+//     !params.skip_plot_profile
+//
+//     input:
+//     set val(name), file(bigwig) from ch_mlib_bigwig_plotprofile
+//     file bed from ch_gene_bed
+//
+//     output:
+//     file '*.{gz,pdf}' into ch_mlib_plotprofile_results
+//     file '*.plotProfile.tab' into ch_mlib_plotprofile_mqc
+//
+//     script:
+//     prefix = "${name}.mLb.clN"
+//     """
+//     computeMatrix scale-regions \\
+//         --regionsFileName $bed \\
+//         --scoreFileName $bigwig \\
+//         --outFileName ${prefix}.computeMatrix.mat.gz \\
+//         --outFileNameMatrix ${prefix}.computeMatrix.vals.mat.gz \\
+//         --regionBodyLength 1000 \\
+//         --beforeRegionStartLength 3000 \\
+//         --afterRegionStartLength 3000 \\
+//         --skipZeros \\
+//         --smartLabels \\
+//         --numberOfProcessors $task.cpus
+//
+//     plotProfile --matrixFile ${prefix}.computeMatrix.mat.gz \\
+//         --outFileName ${prefix}.plotProfile.pdf \\
+//         --outFileNameData ${prefix}.plotProfile.tab
+//     """
+// }
+//
+// /*
+//  * STEP 5.5 deepTools plotFingerprint
+//  */
+// process MergedLibPlotFingerprint {
+//     tag "$name"
+//     label 'process_high'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: 'copy'
+//
+//     when:
+//     !params.skip_plot_fingerprint
+//
+//     input:
+//     set val(name), file(bam) from ch_mlib_rm_orphan_bam_plotfingerprint
+//
+//     output:
+//     file '*.{txt,pdf}' into ch_mlib_plotfingerprint_results
+//     file '*.raw.txt' into ch_mlib_plotfingerprint_mqc
+//
+//     script:
+//     prefix = "${name}.mLb.clN"
+//     extend = (params.single_end && params.fragment_size > 0) ? "--extendReads ${params.fragment_size}" : ''
+//     """
+//     plotFingerprint \\
+//         --bamfiles ${bam[0]} \\
+//         --plotFile ${prefix}.plotFingerprint.pdf \\
+//         $extend \\
+//         --labels $prefix \\
+//         --outRawCounts ${prefix}.plotFingerprint.raw.txt \\
+//         --outQualityMetrics ${prefix}.plotFingerprint.qcmetrics.txt \\
+//         --skipZeros \\
+//         --numberOfProcessors $task.cpus \\
+//         --numberOfSamples $params.fingerprint_bins
+//     """
+// }
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                 MERGE LIBRARY PEAK ANALYSIS                         -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * STEP 6.1 Call peaks with MACS2 and calculate FRiP score
+//  */
+// process MergedLibMACSCallPeak {
+//     tag "$name"
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (filename.endsWith(".tsv")) "qc/$filename"
+//                       else if (filename.endsWith(".igv.txt")) null
+//                       else filename
+//                 }
+//
+//     when:
+//     params.macs_gsize
+//
+//     input:
+//     set val(name), file(bam), file(flagstat) from ch_mlib_rm_orphan_bam_macs.join(ch_mlib_rm_orphan_flagstat_macs, by: [0])
+//     file mlib_peak_count_header from ch_mlib_peak_count_header
+//     file mlib_frip_score_header from ch_mlib_frip_score_header
+//
+//     output:
+//     set val(name), file("*.{bed,xls,gappedPeak,bdg}") into ch_mlib_macs_output
+//     set val(name), file("*$PEAK_TYPE") into ch_mlib_macs_homer,
+//                                             ch_mlib_macs_qc,
+//                                             ch_mlib_macs_consensus,
+//                                             ch_mlib_macs_ataqv
+//     file "*igv.txt" into ch_mlib_macs_igv
+//     file "*_mqc.tsv" into ch_mlib_macs_mqc
+//
+//     script:
+//     prefix = "${name}.mLb.clN"
+//     broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
+//     format = params.single_end ? "BAM" : "BAMPE"
+//     pileup = params.save_macs_pileup ? "-B --SPMR" : ""
+//     """
+//     macs2 callpeak \\
+//         -t ${bam[0]} \\
+//         $broad \\
+//         -f $format \\
+//         -g $params.macs_gsize \\
+//         -n $prefix \\
+//         $pileup \\
+//         --keep-dup all \\
+//         --nomodel
+//
+//     cat ${prefix}_peaks.${PEAK_TYPE} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $mlib_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
+//
+//     READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks.${PEAK_TYPE} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
+//     grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' | cat $mlib_frip_score_header - > ${prefix}_peaks.FRiP_mqc.tsv
+//
+//     find * -type f -name "*.${PEAK_TYPE}" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/"{}"\\t0,0,178" \\; > ${prefix}_peaks.igv.txt
+//     """
+// }
+//
+// /*
+//  * STEP 6.2 Annotate peaks with HOMER
+//  */
+// process MergedLibAnnotatePeaks {
+//     tag "$name"
+//     label "process_medium"
+//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: 'copy'
+//
+//     when:
+//     params.macs_gsize
+//
+//     input:
+//     set val(name), file(peak) from ch_mlib_macs_homer
+//     file fasta from ch_fasta
+//     file gtf from ch_gtf
+//
+//     output:
+//     file "*.txt" into ch_mlib_macs_annotate
+//
+//     script:
+//     prefix = "${name}.mLb.clN"
+//     """
+//     annotatePeaks.pl \\
+//         $peak \\
+//         $fasta \\
+//         -gid \\
+//         -gtf $gtf \\
+//         -cpu $task.cpus \\
+//         > ${prefix}_peaks.annotatePeaks.txt
+//     """
+// }
+//
+// /*
+//  * STEP 6.3 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
+//  */
+// process MergedLibPeakQC {
+//     label "process_medium"
+//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/qc", mode: 'copy'
+//
+//     when:
+//     params.macs_gsize
+//
+//     input:
+//     file peaks from ch_mlib_macs_qc.collect{ it[1] }
+//     file annos from ch_mlib_macs_annotate.collect()
+//     file mlib_peak_annotation_header from ch_mlib_peak_annotation_header
+//
+//     output:
+//     file "*.{txt,pdf}" into ch_mlib_peak_qc
+//     file "*.tsv" into ch_mlib_peak_qc_mqc
+//
+//     script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
+//     suffix = 'mLb.clN'
+//     """
+//     plot_macs_qc.r \\
+//         -i ${peaks.join(',')} \\
+//         -s ${peaks.join(',').replaceAll(".${suffix}_peaks.${PEAK_TYPE}","")} \\
+//         -o ./ \\
+//         -p macs_peak.${suffix}
+//
+//     plot_homer_annotatepeaks.r \\
+//         -i ${annos.join(',')} \\
+//         -s ${annos.join(',').replaceAll(".${suffix}_peaks.annotatePeaks.txt","")} \\
+//         -o ./ \\
+//         -p macs_annotatePeaks.${suffix}
+//
+//     cat $mlib_peak_annotation_header macs_annotatePeaks.${suffix}.summary.txt > macs_annotatePeaks.${suffix}.summary_mqc.tsv
+//     """
+// }
+//
+// /*
+//  * STEP 6.4 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
+//  */
+// process MergedLibConsensusPeakSet {
+//     label 'process_long'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (filename.endsWith(".igv.txt")) null
+//                       else filename
+//                 }
+//
+//     when:
+//     params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
+//
+//     input:
+//     file peaks from ch_mlib_macs_consensus.collect{ it[1] }
+//
+//     output:
+//     file "*.bed" into ch_mlib_macs_consensus_bed
+//     file "*.saf" into ch_mlib_macs_consensus_saf
+//     file "*.boolean.txt" into ch_mlib_macs_consensus_bool
+//     file "*.intersect.{txt,plot.pdf}" into ch_mlib_macs_consensus_intersect
+//     file "*igv.txt" into ch_mlib_macs_consensus_igv
+//
+//     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
+//     suffix = 'mLb.clN'
+//     prefix = "consensus_peaks.${suffix}"
+//     mergecols = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
+//     collapsecols = params.narrow_peak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
+//     expandparam = params.narrow_peak ? "--is_narrow_peak" : ""
+//     """
+//     sort -T '.' -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
+//         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
+//
+//     macs2_merged_expand.py \\
+//         ${prefix}.txt \\
+//         ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${PEAK_TYPE}","")} \\
+//         ${prefix}.boolean.txt \\
+//         --min_replicates $params.min_reps_consensus \\
+//         $expandparam
+//
+//     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
+//
+//     echo -e "GeneID\tChr\tStart\tEnd\tStrand" > ${prefix}.saf
+//     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
+//
+//     sed -i 's/.${suffix}//g' ${prefix}.boolean.intersect.txt
+//     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
+//
+//     find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
+//     """
+// }
+//
+// /*
+//  * STEP 6.5 Annotate consensus peaks with HOMER, and add annotation to boolean output file
+//  */
+// process MergedLibConsensusPeakSetAnnotate {
+//     label "process_medium"
+//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: 'copy'
+//
+//     when:
+//     params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
+//
+//     input:
+//     file bed from ch_mlib_macs_consensus_bed
+//     file bool from ch_mlib_macs_consensus_bool
+//     file fasta from ch_fasta
+//     file gtf from ch_gtf
+//
+//     output:
+//     file "*.annotatePeaks.txt" into ch_mlib_macs_consensus_annotate
+//
+//     script:
+//     prefix = "consensus_peaks.mLb.clN"
+//     """
+//     annotatePeaks.pl \\
+//         $bed \\
+//         $fasta \\
+//         -gid \\
+//         -gtf $gtf \\
+//         -cpu $task.cpus \\
+//         > ${prefix}.annotatePeaks.txt
+//
+//     cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
+//     paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
+//     """
+// }
+//
+// /*
+//  * STEP 6.6 Count reads in consensus peaks with featureCounts
+//  */
+// process MergedLibConsensusPeakSetCounts {
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: 'copy'
+//
+//     when:
+//     params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
+//
+//     input:
+//     file bams from ch_mlib_name_bam_mlib_counts.collect{ it[1] }
+//     file saf from ch_mlib_macs_consensus_saf.collect()
+//
+//     output:
+//     file "*featureCounts.txt" into ch_mlib_macs_consensus_counts
+//     file "*featureCounts.txt.summary" into ch_mlib_macs_consensus_counts_mqc
+//
+//     script:
+//     prefix = "consensus_peaks.mLb.clN"
+//     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+//     pe_params = params.single_end ? '' : "-p --donotsort"
+//     """
+//     featureCounts \\
+//         -F SAF \\
+//         -O \\
+//         --fracOverlap 0.2 \\
+//         -T $task.cpus \\
+//         $pe_params \\
+//         -a $saf \\
+//         -o ${prefix}.featureCounts.txt \\
+//         ${bam_files.join(' ')}
+//     """
+// }
+//
+// /*
+//  * STEP 6.7 Perform differential analysis with DESeq2
+//  */
+// process MergedLibConsensusPeakSetDESeq {
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/deseq2", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (filename.endsWith(".igv.txt")) null
+//                       else filename
+//                 }
+//
+//     when:
+//     params.macs_gsize && replicatesExist && multipleGroups && !params.skip_consensus_peaks && !params.skip_diff_analysis
+//
+//     input:
+//     file counts from ch_mlib_macs_consensus_counts
+//     file mlib_deseq2_pca_header from ch_mlib_deseq2_pca_header
+//     file mlib_deseq2_clustering_header from ch_mlib_deseq2_clustering_header
+//
+//     output:
+//     file "*.{RData,results.txt,pdf,log}" into ch_mlib_macs_consensus_deseq_results
+//     file "sizeFactors" into ch_mlib_macs_consensus_deseq_factors
+//     file "*vs*/*.{pdf,txt}" into ch_mlib_macs_consensus_deseq_comp_results
+//     file "*vs*/*.bed" into ch_mlib_macs_consensus_deseq_comp_bed
+//     file "*igv.txt" into ch_mlib_macs_consensus_deseq_comp_igv
+//     file "*.tsv" into ch_mlib_macs_consensus_deseq_mqc
+//
+//     script:
+//     prefix = "consensus_peaks.mLb.clN"
+//     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
+//     """
+//     featurecounts_deseq2.r \\
+//         --featurecount_file $counts \\
+//         --bam_suffix '$bam_ext' \\
+//         --outdir ./ \\
+//         --outprefix $prefix \\
+//         --outsuffix .mLb \\
+//         --cores $task.cpus
+//
+//     cat $mlib_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
+//     cat $mlib_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
+//
+//     find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
+//     """
+// }
+//
+// /*
+//  * STEP 6.8 Run ataqv on BAM file and corresponding peaks
+//  */
+// process MergedLibAtaqv {
+//     tag "$name"
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${PEAK_TYPE}", mode: 'copy'
+//
+//     when:
+//     !params.skip_ataqv
+//
+//     input:
+//     set val(name), file(bam), file(peak) from ch_mlib_bam_ataqv.join(ch_mlib_macs_ataqv, by: [0])
+//     file autosomes from ch_genome_autosomes.collect()
+//     file tss_bed from ch_tss_bed
+//
+//     output:
+//     file "*.json" into ch_mlib_ataqv
+//
+//     script:
+//     peak_param = params.macs_gsize ? "--peak-file ${peak}" : ""
+//     mito_param = params.mito_name ? "--mitochondrial-reference-name ${params.mito_name}" : ""
+//     """
+//     ataqv \\
+//         --threads $task.cpus \\
+//         $peak_param  \\
+//         --tss-file $tss_bed \\
+//         --metrics-file  ${name}.ataqv.json \\
+//         --name $name \\
+//         --ignore-read-groups \\
+//         --autosomal-reference-file $autosomes \\
+//         $mito_param \\
+//         NA \\
+//         ${bam[0]}
+//     """
+// }
+//
+// /*
+//  * STEP 6.9 run ataqv mkarv on all JSON files to render web app
+//  */
+// process MergedLibAtaqvMkarv {
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${PEAK_TYPE}", mode: 'copy'
+//
+//     when:
+//     !params.skip_ataqv
+//
+//     input:
+//     file json from ch_mlib_ataqv.collect()
+//
+//     output:
+//     file "html" into ch_mlib_ataqv_mkarv
+//
+//     script:
+//     """
+//     mkarv \\
+//         --concurrency $task.cpus \\
+//         --force \\
+//         ./html/ \\
+//         ${json.join(' ')}
+//     """
+// }
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                    MERGE REPLICATE BAM                              -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * STEP 7 Merge library BAM files across all replicates
+//  */
+// ch_mlib_rm_orphan_bam_mrep
+//     .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
+//     .groupTuple(by: [0])
+//     .map { it ->  [ it[0], it[1].flatten() ] }
+//     .set { ch_mlib_rm_orphan_bam_mrep }
+//
+// process MergedRepBAM {
+//     tag "$name"
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedReplicate", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (filename.endsWith(".flagstat")) "samtools_stats/$filename"
+//                       else if (filename.endsWith(".idxstats")) "samtools_stats/$filename"
+//                       else if (filename.endsWith(".stats")) "samtools_stats/$filename"
+//                       else if (filename.endsWith(".metrics.txt")) "picard_metrics/$filename"
+//                       else filename
+//                 }
+//
+//     input:
+//     set val(name), file(bams) from ch_mlib_rm_orphan_bam_mrep
+//
+//     output:
+//     set val(name), file("*${prefix}.sorted.{bam,bam.bai}") into ch_mrep_bam_bigwig,
+//                                                                 ch_mrep_bam_macs
+//     set val(name), file("*.flagstat") into ch_mrep_bam_flagstat_bigwig,
+//                                            ch_mrep_bam_flagstat_macs,
+//                                            ch_mrep_bam_flagstat_mqc
+//     file "*.{idxstats,stats}" into ch_mrep_bam_stats_mqc
+//     file "*.txt" into ch_mrep_bam_metrics_mqc
+//
+//     when:
+//     !params.skip_merge_replicates && replicatesExist
+//
+//     script:
+//     prefix = "${name}.mRp.clN"
+//     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+//     def avail_mem = 3
+//     if (!task.memory) {
+//         log.info "[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this."
+//     } else {
+//         avail_mem = task.memory.toGiga()
+//     }
+//     if (bam_files.size() > 1) {
+//         """
+//         picard -Xmx${avail_mem}g MergeSamFiles \\
+//             ${'INPUT='+bam_files.join(' INPUT=')} \\
+//             OUTPUT=${name}.sorted.bam \\
+//             SORT_ORDER=coordinate \\
+//             VALIDATION_STRINGENCY=LENIENT \\
+//             TMP_DIR=tmp
+//         samtools index ${name}.sorted.bam
+//
+//         picard -Xmx${avail_mem}g MarkDuplicates \\
+//             INPUT=${name}.sorted.bam \\
+//             OUTPUT=${prefix}.sorted.bam \\
+//             ASSUME_SORTED=true \\
+//             REMOVE_DUPLICATES=true \\
+//             METRICS_FILE=${prefix}.MarkDuplicates.metrics.txt \\
+//             VALIDATION_STRINGENCY=LENIENT \\
+//             TMP_DIR=tmp
+//
+//         samtools index ${prefix}.sorted.bam
+//         samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+//         samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
+//         samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
+//         """
+//     } else {
+//       """
+//       ln -s ${bams[0]} ${prefix}.sorted.bam
+//       ln -s ${bams[1]} ${prefix}.sorted.bam.bai
+//       touch ${prefix}.MarkDuplicates.metrics.txt
+//       samtools flagstat ${prefix}.sorted.bam > ${prefix}.sorted.bam.flagstat
+//       samtools idxstats ${prefix}.sorted.bam > ${prefix}.sorted.bam.idxstats
+//       samtools stats ${prefix}.sorted.bam > ${prefix}.sorted.bam.stats
+//       """
+//     }
+// }
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --              MERGE REPLICATE BAM POST-ANALYSIS                      -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * STEP 8.1 Read depth normalised bigWig
+//  */
+// process MergedRepBigWig {
+//     tag "$name"
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedReplicate/bigwig", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (filename.endsWith("scale_factor.txt")) "scale/$filename"
+//                       else if (filename.endsWith(".bigWig")) "$filename"
+//                       else null
+//                 }
+//
+//     when:
+//     !params.skip_merge_replicates && replicatesExist
+//
+//     input:
+//     set val(name), file(bam), file(flagstat) from ch_mrep_bam_bigwig.join(ch_mrep_bam_flagstat_bigwig, by: [0])
+//     file sizes from ch_genome_sizes_mrep_bigwig.collect()
+//
+//     output:
+//     set val(name), file("*.bigWig") into ch_mrep_bigwig
+//     file "*scale_factor.txt" into ch_mrep_bigwig_scale
+//     file "*igv.txt" into ch_mrep_bigwig_igv
+//
+//     script:
+//     prefix = "${name}.mRp.clN"
+//     pe_fragment = params.single_end ? "" : "-pc"
+//     extend = (params.single_end && params.fragment_size > 0) ? "-fs ${params.fragment_size}" : ''
+//     """
+//     SCALE_FACTOR=\$(grep 'mapped (' $flagstat | awk '{print 1000000/\$1}')
+//     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
+//     genomeCoverageBed -ibam ${bam[0]} -bg -scale \$SCALE_FACTOR $pe_fragment $extend | sort -T '.' -k1,1 -k2,2n >  ${prefix}.bedGraph
+//
+//     bedGraphToBigWig ${prefix}.bedGraph $sizes ${prefix}.bigWig
+//
+//     find * -type f -name "*.bigWig" -exec echo -e "bwa/mergedReplicate/bigwig/"{}"\\t0,0,178" \\; > ${prefix}.bigWig.igv.txt
+//     """
+// }
+//
+// /*
+//  * STEP 8.2 Call peaks with MACS2 and calculate FRiP score
+//  */
+// process MergedRepMACSCallPeak {
+//     tag "$name"
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (filename.endsWith(".tsv")) "qc/$filename"
+//                       else if (filename.endsWith(".igv.txt")) null
+//                       else filename
+//                 }
+//
+//     when:
+//     !params.skip_merge_replicates && replicatesExist && params.macs_gsize
+//
+//     input:
+//     set val(name), file(bam), file(flagstat) from ch_mrep_bam_macs.join(ch_mrep_bam_flagstat_macs, by: [0])
+//     file mrep_peak_count_header from ch_mrep_peak_count_header
+//     file mrep_frip_score_header from ch_mrep_frip_score_header
+//
+//     output:
+//     set val(name), file("*.{bed,xls,gappedPeak,bdg}") into ch_mrep_macs_output
+//     set val(name), file("*$PEAK_TYPE") into ch_mrep_macs_homer,
+//                                             ch_mrep_macs_qc,
+//                                             ch_mrep_macs_consensus
+//     file "*igv.txt" into ch_mrep_macs_igv
+//     file "*_mqc.tsv" into ch_mrep_macs_mqc
+//
+//     script:
+//     prefix = "${name}.mRp.clN"
+//     broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
+//     format = params.single_end ? "BAM" : "BAMPE"
+//     pileup = params.save_macs_pileup ? "-B --SPMR" : ""
+//     """
+//     macs2 callpeak \\
+//         -t ${bam[0]} \\
+//         $broad \\
+//         -f $format \\
+//         -g $params.macs_gsize \\
+//         -n $prefix \\
+//         $pileup \\
+//         --keep-dup all \\
+//         --nomodel
+//
+//     cat ${prefix}_peaks.${PEAK_TYPE} | wc -l | awk -v OFS='\t' '{ print "${name}", \$1 }' | cat $mrep_peak_count_header - > ${prefix}_peaks.count_mqc.tsv
+//
+//     READS_IN_PEAKS=\$(intersectBed -a ${bam[0]} -b ${prefix}_peaks.${PEAK_TYPE} -bed -c -f 0.20 | awk -F '\t' '{sum += \$NF} END {print sum}')
+//     grep 'mapped (' $flagstat | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${name}", a/\$1}' | cat $mrep_frip_score_header - > ${prefix}_peaks.FRiP_mqc.tsv
+//
+//     find * -type f -name "*.${PEAK_TYPE}" -exec echo -e "bwa/mergedReplicate/macs/${PEAK_TYPE}/"{}"\\t0,0,178" \\; > ${prefix}_peaks.igv.txt
+//     """
+// }
+//
+// /*
+//  * STEP 8.3 Annotate peaks with HOMER
+//  */
+// process MergedRepAnnotatePeaks {
+//     tag "$name"
+//     label "process_medium"
+//     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}", mode: 'copy'
+//
+//     when:
+//     !params.skip_merge_replicates && replicatesExist && params.macs_gsize
+//
+//     input:
+//     set val(name), file(peak) from ch_mrep_macs_homer
+//     file fasta from ch_fasta
+//     file gtf from ch_gtf
+//
+//     output:
+//     file "*.txt" into ch_mrep_macs_annotate
+//
+//     script:
+//     prefix = "${name}.mRp.clN"
+//     """
+//     annotatePeaks.pl \\
+//         $peak \\
+//         $fasta \\
+//         -gid \\
+//         -gtf $gtf \\
+//         -cpu $task.cpus \\
+//         > ${prefix}_peaks.annotatePeaks.txt
+//     """
+// }
+//
+// /*
+//  * STEP 8.4 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
+//  */
+// process MergedRepPeakQC {
+//     label "process_medium"
+//     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/qc", mode: 'copy'
+//
+//     when:
+//     !params.skip_merge_replicates && replicatesExist && params.macs_gsize
+//
+//     input:
+//     file peaks from ch_mrep_macs_qc.collect{ it[1] }
+//     file annos from ch_mrep_macs_annotate.collect()
+//     file mrep_peak_annotation_header from ch_mrep_peak_annotation_header
+//
+//     output:
+//     file "*.{txt,pdf}" into ch_mrep_peak_qc
+//     file "*.tsv" into ch_mrep_peak_qc_mqc
+//
+//     script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
+//     suffix = 'mRp.clN'
+//     """
+//     plot_macs_qc.r \\
+//         -i ${peaks.join(',')} \\
+//         -s ${peaks.join(',').replaceAll(".${suffix}_peaks.${PEAK_TYPE}","")} \\
+//         -o ./ \\
+//         -p macs_peak.${suffix}
+//
+//     plot_homer_annotatepeaks.r \\
+//         -i ${annos.join(',')} \\
+//         -s ${annos.join(',').replaceAll(".${suffix}_peaks.annotatePeaks.txt","")} \\
+//         -o ./ \\
+//         -p macs_annotatePeaks.${suffix}
+//
+//     cat $mrep_peak_annotation_header macs_annotatePeaks.${suffix}.summary.txt > macs_annotatePeaks.${suffix}.summary_mqc.tsv
+//     """
+// }
+//
+// /*
+//  * STEP 8.5 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
+//  */
+// process MergedRepConsensusPeakSet {
+//     label 'process_long'
+//     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (filename.endsWith(".igv.txt")) null
+//                       else filename
+//                 }
+//
+//     when:
+//     !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks
+//
+//     input:
+//     file peaks from ch_mrep_macs_consensus.collect{ it[1] }
+//
+//     output:
+//     file "*.bed" into ch_mrep_macs_consensus_bed
+//     file "*.saf" into ch_mrep_macs_consensus_saf
+//     file "*.boolean.txt" into ch_mrep_macs_consensus_bool
+//     file "*.intersect.{txt,plot.pdf}" into ch_mrep_macs_consensus_intersect
+//     file "*igv.txt" into ch_mrep_macs_consensus_igv
+//
+//     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
+//     suffix = 'mRp.clN'
+//     prefix = "consensus_peaks.${suffix}"
+//     mergecols = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
+//     collapsecols = params.narrow_peak ? (["collapse"]*9).join(',') : (["collapse"]*8).join(',')
+//     expandparam = params.narrow_peak ? "--is_narrow_peak" : ""
+//     """
+//     sort -T '.' -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
+//         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
+//
+//     macs2_merged_expand.py \\
+//         ${prefix}.txt \\
+//         ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${PEAK_TYPE}","")} \\
+//         ${prefix}.boolean.txt \\
+//         $expandparam
+//
+//     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
+//
+//     echo -e "GeneID\tChr\tStart\tEnd\tStrand" > ${prefix}.saf
+//     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
+//
+//     sed -i 's/.${suffix}//g' ${prefix}.boolean.intersect.txt
+//     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
+//
+//     find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
+//     """
+// }
+//
+// /*
+//  * STEP 8.6 Annotate consensus peaks with HOMER, and add annotation to boolean output file
+//  */
+// process MergedRepConsensusPeakSetAnnotate {
+//     label "process_medium"
+//     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: 'copy'
+//
+//     when:
+//     !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks
+//
+//     input:
+//     file bed from ch_mrep_macs_consensus_bed
+//     file bool from ch_mrep_macs_consensus_bool
+//     file fasta from ch_fasta
+//     file gtf from ch_gtf
+//
+//     output:
+//     file "*.annotatePeaks.txt" into ch_mrep_macs_consensus_annotate
+//
+//     script:
+//     prefix = "consensus_peaks.mRp.clN"
+//     """
+//     annotatePeaks.pl \\
+//         $bed \\
+//         $fasta \\
+//         -gid \\
+//         -gtf $gtf \\
+//         -cpu $task.cpus \\
+//         > ${prefix}.annotatePeaks.txt
+//
+//     cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
+//     paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
+//     """
+// }
+//
+// /*
+//  * STEP 8.7 Count reads in consensus peaks with featureCounts
+//  */
+// process MergedRepConsensusPeakSetCounts {
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: 'copy'
+//
+//     when:
+//     !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks
+//
+//     input:
+//     file bams from ch_mlib_name_bam_mrep_counts.collect{ it[1] }
+//     file saf from ch_mrep_macs_consensus_saf.collect()
+//
+//     output:
+//     file "*featureCounts.txt" into ch_mrep_macs_consensus_counts
+//     file "*featureCounts.txt.summary" into ch_mrep_macs_consensus_counts_mqc
+//
+//     script:
+//     prefix = "consensus_peaks.mRp.clN"
+//     bam_files = bams.findAll { it.toString().endsWith('.bam') }.sort()
+//     pe_params = params.single_end ? '' : "-p --donotsort"
+//     """
+//     featureCounts \\
+//         -F SAF \\
+//         -O \\
+//         --fracOverlap 0.2 \\
+//         -T $task.cpus \\
+//         $pe_params \\
+//         -a $saf \\
+//         -o ${prefix}.featureCounts.txt \\
+//         ${bam_files.join(' ')}
+//     """
+// }
+//
+// /*
+//  * STEP 8.8 Perform differential analysis with DESeq2
+//  */
+// process MergedRepConsensusPeakSetDESeq {
+//     label 'process_medium'
+//     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus/deseq2", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (filename.endsWith(".igv.txt")) null
+//                       else filename
+//                 }
+//
+//     when:
+//     !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks && !params.skip_diff_analysis
+//
+//     input:
+//     file counts from ch_mrep_macs_consensus_counts
+//     file mrep_deseq2_pca_header from ch_mrep_deseq2_pca_header
+//     file mrep_deseq2_clustering_header from ch_mrep_deseq2_clustering_header
+//
+//     output:
+//     file "*.{RData,results.txt,pdf,log}" into ch_mrep_macs_consensus_deseq_results
+//     file "sizeFactors" into ch_mrep_macs_consensus_deseq_factors
+//     file "*vs*/*.{pdf,txt}" into ch_mrep_macs_consensus_deseq_comp_results
+//     file "*vs*/*.bed" into ch_mrep_macs_consensus_deseq_comp_bed
+//     file "*igv.txt" into ch_mrep_macs_consensus_deseq_comp_igv
+//     file "*.tsv" into ch_mrep_macs_consensus_deseq_mqc
+//
+//     script:
+//     prefix = "consensus_peaks.mRp.clN"
+//     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
+//     """
+//     featurecounts_deseq2.r \\
+//         --featurecount_file $counts \\
+//         --bam_suffix '$bam_ext' \\
+//         --outdir ./ \\
+//         --outprefix $prefix \\
+//         --outsuffix .mRp \\
+//         --cores $task.cpus
+//
+//     cat $mrep_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
+//     cat $mrep_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
+//
+//     find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
+//     """
+// }
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                             IGV                                     -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * STEP 9 - Create IGV session file
+//  */
+// process IGV {
+//     publishDir "${params.outdir}/igv/${PEAK_TYPE}", mode: 'copy'
+//
+//     when:
+//     !params.skip_igv
+//
+//     input:
+//     file fasta from ch_fasta
+//
+//     file bigwigs from ch_mlib_bigwig_igv.collect().ifEmpty([])
+//     file peaks from ch_mlib_macs_igv.collect().ifEmpty([])
+//     file consensus_peaks from ch_mlib_macs_consensus_igv.collect().ifEmpty([])
+//     file differential_peaks from ch_mlib_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
+//
+//     file rbigwigs from ch_mrep_bigwig_igv.collect().ifEmpty([])
+//     file rpeaks from ch_mrep_macs_igv.collect().ifEmpty([])
+//     file rconsensus_peaks from ch_mrep_macs_consensus_igv.collect().ifEmpty([])
+//     file rdifferential_peaks from ch_mrep_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
+//
+//     output:
+//     file "*.{txt,xml}" into ch_igv_session
+//
+//     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
+//     """
+//     cat *.txt > igv_files.txt
+//     igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
+//     """
+// }
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                          MULTIQC                                    -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * Parse software version numbers
+//  */
+// process get_software_versions {
+//     publishDir "${params.outdir}/pipeline_info", mode: 'copy',
+//         saveAs: { filename ->
+//                       if (filename.indexOf(".csv") > 0) filename
+//                       else null
+//                 }
+//
+//     output:
+//     file 'software_versions_mqc.yaml' into ch_software_versions_mqc
+//     file "software_versions.csv"
+//
+//     script:
+//     """
+//     echo $workflow.manifest.version > v_pipeline.txt
+//     echo $workflow.nextflow.version > v_nextflow.txt
+//     fastqc --version > v_fastqc.txt
+//     trim_galore --version > v_trim_galore.txt
+//     echo \$(bwa 2>&1) > v_bwa.txt
+//     samtools --version > v_samtools.txt
+//     bedtools --version > v_bedtools.txt
+//     echo \$(bamtools --version 2>&1) > v_bamtools.txt
+//     echo \$(plotFingerprint --version 2>&1) > v_deeptools.txt || true
+//     picard MarkDuplicates --version &> v_picard.txt  || true
+//     echo \$(R --version 2>&1) > v_R.txt
+//     python -c "import pysam; print(pysam.__version__)" > v_pysam.txt
+//     echo \$(macs2 --version 2>&1) > v_macs2.txt
+//     touch v_homer.txt
+//     echo \$(ataqv --version 2>&1) > v_ataqv.txt
+//     echo \$(featureCounts -v 2>&1) > v_featurecounts.txt
+//     preseq &> v_preseq.txt
+//     multiqc --version > v_multiqc.txt
+//     scrape_software_versions.py &> software_versions_mqc.yaml
+//     """
+// }
+//
+// Channel.from(summary.collect{ [it.key, it.value] })
+//     .map { k,v -> "<dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }
+//     .reduce { a, b -> return [a, b].join("\n            ") }
+//     .map { x -> """
+//     id: 'nf-core-chipseq-summary'
+//     description: " - this information is collected when the pipeline is started."
+//     section_name: 'nf-core/chipseq Workflow Summary'
+//     section_href: 'https://github.com/nf-core/chipseq'
+//     plot_type: 'html'
+//     data: |
+//         <dl class=\"dl-horizontal\">
+//             $x
+//         </dl>
+//     """.stripIndent() }
+//     .set { ch_workflow_summary }
+//
+// /*
+//  * STEP 10 - MultiQC
+//  */
+// process MultiQC {
+//     publishDir "${params.outdir}/multiqc/${PEAK_TYPE}", mode: 'copy'
+//
+//     when:
+//     !params.skip_multiqc
+//
+//     input:
+//     file (multiqc_config) from ch_multiqc_config
+//     file (mqc_custom_config) from ch_multiqc_custom_config.collect().ifEmpty([])
+//
+//     file ('software_versions/*') from ch_software_versions_mqc.collect()
+//     file workflow_summary from ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml")
+//
+//     file ('fastqc/*') from ch_fastqc_reports_mqc.collect().ifEmpty([])
+//     file ('trimgalore/*') from ch_trimgalore_results_mqc.collect().ifEmpty([])
+//     file ('trimgalore/fastqc/*') from ch_trimgalore_fastqc_reports_mqc.collect().ifEmpty([])
+//
+//     file ('alignment/library/*') from ch_sort_bam_flagstat_mqc.collect()
+//
+//     file ('alignment/mergedLibrary/*') from ch_mlib_bam_stats_mqc.collect()
+//     file ('alignment/mergedLibrary/*') from ch_mlib_rm_orphan_flagstat_mqc.collect{it[1]}
+//     file ('alignment/mergedLibrary/*') from ch_mlib_rm_orphan_stats_mqc.collect()
+//     file ('alignment/mergedLibrary/picard_metrics/*') from ch_mlib_bam_metrics_mqc.collect()
+//     file ('alignment/mergedLibrary/picard_metrics/*') from ch_mlib_collectmetrics_mqc.collect()
+//     file ('macs/mergedLibrary/*') from ch_mlib_macs_mqc.collect().ifEmpty([])
+//     file ('macs/mergedLibrary/*') from ch_mlib_peak_qc_mqc.collect().ifEmpty([])
+//     file ('macs/mergedLibrary/consensus/*') from ch_mlib_macs_consensus_counts_mqc.collect().ifEmpty([])
+//     file ('macs/mergedLibrary/consensus/*') from ch_mlib_macs_consensus_deseq_mqc.collect().ifEmpty([])
+//     file ('preseq/*') from ch_mlib_preseq_mqc.collect().ifEmpty([])
+//     file ('deeptools/*') from ch_mlib_plotprofile_mqc.collect().ifEmpty([])
+//     file ('deeptools/*') from ch_mlib_plotfingerprint_mqc.collect().ifEmpty([])
+//
+//     file ('alignment/mergedReplicate/*') from ch_mrep_bam_flagstat_mqc.collect{it[1]}.ifEmpty([])
+//     file ('alignment/mergedReplicate/*') from ch_mrep_bam_stats_mqc.collect().ifEmpty([])
+//     file ('alignment/mergedReplicate/*') from ch_mrep_bam_metrics_mqc.collect().ifEmpty([])
+//     file ('macs/mergedReplicate/*') from ch_mrep_macs_mqc.collect().ifEmpty([])
+//     file ('macs/mergedReplicate/*') from ch_mrep_peak_qc_mqc.collect().ifEmpty([])
+//     file ('macs/mergedReplicate/consensus/*') from ch_mrep_macs_consensus_counts_mqc.collect().ifEmpty([])
+//     file ('macs/mergedReplicate/consensus/*') from ch_mrep_macs_consensus_deseq_mqc.collect().ifEmpty([])
+//
+//     output:
+//     file "*multiqc_report.html" into ch_multiqc_report
+//     file "*_data"
+//     file "multiqc_plots"
+//
+//     script:
+//     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
+//     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
+//     custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
+//     """
+//     multiqc . -f $rtitle $rfilename $custom_config_file \\
+//         -m custom_content -m fastqc -m cutadapt -m samtools -m picard -m preseq -m featureCounts -m deeptools
+//     """
+// }
+//
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+// /* --                                                                     -- */
+// /* --                       REPORTS/DOCUMENTATION                         -- */
+// /* --                                                                     -- */
+// ///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
+//
+// /*
+//  * STEP 11 - Output description HTML
+//  */
+// process output_documentation {
+//     publishDir "${params.outdir}/Documentation", mode: 'copy'
+//
+//     input:
+//     file output_docs from ch_output_docs
+//
+//     output:
+//     file "results_description.html"
+//
+//     script:
+//     """
+//     markdown_to_html.py $output_docs -o results_description.html
+//     """
+// }
+//
+// /*
+//  * Completion e-mail notification
+//  */
+// workflow.onComplete {
+//
+//     // Set up the e-mail variables
+//     def subject = "[nf-core/atacseq] Successful: $workflow.runName"
+//     if (!workflow.success) {
+//         subject = "[nf-core/atacseq] FAILED: $workflow.runName"
+//     }
+//     def email_fields = [:]
+//     email_fields['version'] = workflow.manifest.version
+//     email_fields['runName'] = custom_runName ?: workflow.runName
+//     email_fields['success'] = workflow.success
+//     email_fields['dateComplete'] = workflow.complete
+//     email_fields['duration'] = workflow.duration
+//     email_fields['exitStatus'] = workflow.exitStatus
+//     email_fields['errorMessage'] = (workflow.errorMessage ?: 'None')
+//     email_fields['errorReport'] = (workflow.errorReport ?: 'None')
+//     email_fields['commandLine'] = workflow.commandLine
+//     email_fields['projectDir'] = workflow.projectDir
+//     email_fields['summary'] = summary
+//     email_fields['summary']['Date Started'] = workflow.start
+//     email_fields['summary']['Date Completed'] = workflow.complete
+//     email_fields['summary']['Pipeline script file path'] = workflow.scriptFile
+//     email_fields['summary']['Pipeline script hash ID'] = workflow.scriptId
+//     if (workflow.repository) email_fields['summary']['Pipeline repository Git URL'] = workflow.repository
+//     if (workflow.commitId) email_fields['summary']['Pipeline repository Git Commit'] = workflow.commitId
+//     if (workflow.revision) email_fields['summary']['Pipeline Git branch/tag'] = workflow.revision
+//     email_fields['summary']['Nextflow Version'] = workflow.nextflow.version
+//     email_fields['summary']['Nextflow Build'] = workflow.nextflow.build
+//     email_fields['summary']['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
+//
+//     // On success try attach the multiqc report
+//     def mqc_report = null
+//     try {
+//         if (workflow.success) {
+//             mqc_report = ch_multiqc_report.getVal()
+//             if (mqc_report.getClass() == ArrayList) {
+//                 log.warn "[nf-core/atacseq] Found multiple reports from process 'multiqc', will use only one"
+//                 mqc_report = mqc_report[0]
+//             }
+//         }
+//     } catch (all) {
+//         log.warn "[nf-core/atacseq] Could not attach MultiQC report to summary email"
+//     }
+//
+//     // Check if we are only sending emails on failure
+//     email_address = params.email
+//     if (!params.email && params.email_on_fail && !workflow.success) {
+//         email_address = params.email_on_fail
+//     }
+//
+//     // Render the TXT template
+//     def engine = new groovy.text.GStringTemplateEngine()
+//     def tf = new File("$baseDir/assets/email_template.txt")
+//     def txt_template = engine.createTemplate(tf).make(email_fields)
+//     def email_txt = txt_template.toString()
+//
+//     // Render the HTML template
+//     def hf = new File("$baseDir/assets/email_template.html")
+//     def html_template = engine.createTemplate(hf).make(email_fields)
+//     def email_html = html_template.toString()
+//
+//     // Render the sendmail template
+//     def smail_fields = [ email: email_address, subject: subject, email_txt: email_txt, email_html: email_html, baseDir: "$baseDir", mqcFile: mqc_report, mqcMaxSize: params.max_multiqc_email_size.toBytes() ]
+//     def sf = new File("$baseDir/assets/sendmail_template.txt")
+//     def sendmail_template = engine.createTemplate(sf).make(smail_fields)
+//     def sendmail_html = sendmail_template.toString()
+//
+//     // Send the HTML e-mail
+//     if (email_address) {
+//         try {
+//             if (params.plaintext_email) { throw GroovyException('Send plaintext e-mail, not HTML') }
+//             // Try to send HTML e-mail using sendmail
+//             [ 'sendmail', '-t' ].execute() << sendmail_html
+//             log.info "[nf-core/atacseq] Sent summary e-mail to $email_address (sendmail)"
+//         } catch (all) {
+//             // Catch failures and try with plaintext
+//             [ 'mail', '-s', subject, email_address ].execute() << email_txt
+//             log.info "[nf-core/atacseq] Sent summary e-mail to $email_address (mail)"
+//         }
+//     }
+//
+//     // Write summary e-mail HTML to a file
+//     def output_d = new File("${params.outdir}/pipeline_info/")
+//     if (!output_d.exists()) {
+//         output_d.mkdirs()
+//     }
+//     def output_hf = new File(output_d, "pipeline_report.html")
+//     output_hf.withWriter { w -> w << email_html }
+//     def output_tf = new File(output_d, "pipeline_report.txt")
+//     output_tf.withWriter { w -> w << email_txt }
+//
+//     c_green = params.monochrome_logs ? '' : "\033[0;32m";
+//     c_purple = params.monochrome_logs ? '' : "\033[0;35m";
+//     c_red = params.monochrome_logs ? '' : "\033[0;31m";
+//     c_reset = params.monochrome_logs ? '' : "\033[0m";
+//
+//     if (workflow.stats.ignoredCount > 0 && workflow.success) {
+//         log.info "-${c_purple}Warning, pipeline completed, but with errored process(es) ${c_reset}-"
+//         log.info "-${c_red}Number of ignored errored process(es) : ${workflow.stats.ignoredCount} ${c_reset}-"
+//         log.info "-${c_green}Number of successfully ran process(es) : ${workflow.stats.succeedCount} ${c_reset}-"
+//     }
+//     if (workflow.success) {
+//         log.info "-${c_purple}[nf-core/atacseq]${c_green} Pipeline completed successfully${c_reset}-"
+//     } else {
+//         checkHostname()
+//         log.info "-${c_purple}[nf-core/atacseq]${c_red} Pipeline completed with errors${c_reset}-"
+//     }
+//
+// }
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
