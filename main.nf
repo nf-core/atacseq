@@ -62,7 +62,8 @@ def helpMessage() {
       --broad_cutoff [float]          Specifies broad cutoff value for MACS2. Only used when --narrow_peak isnt specified (Default: 0.1)
       --min_reps_consensus [int]      Number of biological replicates required from a given condition for a peak to contribute to a consensus peak (Default: 1)
       --save_macs_pileup [bool]       Instruct MACS2 to create bedGraph files normalised to signal per million reads
-      --skip_consensus_peaks [bool]   Skip consensus peak generation and differential binding analysis
+      --skip_consensus_peaks [bool]   Skip consensus peak generation
+      --skip_diff_analysis [bool]     Skip differential accessibility analysis
 
     QC
       --skip_fastqc [bool]            Skip FastQC
@@ -174,7 +175,12 @@ if (params.gtf)         { ch_gtf = file(params.gtf, checkIfExists: true) } else 
 if (params.gene_bed)    { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
 if (params.tss_bed)     { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
 if (params.blacklist)   { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
-if (params.anno_readme && file(params.anno_readme).exists()) { ch_anno_readme = Channel.fromPath(params.anno_readme) } else { ch_anno_readme = Channel.empty() }
+
+// Save AWS IGenomes file conatining annotation version
+if (params.anno_readme && file(params.anno_readme).exists()) {
+    file("${params.outdir}/genome/").mkdirs()
+    file(params.anno_readme).copyTo("${params.outdir}/genome/")
+}
 
 if (params.fasta) {
     lastPath = params.fasta.lastIndexOf(File.separator)
@@ -254,6 +260,7 @@ if (params.save_align_intermeds)  summary['Save Intermeds'] =  'Yes'
 if (params.save_macs_pileup)      summary['Save MACS2 Pileup'] = 'Yes'
 if (params.skip_merge_replicates) summary['Skip Merge Replicates'] = 'Yes'
 if (params.skip_consensus_peaks)  summary['Skip Consensus Peaks'] = 'Yes'
+if (params.skip_diff_analysis)    summary['Skip Differential Analysis'] = 'Yes'
 if (params.skip_fastqc)           summary['Skip FastQC'] = 'Yes'
 if (params.skip_picard_metrics)   summary['Skip Picard Metrics'] = 'Yes'
 if (params.skip_preseq)           summary['Skip Preseq'] = 'Yes'
@@ -377,7 +384,7 @@ if (!params.bwa_index) {
     process BWAIndex {
         tag "$fasta"
         label 'process_high'
-        publishDir path: { params.save_reference ? "${params.outdir}/reference_genome" : params.outdir },
+        publishDir path: { params.save_reference ? "${params.outdir}/genome" : params.outdir },
             saveAs: { params.save_reference ? it : null }, mode: 'copy'
 
         input:
@@ -401,7 +408,7 @@ if (!params.gene_bed) {
     process MakeGeneBED {
         tag "$gtf"
         label 'process_low'
-        publishDir "${params.outdir}/reference_genome", mode: 'copy'
+        publishDir "${params.outdir}/genome", mode: 'copy'
 
         input:
         file gtf from ch_gtf
@@ -422,7 +429,7 @@ if (!params.gene_bed) {
 if (!params.tss_bed) {
     process MakeTSSBED {
         tag "$bed"
-        publishDir "${params.outdir}/reference_genome", mode: 'copy'
+        publishDir "${params.outdir}/genome", mode: 'copy'
 
         input:
         file bed from ch_gene_bed
@@ -442,17 +449,15 @@ if (!params.tss_bed) {
  */
 process MakeGenomeFilter {
     tag "$fasta"
-    publishDir "${params.outdir}/reference_genome", mode: 'copy'
+    publishDir "${params.outdir}/genome", mode: 'copy'
 
     input:
     file fasta from ch_fasta
     file blacklist from ch_blacklist.ifEmpty([])
-    file readme from ch_anno_readme.ifEmpty([])
 
     output:
     file "$fasta"                                      // FASTA FILE FOR IGV
     file "*.fai"                                       // FAI INDEX FOR REFERENCE GENOME
-    //file "$readme"                                     // AWS IGENOMES FILE CONTAINING ANNOTATION VERSION
     file "*.bed" into ch_genome_filter_regions         // BED FILE WITHOUT BLACKLIST REGIONS & MITOCHONDRIAL CONTIG FOR FILTERING
     file "*.txt" into ch_genome_autosomes              // TEXT FILE CONTAINING LISTING OF AUTOSOMAL CHROMOSOMES FOR ATAQV
     file "*.sizes" into ch_genome_sizes_mlib_bigwig,   // CHROMOSOME SIZES FILE FOR BEDTOOLS
@@ -1322,7 +1327,7 @@ process MergedLibConsensusPeakSetDESeq {
                 }
 
     when:
-    params.macs_gsize && replicatesExist && multipleGroups && !params.skip_consensus_peaks
+    params.macs_gsize && replicatesExist && multipleGroups && !params.skip_consensus_peaks && !params.skip_diff_analysis
 
     input:
     file counts from ch_mlib_macs_consensus_counts
@@ -1341,7 +1346,13 @@ process MergedLibConsensusPeakSetDESeq {
     prefix = "consensus_peaks.mLb.clN"
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
     """
-    featurecounts_deseq2.r -i $counts -b '$bam_ext' -o ./ -p $prefix -s .mLb
+    featurecounts_deseq2.r \\
+        --featurecount_file $counts \\
+        --bam_suffix '$bam_ext' \\
+        --outdir ./ \\
+        --outprefix $prefix \\
+        --outsuffix .mLb.clN \\
+        --cores $task.cpus
 
     cat $mlib_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $mlib_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
@@ -1370,6 +1381,7 @@ process MergedLibAtaqv {
     file "*.json" into ch_mlib_ataqv
 
     script:
+    suffix = 'mLb.clN'
     peak_param = params.macs_gsize ? "--peak-file ${peak}" : ""
     mito_param = params.mito_name ? "--mitochondrial-reference-name ${params.mito_name}" : ""
     """
@@ -1377,7 +1389,7 @@ process MergedLibAtaqv {
         --threads $task.cpus \\
         $peak_param  \\
         --tss-file $tss_bed \\
-        --metrics-file  ${name}.ataqv.json \\
+        --metrics-file  ${name}.${suffix}.ataqv.json \\
         --name $name \\
         --ignore-read-groups \\
         --autosomal-reference-file $autosomes \\
@@ -1808,7 +1820,7 @@ process MergedRepConsensusPeakSetDESeq {
                 }
 
     when:
-    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks
+    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks && !params.skip_diff_analysis
 
     input:
     file counts from ch_mrep_macs_consensus_counts
@@ -1827,7 +1839,13 @@ process MergedRepConsensusPeakSetDESeq {
     prefix = "consensus_peaks.mRp.clN"
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
     """
-    featurecounts_deseq2.r -i $counts -b '$bam_ext' -o ./ -p $prefix -s .mLb
+    featurecounts_deseq2.r \\
+        --featurecount_file $counts \\
+        --bam_suffix '$bam_ext' \\
+        --outdir ./ \\
+        --outprefix $prefix \\
+        --outsuffix .mRp.clN \\
+        --cores $task.cpus
 
     cat $mrep_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $mrep_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
@@ -1872,7 +1890,7 @@ process IGV {
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     """
     cat *.txt > igv_files.txt
-    igv_files_to_session.py igv_session.xml igv_files.txt ../../reference_genome/${fasta.getName()} --path_prefix '../../'
+    igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
     """
 }
 
@@ -1926,10 +1944,10 @@ Channel.from(summary.collect{ [it.key, it.value] })
     .map { k,v -> "<dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }
     .reduce { a, b -> return [a, b].join("\n            ") }
     .map { x -> """
-    id: 'nf-core-chipseq-summary'
+    id: 'nf-core-atacseq-summary'
     description: " - this information is collected when the pipeline is started."
-    section_name: 'nf-core/chipseq Workflow Summary'
-    section_href: 'https://github.com/nf-core/chipseq'
+    section_name: 'nf-core/atacseq Workflow Summary'
+    section_href: 'https://github.com/nf-core/atacseq'
     plot_type: 'html'
     data: |
         <dl class=\"dl-horizontal\">
