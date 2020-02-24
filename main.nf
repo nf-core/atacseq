@@ -1944,10 +1944,10 @@ Channel.from(summary.collect{ [it.key, it.value] })
     .map { k,v -> "<dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }
     .reduce { a, b -> return [a, b].join("\n            ") }
     .map { x -> """
-    id: 'nf-core-chipseq-summary'
+    id: 'nf-core-atacseq-summary'
     description: " - this information is collected when the pipeline is started."
-    section_name: 'nf-core/chipseq Workflow Summary'
-    section_href: 'https://github.com/nf-core/chipseq'
+    section_name: 'nf-core/atacseq Workflow Summary'
+    section_href: 'https://github.com/nf-core/atacseq'
     plot_type: 'html'
     data: |
         <dl class=\"dl-horizontal\">
