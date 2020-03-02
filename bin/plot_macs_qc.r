@@ -17,10 +17,10 @@ library(scales)
 ################################################
 ################################################
 
-option_list <- list(make_option(c("-i", "--peak_files"), type="character", default=NULL, help="Comma-separated list of peak files.", metavar="peak_files"),
-                    make_option(c("-s", "--sample_ids"), type="character", default=NULL, help="Comma-separated list of sample ids associated with peak files. Must be unique and in same order as peaks files input.", metavar="sampleids"),
+option_list <- list(make_option(c("-i", "--peak_files"), type="character", default=NULL, help="Comma-separated list of peak files.", metavar="path"),
+                    make_option(c("-s", "--sample_ids"), type="character", default=NULL, help="Comma-separated list of sample ids associated with peak files. Must be unique and in same order as peaks files input.", metavar="string"),
                     make_option(c("-o", "--outdir"), type="character", default='./', help="Output directory", metavar="path"),
-                    make_option(c("-p", "--outprefix"), type="character", default='macs2_peakqc', help="Output prefix", metavar="character"))
+                    make_option(c("-p", "--outprefix"), type="character", default='macs2_peakqc', help="Output prefix", metavar="string"))
 
 opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser)
@@ -81,7 +81,7 @@ for (idx in 1:length(PeakFiles)) {
     peaks.dat$name <- rep(sampleid,nrow(peaks.dat))
     plot.dat <- rbind(plot.dat,peaks.dat)
 }
-levels(plot.dat$name) <- sort(unique(as.character(plot.dat$name)))
+plot.dat$name <- factor(plot.dat$name, levels=sort(unique(as.character(plot.dat$name))))
 
 SummaryFile <- file.path(opt$outdir,paste(opt$outprefix,".summary.txt",sep=""))
 write.table(summary.dat,file=SummaryFile,quote=FALSE,sep="\t",row.names=FALSE,col.names=TRUE)

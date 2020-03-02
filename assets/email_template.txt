@@ -1,6 +1,12 @@
-========================================
- nf-core/atacseq v${version}
-========================================
+----------------------------------------------------
+                                        ,--./,-.
+        ___     __   __   __   ___     /,-._.--~\\
+  |\\ | |__  __ /  ` /  \\ |__) |__         }  {
+  | \\| |       \\__, \\__/ |  \\ |___     \\`-._,-`-,
+                                        `._,._,'
+  nf-core/atacseq v${version}
+----------------------------------------------------
+
 Run Name: $runName
 
 <% if (success){
@@ -21,6 +27,7 @@ The workflow was completed at $dateComplete (duration: $duration)
 The command used to launch the workflow was as follows:
 
   $commandLine
+
 
 Pipeline Configuration:
 -----------------------

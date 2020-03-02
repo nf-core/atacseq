@@ -17,10 +17,10 @@ library(scales)
 ################################################
 ################################################
 
-option_list <- list(make_option(c("-i", "--homer_files"), type="character", default=NULL, help="Comma-separated list of homer annotated text files.", metavar="anno_files"),
-                    make_option(c("-s", "--sample_ids"), type="character", default=NULL, help="Comma-separated list of sample ids associated with homer annotated text files. Must be unique and in same order as homer files input.", metavar="sampleids"),
+option_list <- list(make_option(c("-i", "--homer_files"), type="character", default=NULL, help="Comma-separated list of homer annotated text files.", metavar="path"),
+                    make_option(c("-s", "--sample_ids"), type="character", default=NULL, help="Comma-separated list of sample ids associated with homer annotated text files. Must be unique and in same order as homer files input.", metavar="string"),
                     make_option(c("-o", "--outdir"), type="character", default='./', help="Output directory", metavar="path"),
-                    make_option(c("-p", "--outprefix"), type="character", default='homer_annotation', help="Output prefix", metavar="character"))
+                    make_option(c("-p", "--outprefix"), type="character", default='homer_annotation', help="Output prefix", metavar="string"))
 
 opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser)
@@ -59,10 +59,19 @@ for (idx in 1:length(HomerFiles)) {
     sampleid = SampleIDs[idx]
     anno.dat <- read.table(HomerFiles[idx], sep="\t", header=TRUE,quote="")
     anno.dat <- anno.dat[,c("Annotation","Distance.to.TSS","Nearest.PromoterID")]
-    anno.dat <- anno.dat[which(!is.na(anno.dat$Distance.to.TSS)),]
-    if (nrow(anno.dat) == 0) {
-        quit(save = "no", status = 0, runLast = FALSE)
-    }
+
+    ## REPLACE UNASSIGNED FEATURE ENTRIES WITH SENSIBLE VALUES
+    unassigned <- which(is.na(as.character(anno.dat$Distance.to.TSS)))
+    anno.dat$Distance.to.TSS[unassigned] <- 1000000
+
+    anno.dat$Annotation <- as.character(anno.dat$Annotation)
+    anno.dat$Annotation[unassigned] <- "Unassigned"
+    anno.dat$Annotation <- as.factor(anno.dat$Annotation)
+
+    anno.dat$Nearest.PromoterID <- as.character(anno.dat$Nearest.PromoterID)
+    anno.dat$Nearest.PromoterID[unassigned] <- "Unassigned"
+    anno.dat$Nearest.PromoterID <- as.factor(anno.dat$Nearest.PromoterID)
+
     anno.dat$name <- rep(sampleid,nrow(anno.dat))
     anno.dat$Distance.to.TSS <- abs(anno.dat$Distance.to.TSS) + 1
     plot.dat <- rbind(plot.dat,anno.dat)
@@ -87,9 +96,9 @@ for (idx in 1:length(HomerFiles)) {
     plot.dist.dat <- rbind(plot.dist.dat,dist.melt)
 
 }
-levels(plot.dat$name) <- sort(unique(as.character(plot.dat$name)))
-levels(plot.dist.dat$variable) <- sort(unique(as.character(plot.dist.dat$variable)))
-levels(plot.feature.dat$variable) <- sort(unique(as.character(plot.feature.dat$variable)))
+plot.dat$name <- factor(plot.dat$name, levels=sort(unique(as.character(plot.dat$name))))
+plot.dist.dat$variable <- factor(plot.dist.dat$variable, levels=sort(unique(as.character(plot.dist.dat$variable))))
+plot.feature.dat$variable <- factor(plot.feature.dat$variable, levels=sort(unique(as.character(plot.feature.dat$variable))))
 
 summary.dat <- dcast(plot.feature.dat, variable ~ feature, value.var="value")
 colnames(summary.dat)[1] <- "sample"
