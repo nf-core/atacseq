@@ -11,3 +11,6 @@ ENV PATH /opt/conda/envs/nf-core-atacseq-1.1.1dev/bin:$PATH
 
 # Dump the details of the installed packages to a file for posterity
 RUN conda env export --name nf-core-atacseq-1.1.1dev > nf-core-atacseq-1.1.1dev.yml
+
+# Instruct R processes to use this empty file instead of clashing with a local version
+RUN touch .Rprofile
