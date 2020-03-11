@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [#76](https://github.com/nf-core/atacseq/issues/76) - featureCounts coupled to DESeq2
 * [#79](https://github.com/nf-core/atacseq/issues/79) - Parallelize DESeq2
 * [#80](https://github.com/nf-core/atacseq/pull/80) - Added social preview image
-
 * Update template to tools `1.9`
 * Parameter `--skip_consensus_peaks` to skip consensus peak generation
 
@@ -22,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [nf-core/chipseq#118](https://github.com/nf-core/chipseq/issues/118) - Running on with SGE
 * [nf-core/chipseq#132](https://github.com/nf-core/chipseq/issues/132) - BigWig Error: sort: cannot create temporary file in '': Read-only file system
 * [#73](https://github.com/nf-core/atacseq/issues/73) - macs_annotatePeaks.mLb.clN.summary.txt file is not created
+* [#86](https://github.com/nf-core/atacseq/issues/86) - bug in the plot_homer_annotatepeaks.r script
 * Make executables in `bin/` compatible with Python 3
 
 ### `Dependencies`
