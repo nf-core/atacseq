@@ -63,6 +63,9 @@ def helpMessage() {
       --min_reps_consensus [int]      Number of biological replicates required from a given condition for a peak to contribute to a consensus peak (Default: 1)
       --save_macs_pileup [bool]       Instruct MACS2 to create bedGraph files normalised to signal per million reads
       --skip_consensus_peaks [bool]   Skip consensus peak generation
+
+    Differential analysis
+      --deseq2_vst [bool]             Use vst transformation instead of rlog with DESeq2
       --skip_diff_analysis [bool]     Skip differential accessibility analysis
 
     QC
@@ -260,6 +263,7 @@ if (params.save_align_intermeds)  summary['Save Intermeds'] =  'Yes'
 if (params.save_macs_pileup)      summary['Save MACS2 Pileup'] = 'Yes'
 if (params.skip_merge_replicates) summary['Skip Merge Replicates'] = 'Yes'
 if (params.skip_consensus_peaks)  summary['Skip Consensus Peaks'] = 'Yes'
+if (params.deseq2_vst)            summary['Use DESeq2 vst Transform'] = 'Yes'
 if (params.skip_diff_analysis)    summary['Skip Differential Analysis'] = 'Yes'
 if (params.skip_fastqc)           summary['Skip FastQC'] = 'Yes'
 if (params.skip_picard_metrics)   summary['Skip Picard Metrics'] = 'Yes'
@@ -1345,6 +1349,7 @@ process MergedLibConsensusPeakSetDESeq {
     script:
     prefix = "consensus_peaks.mLb.clN"
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
+    vst = params.deseq2_vst ? "--vst TRUE" : ""
     """
     featurecounts_deseq2.r \\
         --featurecount_file $counts \\
@@ -1352,7 +1357,8 @@ process MergedLibConsensusPeakSetDESeq {
         --outdir ./ \\
         --outprefix $prefix \\
         --outsuffix .mLb.clN \\
-        --cores $task.cpus
+        --cores $task.cpus \\
+        $vst \\
 
     cat $mlib_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $mlib_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
@@ -1838,6 +1844,7 @@ process MergedRepConsensusPeakSetDESeq {
     script:
     prefix = "consensus_peaks.mRp.clN"
     bam_ext = params.single_end ? ".mLb.clN.sorted.bam" : ".mLb.clN.bam"
+    vst = params.deseq2_vst ? "--vst TRUE" : ""
     """
     featurecounts_deseq2.r \\
         --featurecount_file $counts \\
@@ -1845,7 +1852,8 @@ process MergedRepConsensusPeakSetDESeq {
         --outdir ./ \\
         --outprefix $prefix \\
         --outsuffix .mRp.clN \\
-        --cores $task.cpus
+        --cores $task.cpus \\
+        $vst
 
     cat $mrep_deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $mrep_deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
