@@ -22,7 +22,7 @@ jobs:
       - name: Pull docker image
         run: |
           docker pull nfcore/atacseq:dev
-          docker tag nfcore/atacseq:dev nfcore/atacseq:dev
+          docker tag nfcore/atacseq:dev nfcore/atacseq:1.2.0
       - name: Run pipeline with test data
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker
