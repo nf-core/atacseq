@@ -100,24 +100,27 @@ def helpMessage() {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-/*
- * SET UP CONFIGURATION VARIABLES
- */
-
 // Show help message
 if (params.help) {
     helpMessage()
     exit 0
 }
 
-// Check if genome exists in the config file
-if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
-    exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
+// Has the run name been specified by the user?
+// this has the bonus effect of catching both -name and --name
+custom_runName = params.name
+if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)) {
+    custom_runName = workflow.runName
 }
 
 ////////////////////////////////////////////////////
 /* --         DEFAULT PARAMETER VALUES         -- */
 ////////////////////////////////////////////////////
+
+// Check if genome exists in the config file
+if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
+    exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
+}
 
 // Configurable variables
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
@@ -131,13 +134,6 @@ params.anno_readme = params.genome ? params.genomes[ params.genome ].readme ?: f
 
 // Global variables
 def PEAK_TYPE = params.narrow_peak ? "narrowPeak" : "broadPeak"
-
-// Has the run name been specified by the user?
-//  this has the bonus effect of catching both -name and --name
-custom_runName = params.name
-if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)) {
-    custom_runName = workflow.runName
-}
 
 ////////////////////////////////////////////////////
 /* --          CONFIG FILES                    -- */
@@ -172,18 +168,11 @@ ch_mrep_deseq2_clustering_header = file("$baseDir/assets/multiqc/mrep_deseq2_clu
 /* --          VALIDATE INPUTS                 -- */
 ////////////////////////////////////////////////////
 
-// Validate inputs
 if (params.input)       { ch_input = file(params.input, checkIfExists: true) } else { exit 1, "Samples design file not specified!" }
 if (params.gtf)         { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, "GTF annotation file not specified!" }
 if (params.gene_bed)    { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
 if (params.tss_bed)     { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
 if (params.blacklist)   { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
-
-// Save AWS IGenomes file conatining annotation version
-if (params.anno_readme && file(params.anno_readme).exists()) {
-    file("${params.outdir}/genome/").mkdirs()
-    file(params.anno_readme).copyTo("${params.outdir}/genome/")
-}
 
 if (params.fasta) {
     lastPath = params.fasta.lastIndexOf(File.separator)
@@ -200,6 +189,12 @@ if (params.bwa_index) {
     Channel
         .fromPath(bwa_dir, checkIfExists: true)
         .set { ch_bwa_index }
+}
+
+// Save AWS IGenomes file containing annotation version
+if (params.anno_readme && file(params.anno_readme).exists()) {
+    file("${params.outdir}/genome/").mkdirs()
+    file(params.anno_readme).copyTo("${params.outdir}/genome/")
 }
 
 ////////////////////////////////////////////////////
@@ -319,7 +314,7 @@ if (!params.macs_gsize) {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * PREPROCESSING - REFORMAT DESIGN FILE AND CHECK VALIDITY
+ * PREPROCESSING: Reformat design file and check validitiy
  */
 process CheckDesign {
     tag "$design"
@@ -382,7 +377,7 @@ multipleGroups = design_multiple_samples
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * PREPROCESSING - Build BWA index
+ * PREPROCESSING: Build BWA index
  */
 if (!params.bwa_index) {
     process BWAIndex {
@@ -406,7 +401,7 @@ if (!params.bwa_index) {
 }
 
 /*
- * PREPROCESSING - Generate gene BED file
+ * PREPROCESSING: Generate gene BED file
  */
 if (!params.gene_bed) {
     process MakeGeneBED {
@@ -428,7 +423,7 @@ if (!params.gene_bed) {
 }
 
 /*
- * PREPROCESSING - Generate TSS BED file
+ * PREPROCESSING: Generate TSS BED file
  */
 if (!params.tss_bed) {
     process MakeTSSBED {
@@ -449,7 +444,7 @@ if (!params.tss_bed) {
 }
 
 /*
- * PREPROCESSING - Prepare genome intervals for filtering
+ * PREPROCESSING: Prepare genome intervals for filtering
  */
 process MakeGenomeFilter {
     tag "$fasta"
@@ -488,7 +483,7 @@ process MakeGenomeFilter {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 1 - FastQC
+ * STEP 1: FastQC
  */
 process FastQC {
     tag "$name"
@@ -533,7 +528,7 @@ process FastQC {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 2 - Trim Galore!
+ * STEP 2: Trim Galore!
  */
 if (params.skip_trimming) {
     ch_trimmed_reads = ch_raw_reads_trimgalore
@@ -603,7 +598,7 @@ if (params.skip_trimming) {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 3.1 - Align read 1 with bwa
+ * STEP 3.1: Map read(s) with bwa mem
  */
 process BWAMem {
     tag "$name"
@@ -634,7 +629,7 @@ process BWAMem {
 }
 
 /*
- * STEP 3.2 - Convert .bam to coordinate sorted .bam
+ * STEP 3.2: Convert BAM to coordinate sorted BAM
  */
 process SortBAM {
     tag "$name"
@@ -676,7 +671,7 @@ process SortBAM {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 4.1 Merge BAM files for all libraries from same replicate
+ * STEP 4.1: Merge BAM files for all libraries from same sample replicate
  */
 ch_sort_bam_merge
     .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
@@ -759,7 +754,7 @@ process MergedLibBAM {
 }
 
 /*
- * STEP 4.2 Filter BAM file at merged library-level
+ * STEP 4.2: Filter BAM file at merged library-level
  */
 process MergedLibBAMFilter {
     tag "$name"
@@ -814,7 +809,7 @@ process MergedLibBAMFilter {
 }
 
 /*
- * STEP 4.3 Remove orphan reads from paired-end BAM file
+ * STEP 4.3: Remove orphan reads from paired-end BAM file
  */
 if (params.single_end) {
     ch_mlib_filter_bam
@@ -886,7 +881,7 @@ if (params.single_end) {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 5.1 preseq analysis after merging libraries and before filtering
+ * STEP 5.1: Preseq analysis after merging libraries and before filtering
  */
 process MergedLibPreseq {
     tag "$name"
@@ -910,7 +905,7 @@ process MergedLibPreseq {
 }
 
 /*
- * STEP 5.2 Picard CollectMultipleMetrics after merging libraries and filtering
+ * STEP 5.2: Picard CollectMultipleMetrics after merging libraries and filtering
  */
 process MergedLibMetrics {
     tag "$name"
@@ -952,7 +947,7 @@ process MergedLibMetrics {
 }
 
 /*
- * STEP 5.3 Read depth normalised bigWig
+ * STEP 5.3: Read depth normalised bigWig
  */
 process MergedLibBigWig {
     tag "$name"
@@ -989,7 +984,7 @@ process MergedLibBigWig {
 }
 
 /*
- * STEP 5.4 generate gene body coverage plot with deepTools
+ * STEP 5.4: Generate gene body coverage plot with deepTools plotProfile
  */
 process MergedLibPlotProfile {
     tag "$name"
@@ -1029,7 +1024,7 @@ process MergedLibPlotProfile {
 }
 
 /*
- * STEP 5.5 deepTools plotFingerprint
+ * STEP 5.5: deepTools plotFingerprint
  */
 process MergedLibPlotFingerprint {
     tag "$name"
@@ -1072,7 +1067,7 @@ process MergedLibPlotFingerprint {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 6.1 Call peaks with MACS2 and calculate FRiP score
+ * STEP 6.1: Call peaks with MACS2 and calculate FRiP score
  */
 process MergedLibMACSCallPeak {
     tag "$name"
@@ -1127,7 +1122,7 @@ process MergedLibMACSCallPeak {
 }
 
 /*
- * STEP 6.2 Annotate peaks with HOMER
+ * STEP 6.2: Annotate peaks with HOMER
  */
 process MergedLibAnnotatePeaks {
     tag "$name"
@@ -1159,7 +1154,7 @@ process MergedLibAnnotatePeaks {
 }
 
 /*
- * STEP 6.3 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
+ * STEP 6.3: Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
 process MergedLibPeakQC {
     label "process_medium"
@@ -1197,7 +1192,7 @@ process MergedLibPeakQC {
 }
 
 /*
- * STEP 6.4 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
+ * STEP 6.4: Consensus peaks across samples, create boolean filtering file, SAF file for featureCounts and UpSetR plot for intersection
  */
 process MergedLibConsensusPeakSet {
     label 'process_long'
@@ -1250,7 +1245,7 @@ process MergedLibConsensusPeakSet {
 }
 
 /*
- * STEP 6.5 Annotate consensus peaks with HOMER, and add annotation to boolean output file
+ * STEP 6.5: Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
 process MergedLibConsensusPeakSetAnnotate {
     label "process_medium"
@@ -1285,7 +1280,7 @@ process MergedLibConsensusPeakSetAnnotate {
 }
 
 /*
- * STEP 6.6 Count reads in consensus peaks with featureCounts
+ * STEP 6.6: Count reads in consensus peaks with featureCounts
  */
 process MergedLibConsensusPeakSetCounts {
     label 'process_medium'
@@ -1320,7 +1315,7 @@ process MergedLibConsensusPeakSetCounts {
 }
 
 /*
- * STEP 6.7 Perform differential analysis with DESeq2
+ * STEP 6.7: Differential analysis with DESeq2
  */
 process MergedLibConsensusPeakSetDESeq {
     label 'process_medium'
@@ -1368,7 +1363,7 @@ process MergedLibConsensusPeakSetDESeq {
 }
 
 /*
- * STEP 6.8 Run ataqv on BAM file and corresponding peaks
+ * STEP 6.8: Run ataqv on BAM file and corresponding peaks
  */
 process MergedLibAtaqv {
     tag "$name"
@@ -1406,7 +1401,7 @@ process MergedLibAtaqv {
 }
 
 /*
- * STEP 6.9 run ataqv mkarv on all JSON files to render web app
+ * STEP 6.9: Run ataqv mkarv on all JSON files to render web app
  */
 process MergedLibAtaqvMkarv {
     label 'process_medium'
@@ -1440,7 +1435,7 @@ process MergedLibAtaqvMkarv {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 7 Merge library BAM files across all replicates
+ * STEP 7: Merge library BAM files across all replicates
  */
 ch_mlib_rm_orphan_bam_mrep
     .map { it -> [ it[0].split('_')[0..-2].join('_'), it[1] ] }
@@ -1529,7 +1524,7 @@ process MergedRepBAM {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 8.1 Read depth normalised bigWig
+ * STEP 8.1: Read depth normalised bigWig
  */
 process MergedRepBigWig {
     tag "$name"
@@ -1569,7 +1564,7 @@ process MergedRepBigWig {
 }
 
 /*
- * STEP 8.2 Call peaks with MACS2 and calculate FRiP score
+ * STEP 8.2: Call peaks with MACS2 and calculate FRiP score
  */
 process MergedRepMACSCallPeak {
     tag "$name"
@@ -1623,7 +1618,7 @@ process MergedRepMACSCallPeak {
 }
 
 /*
- * STEP 8.3 Annotate peaks with HOMER
+ * STEP 8.3: Annotate peaks with HOMER
  */
 process MergedRepAnnotatePeaks {
     tag "$name"
@@ -1655,7 +1650,7 @@ process MergedRepAnnotatePeaks {
 }
 
 /*
- * STEP 8.4 Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
+ * STEP 8.4: Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
 process MergedRepPeakQC {
     label "process_medium"
@@ -1693,7 +1688,7 @@ process MergedRepPeakQC {
 }
 
 /*
- * STEP 8.5 Consensus peaks across samples, create boolean filtering file, .saf file for featureCounts and UpSetR plot for intersection
+ * STEP 8.5: Consensus peaks across samples, create boolean filtering file, SAF file for featureCounts and UpSetR plot for intersection
  */
 process MergedRepConsensusPeakSet {
     label 'process_long'
@@ -1745,7 +1740,7 @@ process MergedRepConsensusPeakSet {
 }
 
 /*
- * STEP 8.6 Annotate consensus peaks with HOMER, and add annotation to boolean output file
+ * STEP 8.6: Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
 process MergedRepConsensusPeakSetAnnotate {
     label "process_medium"
@@ -1780,7 +1775,7 @@ process MergedRepConsensusPeakSetAnnotate {
 }
 
 /*
- * STEP 8.7 Count reads in consensus peaks with featureCounts
+ * STEP 8.7: Count reads in consensus peaks with featureCounts
  */
 process MergedRepConsensusPeakSetCounts {
     label 'process_medium'
@@ -1815,7 +1810,7 @@ process MergedRepConsensusPeakSetCounts {
 }
 
 /*
- * STEP 8.8 Perform differential analysis with DESeq2
+ * STEP 8.8: Differential analysis with DESeq2
  */
 process MergedRepConsensusPeakSetDESeq {
     label 'process_medium'
@@ -1871,7 +1866,7 @@ process MergedRepConsensusPeakSetDESeq {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 9 - Create IGV session file
+ * STEP 9: Create IGV session file
  */
 process IGV {
     publishDir "${params.outdir}/igv/${PEAK_TYPE}", mode: 'copy'
@@ -1965,7 +1960,7 @@ Channel.from(summary.collect{ [it.key, it.value] })
     .set { ch_workflow_summary }
 
 /*
- * STEP 10 - MultiQC
+ * STEP 10: MultiQC
  */
 process MultiQC {
     publishDir "${params.outdir}/multiqc/${PEAK_TYPE}", mode: 'copy'
@@ -2031,7 +2026,7 @@ process MultiQC {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * STEP 11 - Output description HTML
+ * STEP 11: Output description HTML
  */
 process output_documentation {
     publishDir "${params.outdir}/Documentation", mode: 'copy'
