@@ -45,7 +45,7 @@ def helpMessage() {
       --clip_r1 [int]                 Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads) (Default: 0)
       --clip_r2 [int]                 Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only) (Default: 0)
       --three_prime_clip_r1 [int]     Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed (Default: 0)
-      --three_prime_clip_r2 [int]     Instructs Trim Galore to re move bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed (Default: 0)
+      --three_prime_clip_r2 [int]     Instructs Trim Galore to remove bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed (Default: 0)
       --trim_nextseq [int]            Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails (Default: 0)
       --skip_trimming [bool]          Skip the adapter trimming step
       --save_trimmed [bool]           Save the trimmed FastQ files in the results directory
