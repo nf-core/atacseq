@@ -127,10 +127,6 @@
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
                 }
             },
-            "required": [
-                "fasta",
-                "gtf"
-            ],
             "fa_icon": "fas fa-dna"
         },
         "Adapter trimming options": {
