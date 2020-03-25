@@ -897,11 +897,20 @@ process MergedLibPreseq {
 
     output:
     file "*.ccurve.txt" into ch_mlib_preseq_mqc
+    file "*.log" into ch_mlib_preseq_log
 
     script:
     prefix = "${name}.mLb.mkD"
+    pe = params.single_end ? "" : "-pe"
     """
-    preseq lc_extrap -v -output ${prefix}.ccurve.txt -bam ${bam[0]}
+    preseq lc_extrap \\
+        -output ${prefix}.ccurve.txt \\
+        -verbose \\
+        -bam \\
+        $pe \\
+        -seed 1 \\
+        ${bam[0]}
+    cp .command.err ${prefix}.command.log
     """
 }
 
