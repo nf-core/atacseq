@@ -3,11 +3,9 @@ name: nf-core AWS test
 # It runs the -profile 'test_full' on AWS batch
 
 on:
-  #push:
   pull_request:
     branches:
       - master
-      #- dev # just for testing purposes, to be removed
   release:
     types: [published]
 
