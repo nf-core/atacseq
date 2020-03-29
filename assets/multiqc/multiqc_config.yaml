@@ -115,7 +115,7 @@ report_section_order:
         order: -2100
 
 custom_plot_config:
-    picard-insertsize:
+    picard_insert_size:
         cpswitch_c_active: False
         smooth_points: 1000
 
