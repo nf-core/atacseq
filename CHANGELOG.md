@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Renamed all channels to start with `ch_` prefix
 * Increase default resource requirements in `base.config`
 * Increase process-specific requirements based on user-reported failures
+* Fixed MultiQC config bug for Picard Insert Size
 
 ### `Dependencies`
 
