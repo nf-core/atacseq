@@ -5,7 +5,7 @@
     "description": "ATACSeq peak-calling and differential analysis pipeline.",
     "type": "object",
     "properties": {
-        "Generic options": {
+        "Input/output options": {
             "type": "object",
             "properties": {
                 "input": {
@@ -29,16 +29,24 @@
                     "fa_icon": "fas fa-align-justify",
                     "help_text": ""
                 },
-                "fingerprint_bins": {
-                    "type": "integer",
-                    "default": 500000,
-                    "description": "Number of genomic bins to use when calculating deepTools fingerprint plot.",
-                    "fa_icon": "fas fa-dumpster"
-                },
                 "seq_center": {
                     "type": "string",
                     "description": "Sequencing center information to be added to read group of BAM files.",
                     "fa_icon": "fas fa-synagogue"
+                },
+                "outdir": {
+                    "type": "string",
+                    "description": "The output directory where the results will be saved.",
+                    "default": "./results",
+                    "fa_icon": "fas fa-folder-open",
+                    "help_text": ""
+                },
+                "email": {
+                    "type": "string",
+                    "description": "Email address for completion summary.",
+                    "fa_icon": "fas fa-envelope",
+                    "help_text": "An email address to send a summary email to when the pipeline is completed.",
+                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
                 }
             },
             "required": [
@@ -216,6 +224,22 @@
                     "description": "Save the intermediate BAM files from the alignment step.",
                     "help_text": "By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set this parameter to also save other intermediate BAM files.",
                     "fa_icon": "fas fa-save"
+                },
+                "bamtools_filter_pe_config": {
+                    "type": "string",
+                    "default": "$baseDir/assets/bamtools_filter_pe.json",
+                    "hidden": true,
+                    "description": "BAMTools JSON file with custom filters for paired-end data.",
+                    "fa_icon": "fas fa-cog",
+                    "help_text": ""
+                },
+                "bamtools_filter_se_config": {
+                    "type": "string",
+                    "default": "$baseDir/assets/bamtools_filter_se.json",
+                    "hidden": true,
+                    "description": "BAMTools JSON file with custom filters for single-end data.",
+                    "fa_icon": "fas fa-cog",
+                    "help_text": ""
                 }
             },
             "fa_icon": "fas fa-map-signs"
@@ -334,35 +358,6 @@
             },
             "fa_icon": "fas fa-forward"
         },
-        "Pipeline config options": {
-            "type": "object",
-            "properties": {
-                "multiqc_config": {
-                    "type": "string",
-                    "description": "Custom config file to supply to MultiQC.",
-                    "fa_icon": "fas fa-cog",
-                    "hidden": true,
-                    "help_text": ""
-                },
-                "bamtools_filter_pe_config": {
-                    "type": "string",
-                    "default": "$baseDir/assets/bamtools_filter_pe.json",
-                    "hidden": true,
-                    "description": "BAMTools JSON file with custom filters for paired-end data.",
-                    "fa_icon": "fas fa-cog",
-                    "help_text": ""
-                },
-                "bamtools_filter_se_config": {
-                    "type": "string",
-                    "default": "$baseDir/assets/bamtools_filter_se.json",
-                    "hidden": true,
-                    "description": "BAMTools JSON file with custom filters for single-end data.",
-                    "fa_icon": "fas fa-cog",
-                    "help_text": ""
-                }
-            },
-            "fa_icon": "fas fa-cog"
-        },
         "Institutional config options": {
             "type": "object",
             "properties": {
@@ -443,7 +438,7 @@
             },
             "fa_icon": "fab fa-acquisitions-incorporated"
         },
-        "Pipeline template options": {
+        "Generic options": {
             "type": "object",
             "properties": {
                 "help": {
@@ -453,12 +448,12 @@
                     "fa_icon": "fas fa-question-circle",
                     "default": false
                 },
-                "outdir": {
-                    "type": "string",
-                    "description": "The output directory where the results will be saved.",
-                    "default": "./results",
-                    "fa_icon": "fas fa-folder-open",
-                    "help_text": ""
+                "fingerprint_bins": {
+                    "type": "integer",
+                    "default": 500000,
+                    "hidden": true,
+                    "description": "Number of genomic bins to use when calculating deepTools fingerprint plot.",
+                    "fa_icon": "fas fa-dumpster"
                 },
                 "publish_dir_mode": {
                     "type": "string",
@@ -480,20 +475,15 @@
                     "type": "string",
                     "description": "Workflow name.",
                     "fa_icon": "fas fa-fingerprint",
+                    "hidden": true,
                     "help_text": "A custom name for the pipeline run. Unlike the core nextflow `-name` option with one hyphen this parameter can be reused multiple times, for example if using `-resume`. Passed through to steps such as MultiQC and used for things like report filenames and titles."
-                },
-                "email": {
-                    "type": "string",
-                    "description": "Email address for completion summary.",
-                    "fa_icon": "fas fa-envelope",
-                    "help_text": "An email address to send a summary email to when the pipeline is completed.",
-                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
                 },
                 "email_on_fail": {
                     "type": "string",
                     "description": "Email address for completion summary, only when pipeline fails.",
                     "fa_icon": "fas fa-exclamation-triangle",
                     "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$",
+                    "hidden": true,
                     "help_text": "An email address to send a summary email to when the pipeline is completed - ONLY sent if the pipeline does not exit successfully."
                 },
                 "plaintext_email": {
@@ -520,6 +510,13 @@
                     "default": false,
                     "help_text": ""
                 },
+                "multiqc_config": {
+                    "type": "string",
+                    "description": "Custom config file to supply to MultiQC.",
+                    "fa_icon": "fas fa-cog",
+                    "hidden": true,
+                    "help_text": ""
+                },
                 "tracedir": {
                     "type": "string",
                     "description": "Directory to keep pipeline Nextflow logs and reports.",
@@ -538,5 +535,6 @@
             },
             "fa_icon": "fas fa-file-import"
         }
-    }
+    },
+    "required": ["Input/output options"]
 }
