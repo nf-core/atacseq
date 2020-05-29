@@ -888,6 +888,7 @@ if (params.single_end) {
 process MERGED_LIB_PRESEQ {
     tag "$name"
     label 'process_low'
+    label 'error_ignore'
     publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: params.publish_dir_mode
 
     when:
