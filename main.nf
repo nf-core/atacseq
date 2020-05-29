@@ -318,7 +318,7 @@ if (!params.macs_gsize) {
 /*
  * PREPROCESSING: Reformat design file and check validitiy
  */
-process CheckDesign {
+process CHECK_DESIGN {
     tag "$design"
     publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode
 
@@ -382,7 +382,7 @@ multipleGroups = design_multiple_samples
  * PREPROCESSING: Build BWA index
  */
 if (!params.bwa_index) {
-    process BWAIndex {
+    process BWA_INDEX {
         tag "$fasta"
         label 'process_high'
         publishDir path: { params.save_reference ? "${params.outdir}/genome" : params.outdir },
@@ -406,7 +406,7 @@ if (!params.bwa_index) {
  * PREPROCESSING: Generate gene BED file
  */
 if (!params.gene_bed) {
-    process MakeGeneBED {
+    process MAKE_GENE_BED {
         tag "$gtf"
         label 'process_low'
         publishDir "${params.outdir}/genome", mode: params.publish_dir_mode
@@ -428,7 +428,7 @@ if (!params.gene_bed) {
  * PREPROCESSING: Generate TSS BED file
  */
 if (!params.tss_bed) {
-    process MakeTSSBED {
+    process MAKE_TSS_BED {
         tag "$bed"
         publishDir "${params.outdir}/genome", mode: params.publish_dir_mode
 
@@ -448,7 +448,7 @@ if (!params.tss_bed) {
 /*
  * PREPROCESSING: Prepare genome intervals for filtering
  */
-process MakeGenomeFilter {
+process MAKE_GENOME_FILTER {
     tag "$fasta"
     publishDir "${params.outdir}/genome", mode: params.publish_dir_mode
 
@@ -487,7 +487,7 @@ process MakeGenomeFilter {
 /*
  * STEP 1: FastQC
  */
-process FastQC {
+process FASTQC {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/fastqc", mode: params.publish_dir_mode,
@@ -537,7 +537,7 @@ if (params.skip_trimming) {
     ch_trimgalore_results_mqc = Channel.empty()
     ch_trimgalore_fastqc_reports_mqc = Channel.empty()
 } else {
-    process TrimGalore {
+    process TRIMGALORE {
         tag "$name"
         label 'process_high'
         publishDir "${params.outdir}/trim_galore", mode: params.publish_dir_mode,
@@ -602,7 +602,7 @@ if (params.skip_trimming) {
 /*
  * STEP 3.1: Map read(s) with bwa mem
  */
-process BWAMem {
+process BWA_MEM {
     tag "$name"
     label 'process_high'
 
@@ -633,7 +633,7 @@ process BWAMem {
 /*
  * STEP 3.2: Convert BAM to coordinate sorted BAM
  */
-process SortBAM {
+process SORT_BAM {
     tag "$name"
     label 'process_medium'
     if (params.save_align_intermeds) {
@@ -681,7 +681,7 @@ ch_sort_bam_merge
     .map { it ->  [ it[0], it[1].flatten() ] }
     .set { ch_sort_bam_merge }
 
-process MergedLibBAM {
+process MERGED_LIB_BAM {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode,
@@ -758,7 +758,7 @@ process MergedLibBAM {
 /*
  * STEP 4.2: Filter BAM file at merged library-level
  */
-process MergedLibBAMFilter {
+process MERGED_LIB_BAM_FILTER {
     tag "$name"
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode,
@@ -831,7 +831,7 @@ if (params.single_end) {
     ch_mlib_filter_bam_stats_mqc
         .set { ch_mlib_rm_orphan_stats_mqc }
 } else {
-    process MergedLibBAMRemoveOrphan {
+    process MERGED_LIB_BAM_REMOVE_ORPHAN {
         tag "$name"
         label 'process_medium'
         publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode,
@@ -885,7 +885,7 @@ if (params.single_end) {
 /*
  * STEP 5.1: Preseq analysis after merging libraries and before filtering
  */
-process MergedLibPreseq {
+process MERGED_LIB_PRESEQ {
     tag "$name"
     label 'process_low'
     publishDir "${params.outdir}/bwa/mergedLibrary/preseq", mode: params.publish_dir_mode
@@ -918,7 +918,7 @@ process MergedLibPreseq {
 /*
  * STEP 5.2: Picard CollectMultipleMetrics after merging libraries and filtering
  */
-process MergedLibMetrics {
+process MERGED_LIB_PICARD_METRICS {
     tag "$name"
     label 'process_medium'
     publishDir path: "${params.outdir}/bwa/mergedLibrary", mode: params.publish_dir_mode,
@@ -960,7 +960,7 @@ process MergedLibMetrics {
 /*
  * STEP 5.3: Read depth normalised bigWig
  */
-process MergedLibBigWig {
+process MERGED_LIB_BIGWIG {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/bigwig", mode: params.publish_dir_mode,
@@ -997,7 +997,7 @@ process MergedLibBigWig {
 /*
  * STEP 5.4: Generate gene body coverage plot with deepTools plotProfile
  */
-process MergedLibPlotProfile {
+process MERGED_LIB_PLOTPROFILE {
     tag "$name"
     label 'process_high'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotProfile", mode: params.publish_dir_mode
@@ -1037,7 +1037,7 @@ process MergedLibPlotProfile {
 /*
  * STEP 5.5: deepTools plotFingerprint
  */
-process MergedLibPlotFingerprint {
+process MERGED_LIB_PLOTFINGERPRINT {
     tag "$name"
     label 'process_high'
     publishDir "${params.outdir}/bwa/mergedLibrary/deepTools/plotFingerprint", mode: params.publish_dir_mode
@@ -1080,7 +1080,7 @@ process MergedLibPlotFingerprint {
 /*
  * STEP 6.1: Call peaks with MACS2 and calculate FRiP score
  */
-process MergedLibMACSCallPeak {
+process MERGED_LIB_MACS2 {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: params.publish_dir_mode,
@@ -1135,7 +1135,7 @@ process MergedLibMACSCallPeak {
 /*
  * STEP 6.2: Annotate peaks with HOMER
  */
-process MergedLibAnnotatePeaks {
+process MERGED_LIB_MACS2_ANNOTATE {
     tag "$name"
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: params.publish_dir_mode
@@ -1167,7 +1167,7 @@ process MergedLibAnnotatePeaks {
 /*
  * STEP 6.3: Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
-process MergedLibPeakQC {
+process MERGED_LIB_MACS2_QC {
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/qc", mode: params.publish_dir_mode
 
@@ -1205,7 +1205,7 @@ process MergedLibPeakQC {
 /*
  * STEP 6.4: Consensus peaks across samples, create boolean filtering file, SAF file for featureCounts and UpSetR plot for intersection
  */
-process MergedLibConsensusPeakSet {
+process MERGED_LIB_CONSENSUS {
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: params.publish_dir_mode,
         saveAs: { filename ->
@@ -1258,7 +1258,7 @@ process MergedLibConsensusPeakSet {
 /*
  * STEP 6.5: Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
-process MergedLibConsensusPeakSetAnnotate {
+process MERGED_LIB_CONSENSUS_ANNOTATE {
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: params.publish_dir_mode
 
@@ -1293,7 +1293,7 @@ process MergedLibConsensusPeakSetAnnotate {
 /*
  * STEP 6.6: Count reads in consensus peaks with featureCounts
  */
-process MergedLibConsensusPeakSetCounts {
+process MERGED_LIB_CONSENSUS_COUNTS {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: params.publish_dir_mode
 
@@ -1328,7 +1328,7 @@ process MergedLibConsensusPeakSetCounts {
 /*
  * STEP 6.7: Differential analysis with DESeq2
  */
-process MergedLibConsensusPeakSetDESeq {
+process MERGED_LIB_CONSENSUS_DESEQ2 {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/deseq2", mode: params.publish_dir_mode,
         saveAs: { filename ->
@@ -1376,7 +1376,7 @@ process MergedLibConsensusPeakSetDESeq {
 /*
  * STEP 6.8: Run ataqv on BAM file and corresponding peaks
  */
-process MergedLibAtaqv {
+process MERGED_LIB_ATAQV {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${PEAK_TYPE}", mode: params.publish_dir_mode
@@ -1414,7 +1414,7 @@ process MergedLibAtaqv {
 /*
  * STEP 6.9: Run ataqv mkarv on all JSON files to render web app
  */
-process MergedLibAtaqvMkarv {
+process MERGED_LIB_ATAQV_MKARV {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedLibrary/ataqv/${PEAK_TYPE}", mode: params.publish_dir_mode
 
@@ -1454,7 +1454,7 @@ ch_mlib_rm_orphan_bam_mrep
     .map { it ->  [ it[0], it[1].flatten() ] }
     .set { ch_mlib_rm_orphan_bam_mrep }
 
-process MergedRepBAM {
+process MERGED_REP_BAM {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate", mode: params.publish_dir_mode,
@@ -1537,7 +1537,7 @@ process MergedRepBAM {
 /*
  * STEP 8.1: Read depth normalised bigWig
  */
-process MergedRepBigWig {
+process MERGED_REP_BIGWIG {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate/bigwig", mode: params.publish_dir_mode,
@@ -1577,7 +1577,7 @@ process MergedRepBigWig {
 /*
  * STEP 8.2: Call peaks with MACS2 and calculate FRiP score
  */
-process MergedRepMACSCallPeak {
+process MERGED_REP_MACS2 {
     tag "$name"
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}", mode: params.publish_dir_mode,
@@ -1631,7 +1631,7 @@ process MergedRepMACSCallPeak {
 /*
  * STEP 8.3: Annotate peaks with HOMER
  */
-process MergedRepAnnotatePeaks {
+process MERGED_REP_MACS2_ANNOTATE {
     tag "$name"
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}", mode: params.publish_dir_mode
@@ -1663,7 +1663,7 @@ process MergedRepAnnotatePeaks {
 /*
  * STEP 8.4: Aggregated QC plots for peaks, FRiP and peak-to-gene annotation
  */
-process MergedRepPeakQC {
+process MERGED_REP_MACS2_QC {
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/qc", mode: params.publish_dir_mode
 
@@ -1701,7 +1701,7 @@ process MergedRepPeakQC {
 /*
  * STEP 8.5: Consensus peaks across samples, create boolean filtering file, SAF file for featureCounts and UpSetR plot for intersection
  */
-process MergedRepConsensusPeakSet {
+process MERGED_REP_CONSENSUS {
     label 'process_long'
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: params.publish_dir_mode,
         saveAs: { filename ->
@@ -1753,7 +1753,7 @@ process MergedRepConsensusPeakSet {
 /*
  * STEP 8.6: Annotate consensus peaks with HOMER, and add annotation to boolean output file
  */
-process MergedRepConsensusPeakSetAnnotate {
+process MERGED_REP_CONSENSUS_ANNOTATE {
     label "process_medium"
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: params.publish_dir_mode
 
@@ -1788,7 +1788,7 @@ process MergedRepConsensusPeakSetAnnotate {
 /*
  * STEP 8.7: Count reads in consensus peaks with featureCounts
  */
-process MergedRepConsensusPeakSetCounts {
+process MERGED_REP_CONSENSUS_COUNTS {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: params.publish_dir_mode
 
@@ -1823,7 +1823,7 @@ process MergedRepConsensusPeakSetCounts {
 /*
  * STEP 8.8: Differential analysis with DESeq2
  */
-process MergedRepConsensusPeakSetDESeq {
+process MERGED_REP_CONSENSUS_DESEQ2 {
     label 'process_medium'
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus/deseq2", mode: params.publish_dir_mode,
         saveAs: { filename ->
@@ -1973,7 +1973,7 @@ Channel.from(summary.collect{ [it.key, it.value] })
 /*
  * STEP 10: MultiQC
  */
-process MultiQC {
+process MULTIQC {
     publishDir "${params.outdir}/multiqc/${PEAK_TYPE}", mode: params.publish_dir_mode
 
     when:
@@ -2016,15 +2016,13 @@ process MultiQC {
     output:
     file "*multiqc_report.html" into ch_multiqc_report
     file "*_data"
-    file "multiqc_plots"
 
     script:
     rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
     rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
     custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
     """
-    multiqc . -f $rtitle $rfilename $custom_config_file \\
-        -m custom_content -m fastqc -m cutadapt -m samtools -m picard -m preseq -m featureCounts -m deeptools
+    multiqc . -f $rtitle $rfilename $custom_config_file
     """
 }
 
