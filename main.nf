@@ -171,11 +171,11 @@ ch_mrep_deseq2_clustering_header = file("$baseDir/assets/multiqc/mrep_deseq2_clu
 /* --          VALIDATE INPUTS                 -- */
 ////////////////////////////////////////////////////
 
-if (params.input)       { ch_input = file(params.input, checkIfExists: true) } else { exit 1, "Samples design file not specified!" }
-if (params.gtf)         { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, "GTF annotation file not specified!" }
-if (params.gene_bed)    { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
-if (params.tss_bed)     { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
-if (params.blacklist)   { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
+if (params.input)     { ch_input = file(params.input, checkIfExists: true) } else { exit 1, "Samples design file not specified!" }
+if (params.gtf)       { ch_gtf = file(params.gtf, checkIfExists: true) } else { exit 1, "GTF annotation file not specified!" }
+if (params.gene_bed)  { ch_gene_bed = file(params.gene_bed, checkIfExists: true) }
+if (params.tss_bed)   { ch_tss_bed = file(params.tss_bed, checkIfExists: true) }
+if (params.blacklist) { ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true) } else { ch_blacklist = Channel.empty() }
 
 if (params.fasta) {
     lastPath = params.fasta.lastIndexOf(File.separator)
@@ -269,11 +269,11 @@ if (params.skip_picard_metrics)   summary['Skip Picard Metrics'] = 'Yes'
 if (params.skip_preseq)           summary['Skip Preseq'] = 'Yes'
 if (params.skip_plot_profile)     summary['Skip plotProfile'] = 'Yes'
 if (params.skip_plot_fingerprint) summary['Skip plotFingerprint'] = 'Yes'
-if (params.skip_ataqv) summary['Skip Ataqv'] = 'Yes'
+if (params.skip_ataqv)            summary['Skip Ataqv'] = 'Yes'
 if (params.skip_igv)              summary['Skip IGV'] = 'Yes'
 if (params.skip_multiqc)          summary['Skip MultiQC'] = 'Yes'
 summary['Max Resources']          = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
-if (workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
+if (workflow.containerEngine)     summary['Container'] = "$workflow.containerEngine - $workflow.container"
 summary['Output Dir']             = params.outdir
 summary['Launch Dir']             = workflow.launchDir
 summary['Working Dir']            = workflow.workDir
@@ -901,7 +901,7 @@ process MERGED_LIB_PRESEQ {
 
     output:
     file "*.ccurve.txt" into ch_mlib_preseq_mqc
-    file "*.log" into ch_mlib_preseq_log
+    file "*.log"
 
     script:
     prefix = "${name}.mLb.mkD"
@@ -940,7 +940,7 @@ process MERGED_LIB_PICARD_METRICS {
 
     output:
     file "*_metrics" into ch_mlib_collectmetrics_mqc
-    file "*.pdf" into ch_mlib_collectmetrics_pdf
+    file "*.pdf"
 
     script:
     prefix = "${name}.mLb.clN"
@@ -979,8 +979,8 @@ process MERGED_LIB_BIGWIG {
 
     output:
     set val(name), file("*.bigWig") into ch_mlib_bigwig_plotprofile
-    file "*scale_factor.txt" into ch_mlib_bigwig_scale
     file "*igv.txt" into ch_mlib_bigwig_igv
+    file "*scale_factor.txt"
 
     script:
     prefix = "${name}.mLb.clN"
@@ -1013,8 +1013,8 @@ process MERGED_LIB_PLOTPROFILE {
     file bed from ch_gene_bed
 
     output:
-    file '*.{gz,pdf}' into ch_mlib_plotprofile_results
     file '*.plotProfile.tab' into ch_mlib_plotprofile_mqc
+    file '*.{gz,pdf}'
 
     script:
     prefix = "${name}.mLb.clN"
@@ -1052,8 +1052,8 @@ process MERGED_LIB_PLOTFINGERPRINT {
     set val(name), file(bam) from ch_mlib_rm_orphan_bam_plotfingerprint
 
     output:
-    file '*.{txt,pdf}' into ch_mlib_plotfingerprint_results
     file '*.raw.txt' into ch_mlib_plotfingerprint_mqc
+    file '*.{txt,pdf}'
 
     script:
     prefix = "${name}.mLb.clN"
@@ -1102,13 +1102,13 @@ process MERGED_LIB_MACS2 {
     file mlib_frip_score_header from ch_mlib_frip_score_header
 
     output:
-    set val(name), file("*.{bed,xls,gappedPeak,bdg}") into ch_mlib_macs_output
     set val(name), file("*$PEAK_TYPE") into ch_mlib_macs_homer,
                                             ch_mlib_macs_qc,
                                             ch_mlib_macs_consensus,
                                             ch_mlib_macs_ataqv
     file "*igv.txt" into ch_mlib_macs_igv
     file "*_mqc.tsv" into ch_mlib_macs_mqc
+    path "*.{bed,xls,gappedPeak,bdg}"
 
     script:
     prefix = "${name}.mLb.clN"
@@ -1183,8 +1183,8 @@ process MERGED_LIB_MACS2_QC {
     file mlib_peak_annotation_header from ch_mlib_peak_annotation_header
 
     output:
-    file "*.{txt,pdf}" into ch_mlib_peak_qc
     file "*.tsv" into ch_mlib_peak_qc_mqc
+    file "*.{txt,pdf}"
 
     script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
     suffix = 'mLb.clN'
@@ -1226,8 +1226,8 @@ process MERGED_LIB_CONSENSUS {
     file "*.bed" into ch_mlib_macs_consensus_bed
     file "*.saf" into ch_mlib_macs_consensus_saf
     file "*.boolean.txt" into ch_mlib_macs_consensus_bool
-    file "*.intersect.{txt,plot.pdf}" into ch_mlib_macs_consensus_intersect
     file "*igv.txt" into ch_mlib_macs_consensus_igv
+    file "*.intersect.{txt,plot.pdf}"
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     suffix = 'mLb.clN'
@@ -1275,7 +1275,7 @@ process MERGED_LIB_CONSENSUS_ANNOTATE {
     file gtf from ch_gtf
 
     output:
-    file "*.annotatePeaks.txt" into ch_mlib_macs_consensus_annotate
+    file "*.annotatePeaks.txt"
 
     script:
     prefix = "consensus_peaks.mLb.clN"
@@ -1348,12 +1348,12 @@ process MERGED_LIB_CONSENSUS_DESEQ2 {
     file mlib_deseq2_clustering_header from ch_mlib_deseq2_clustering_header
 
     output:
-    file "*.{RData,results.txt,pdf,log}" into ch_mlib_macs_consensus_deseq_results
-    file "sizeFactors" into ch_mlib_macs_consensus_deseq_factors
-    file "*vs*/*.{pdf,txt}" into ch_mlib_macs_consensus_deseq_comp_results
-    file "*vs*/*.bed" into ch_mlib_macs_consensus_deseq_comp_bed
-    file "*igv.txt" into ch_mlib_macs_consensus_deseq_comp_igv
     file "*.tsv" into ch_mlib_macs_consensus_deseq_mqc
+    file "*igv.txt" into ch_mlib_macs_consensus_deseq_comp_igv
+    file "*.{RData,results.txt,pdf,log}"
+    file "sizeFactors"
+    file "*vs*/*.{pdf,txt}"
+    file "*vs*/*.bed"
 
     script:
     prefix = "consensus_peaks.mLb.clN"
@@ -1428,7 +1428,7 @@ process MERGED_LIB_ATAQV_MKARV {
     file json from ch_mlib_ataqv.collect()
 
     output:
-    file "html" into ch_mlib_ataqv_mkarv
+    file "html"
 
     script:
     """
@@ -1559,8 +1559,8 @@ process MERGED_REP_BIGWIG {
 
     output:
     set val(name), file("*.bigWig") into ch_mrep_bigwig
-    file "*scale_factor.txt" into ch_mrep_bigwig_scale
     file "*igv.txt" into ch_mrep_bigwig_igv
+    file "*scale_factor.txt"
 
     script:
     prefix = "${name}.mRp.clN"
@@ -1599,12 +1599,12 @@ process MERGED_REP_MACS2 {
     file mrep_frip_score_header from ch_mrep_frip_score_header
 
     output:
-    set val(name), file("*.{bed,xls,gappedPeak,bdg}") into ch_mrep_macs_output
     set val(name), file("*$PEAK_TYPE") into ch_mrep_macs_homer,
                                             ch_mrep_macs_qc,
                                             ch_mrep_macs_consensus
     file "*igv.txt" into ch_mrep_macs_igv
     file "*_mqc.tsv" into ch_mrep_macs_mqc
+    path "*.{bed,xls,gappedPeak,bdg}"
 
     script:
     prefix = "${name}.mRp.clN"
@@ -1681,7 +1681,7 @@ process MERGED_REP_MACS2_QC {
     output:
     file "*.tsv" into ch_mrep_peak_qc_mqc
     file "*.{txt,pdf}"
-    
+
     script:  // This script is bundled with the pipeline, in nf-core/atacseq/bin/
     suffix = 'mRp.clN'
     """
@@ -1722,8 +1722,8 @@ process MERGED_REP_CONSENSUS {
     file "*.bed" into ch_mrep_macs_consensus_bed
     file "*.saf" into ch_mrep_macs_consensus_saf
     file "*.boolean.txt" into ch_mrep_macs_consensus_bool
-    file "*.intersect.{txt,plot.pdf}" into ch_mrep_macs_consensus_intersect
     file "*igv.txt" into ch_mrep_macs_consensus_igv
+    file "*.intersect.{txt,plot.pdf}"
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     suffix = 'mRp.clN'
@@ -1770,7 +1770,7 @@ process MERGED_REP_CONSENSUS_ANNOTATE {
     file gtf from ch_gtf
 
     output:
-    file "*.annotatePeaks.txt" into ch_mrep_macs_consensus_annotate
+    file "*.annotatePeaks.txt"
 
     script:
     prefix = "consensus_peaks.mRp.clN"
@@ -1843,12 +1843,12 @@ process MERGED_REP_CONSENSUS_DESEQ2 {
     file mrep_deseq2_clustering_header from ch_mrep_deseq2_clustering_header
 
     output:
-    file "*.{RData,results.txt,pdf,log}" into ch_mrep_macs_consensus_deseq_results
-    file "sizeFactors" into ch_mrep_macs_consensus_deseq_factors
-    file "*vs*/*.{pdf,txt}" into ch_mrep_macs_consensus_deseq_comp_results
-    file "*vs*/*.bed" into ch_mrep_macs_consensus_deseq_comp_bed
-    file "*igv.txt" into ch_mrep_macs_consensus_deseq_comp_igv
     file "*.tsv" into ch_mrep_macs_consensus_deseq_mqc
+    file "*igv.txt" into ch_mrep_macs_consensus_deseq_comp_igv
+    file "*.{RData,results.txt,pdf,log}"
+    file "sizeFactors"
+    file "*vs*/*.{pdf,txt}"
+    file "*vs*/*.bed"
 
     script:
     prefix = "consensus_peaks.mRp.clN"
