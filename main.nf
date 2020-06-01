@@ -501,7 +501,7 @@ process FASTQC {
     !params.skip_fastqc
 
     input:
-    set val(name), file(reads) from ch_raw_reads_fastqc
+    tuple val(name), path(reads) from ch_raw_reads_fastqc
 
     output:
     file "*.{zip,html}" into ch_fastqc_reports_mqc
@@ -551,10 +551,10 @@ if (params.skip_trimming) {
                     }
 
         input:
-        set val(name), file(reads) from ch_raw_reads_trimgalore
+        tuple val(name), path(reads) from ch_raw_reads_trimgalore
 
         output:
-        set val(name), file("*.fq.gz") into ch_trimmed_reads
+        tuple val(name), path("*.fq.gz") into ch_trimmed_reads
         file "*.txt" into ch_trimgalore_results_mqc
         file "*.{zip,html}" into ch_trimgalore_fastqc_reports_mqc
 
@@ -609,11 +609,11 @@ process BWA_MEM {
     label 'process_high'
 
     input:
-    set val(name), file(reads) from ch_trimmed_reads
+    tuple val(name), path(reads) from ch_trimmed_reads
     file index from ch_bwa_index.collect()
 
     output:
-    set val(name), file("*.bam") into ch_bwa_bam
+    tuple val(name), path("*.bam") into ch_bwa_bam
 
     script:
     prefix = "${name}.Lb"
@@ -649,10 +649,10 @@ process SORT_BAM {
     }
 
     input:
-    set val(name), file(bam) from ch_bwa_bam
+    tuple val(name), path(bam) from ch_bwa_bam
 
     output:
-    set val(name), file("*.sorted.{bam,bam.bai}") into ch_sort_bam_merge
+    tuple val(name), path("*.sorted.{bam,bam.bai}") into ch_sort_bam_merge
     file "*.{flagstat,idxstats,stats}" into ch_sort_bam_flagstat_mqc
 
     script:
@@ -696,10 +696,10 @@ process MERGED_LIB_BAM {
                 }
 
     input:
-    set val(name), file(bams) from ch_sort_bam_merge
+    tuple val(name), path(bams) from ch_sort_bam_merge
 
     output:
-    set val(name), file("*${prefix}.sorted.{bam,bam.bai}") into ch_mlib_bam_filter,
+    tuple val(name), path("*${prefix}.sorted.{bam,bam.bai}") into ch_mlib_bam_filter,
                                                                 ch_mlib_bam_preseq,
                                                                 ch_mlib_bam_ataqv
     file "*.{flagstat,idxstats,stats}" into ch_mlib_bam_stats_mqc
@@ -776,13 +776,13 @@ process MERGED_LIB_BAM_FILTER {
                 }
 
     input:
-    set val(name), file(bam) from ch_mlib_bam_filter
+    tuple val(name), path(bam) from ch_mlib_bam_filter
     file bed from ch_genome_filter_regions.collect()
     file bamtools_filter_config from ch_bamtools_filter_config
 
     output:
-    set val(name), file("*.{bam,bam.bai}") into ch_mlib_filter_bam
-    set val(name), file("*.flagstat") into ch_mlib_filter_bam_flagstat
+    tuple val(name), path("*.{bam,bam.bai}") into ch_mlib_filter_bam
+    tuple val(name), path("*.flagstat") into ch_mlib_filter_bam_flagstat
     file "*.{idxstats,stats}" into ch_mlib_filter_bam_stats_mqc
 
     script:
@@ -847,17 +847,17 @@ if (params.single_end) {
                     }
 
         input:
-        set val(name), file(bam) from ch_mlib_filter_bam
+        tuple val(name), path(bam) from ch_mlib_filter_bam
 
         output:
-        set val(name), file("*.sorted.{bam,bam.bai}") into ch_mlib_rm_orphan_bam_metrics,
+        tuple val(name), path("*.sorted.{bam,bam.bai}") into ch_mlib_rm_orphan_bam_metrics,
                                                            ch_mlib_rm_orphan_bam_bigwig,
                                                            ch_mlib_rm_orphan_bam_macs,
                                                            ch_mlib_rm_orphan_bam_plotfingerprint,
                                                            ch_mlib_rm_orphan_bam_mrep
-        set val(name), file("${prefix}.bam") into ch_mlib_name_bam_mlib_counts,
+        tuple val(name), path("${prefix}.bam") into ch_mlib_name_bam_mlib_counts,
                                                   ch_mlib_name_bam_mrep_counts
-        set val(name), file("*.flagstat") into ch_mlib_rm_orphan_flagstat_bigwig,
+        tuple val(name), path("*.flagstat") into ch_mlib_rm_orphan_flagstat_bigwig,
                                                ch_mlib_rm_orphan_flagstat_macs,
                                                ch_mlib_rm_orphan_flagstat_mqc
         file "*.{idxstats,stats}" into ch_mlib_rm_orphan_stats_mqc
@@ -897,7 +897,7 @@ process MERGED_LIB_PRESEQ {
     !params.skip_preseq
 
     input:
-    set val(name), file(bam) from ch_mlib_bam_preseq
+    tuple val(name), path(bam) from ch_mlib_bam_preseq
 
     output:
     file "*.ccurve.txt" into ch_mlib_preseq_mqc
@@ -935,7 +935,7 @@ process MERGED_LIB_PICARD_METRICS {
     !params.skip_picard_metrics
 
     input:
-    set val(name), file(bam) from ch_mlib_rm_orphan_bam_metrics
+    tuple val(name), path(bam) from ch_mlib_rm_orphan_bam_metrics
     file fasta from ch_fasta
 
     output:
@@ -974,11 +974,11 @@ process MERGED_LIB_BIGWIG {
                 }
 
     input:
-    set val(name), file(bam), file(flagstat) from ch_mlib_rm_orphan_bam_bigwig.join(ch_mlib_rm_orphan_flagstat_bigwig, by: [0])
+    tuple val(name), path(bam), path(flagstat) from ch_mlib_rm_orphan_bam_bigwig.join(ch_mlib_rm_orphan_flagstat_bigwig, by: [0])
     file sizes from ch_genome_sizes_mlib_bigwig.collect()
 
     output:
-    set val(name), file("*.bigWig") into ch_mlib_bigwig_plotprofile
+    tuple val(name), path("*.bigWig") into ch_mlib_bigwig_plotprofile
     file "*igv.txt" into ch_mlib_bigwig_igv
     file "*scale_factor.txt"
 
@@ -1009,7 +1009,7 @@ process MERGED_LIB_PLOTPROFILE {
     !params.skip_plot_profile
 
     input:
-    set val(name), file(bigwig) from ch_mlib_bigwig_plotprofile
+    tuple val(name), path(bigwig) from ch_mlib_bigwig_plotprofile
     file bed from ch_gene_bed
 
     output:
@@ -1049,7 +1049,7 @@ process MERGED_LIB_PLOTFINGERPRINT {
     !params.skip_plot_fingerprint
 
     input:
-    set val(name), file(bam) from ch_mlib_rm_orphan_bam_plotfingerprint
+    tuple val(name), path(bam) from ch_mlib_rm_orphan_bam_plotfingerprint
 
     output:
     file '*.raw.txt' into ch_mlib_plotfingerprint_mqc
@@ -1097,12 +1097,12 @@ process MERGED_LIB_MACS2 {
     params.macs_gsize
 
     input:
-    set val(name), file(bam), file(flagstat) from ch_mlib_rm_orphan_bam_macs.join(ch_mlib_rm_orphan_flagstat_macs, by: [0])
+    tuple val(name), path(bam), path(flagstat) from ch_mlib_rm_orphan_bam_macs.join(ch_mlib_rm_orphan_flagstat_macs, by: [0])
     file mlib_peak_count_header from ch_mlib_peak_count_header
     file mlib_frip_score_header from ch_mlib_frip_score_header
 
     output:
-    set val(name), file("*$PEAK_TYPE") into ch_mlib_macs_homer,
+    tuple val(name), path("*$PEAK_TYPE") into ch_mlib_macs_homer,
                                             ch_mlib_macs_qc,
                                             ch_mlib_macs_consensus,
                                             ch_mlib_macs_ataqv
@@ -1147,7 +1147,7 @@ process MERGED_LIB_MACS2_ANNOTATE {
     params.macs_gsize
 
     input:
-    set val(name), file(peak) from ch_mlib_macs_homer
+    tuple val(name), path(peak) from ch_mlib_macs_homer
     file fasta from ch_fasta
     file gtf from ch_gtf
 
@@ -1388,7 +1388,7 @@ process MERGED_LIB_ATAQV {
     !params.skip_ataqv
 
     input:
-    set val(name), file(bam), file(peak) from ch_mlib_bam_ataqv.join(ch_mlib_macs_ataqv, by: [0])
+    tuple val(name), path(bam), path(peak) from ch_mlib_bam_ataqv.join(ch_mlib_macs_ataqv, by: [0])
     file autosomes from ch_genome_autosomes.collect()
     file tss_bed from ch_tss_bed
 
@@ -1470,12 +1470,12 @@ process MERGED_REP_BAM {
                 }
 
     input:
-    set val(name), file(bams) from ch_mlib_rm_orphan_bam_mrep
+    tuple val(name), path(bams) from ch_mlib_rm_orphan_bam_mrep
 
     output:
-    set val(name), file("*${prefix}.sorted.{bam,bam.bai}") into ch_mrep_bam_bigwig,
+    tuple val(name), path("*${prefix}.sorted.{bam,bam.bai}") into ch_mrep_bam_bigwig,
                                                                 ch_mrep_bam_macs
-    set val(name), file("*.flagstat") into ch_mrep_bam_flagstat_bigwig,
+    tuple val(name), path("*.flagstat") into ch_mrep_bam_flagstat_bigwig,
                                            ch_mrep_bam_flagstat_macs,
                                            ch_mrep_bam_flagstat_mqc
     file "*.{idxstats,stats}" into ch_mrep_bam_stats_mqc
@@ -1554,11 +1554,11 @@ process MERGED_REP_BIGWIG {
     !params.skip_merge_replicates && replicatesExist
 
     input:
-    set val(name), file(bam), file(flagstat) from ch_mrep_bam_bigwig.join(ch_mrep_bam_flagstat_bigwig, by: [0])
+    tuple val(name), path(bam), path(flagstat) from ch_mrep_bam_bigwig.join(ch_mrep_bam_flagstat_bigwig, by: [0])
     file sizes from ch_genome_sizes_mrep_bigwig.collect()
 
     output:
-    set val(name), file("*.bigWig") into ch_mrep_bigwig
+    tuple val(name), path("*.bigWig") into ch_mrep_bigwig
     file "*igv.txt" into ch_mrep_bigwig_igv
     file "*scale_factor.txt"
 
@@ -1594,12 +1594,12 @@ process MERGED_REP_MACS2 {
     !params.skip_merge_replicates && replicatesExist && params.macs_gsize
 
     input:
-    set val(name), file(bam), file(flagstat) from ch_mrep_bam_macs.join(ch_mrep_bam_flagstat_macs, by: [0])
+    tuple val(name), path(bam), path(flagstat) from ch_mrep_bam_macs.join(ch_mrep_bam_flagstat_macs, by: [0])
     file mrep_peak_count_header from ch_mrep_peak_count_header
     file mrep_frip_score_header from ch_mrep_frip_score_header
 
     output:
-    set val(name), file("*$PEAK_TYPE") into ch_mrep_macs_homer,
+    tuple val(name), path("*$PEAK_TYPE") into ch_mrep_macs_homer,
                                             ch_mrep_macs_qc,
                                             ch_mrep_macs_consensus
     file "*igv.txt" into ch_mrep_macs_igv
@@ -1643,7 +1643,7 @@ process MERGED_REP_MACS2_ANNOTATE {
     !params.skip_merge_replicates && replicatesExist && params.macs_gsize
 
     input:
-    set val(name), file(peak) from ch_mrep_macs_homer
+    tuple val(name), path(peak) from ch_mrep_macs_homer
     file fasta from ch_fasta
     file gtf from ch_gtf
 
@@ -1902,7 +1902,7 @@ process IGV {
     file rdifferential_peaks from ch_mrep_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
 
     output:
-    file "*.{txt,xml}" into ch_igv_session
+    file "*.{txt,xml}"
 
     script: // scripts are bundled with the pipeline, in nf-core/atacseq/bin/
     """
