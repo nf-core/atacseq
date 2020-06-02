@@ -14,7 +14,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [#79](https://github.com/nf-core/atacseq/issues/79) - Parallelize DESeq2
 * [#80](https://github.com/nf-core/atacseq/pull/80) - Added social preview image
 * [#97](https://github.com/nf-core/atacseq/issues/97) - PBC1, PBC2 from pipeline?
+* [nf-core/chipseq#153](https://github.com/nf-core/chipseq/issues/153) - Add plotHeatmap
 * Update template to tools `1.9`
+* Replace `set` with `tuple` and `file()` with `path()` in all processes
 * Capitalise process names
 * Parameters:
   * `--skip_peak_qc` to skip MACS2 peak QC plot generation
