@@ -63,6 +63,7 @@ def helpMessage() {
       --min_reps_consensus [int]      Number of biological replicates required from a given condition for a peak to contribute to a consensus peak (Default: 1)
       --save_macs_pileup [bool]       Instruct MACS2 to create bedGraph files normalised to signal per million reads
       --skip_peak_qc [bool]           Skip MACS2 peak QC plot generation
+      --skip_peak_annotation [bool]   Skip annotation of MACS2 and consensus peaks with HOMER
       --skip_consensus_peaks [bool]   Skip consensus peak generation
 
     Differential analysis
@@ -261,6 +262,7 @@ if (params.save_align_intermeds)  summary['Save Intermeds'] =  'Yes'
 if (params.save_macs_pileup)      summary['Save MACS2 Pileup'] = 'Yes'
 if (params.skip_merge_replicates) summary['Skip Merge Replicates'] = 'Yes'
 if (params.skip_peak_qc)          summary['Skip MACS2 Peak QC'] = 'Yes'
+if (params.skip_peak_annotation)  summary['Skip Peak Annotation'] = 'Yes'
 if (params.skip_consensus_peaks)  summary['Skip Consensus Peaks'] = 'Yes'
 if (params.deseq2_vst)            summary['Use DESeq2 vst Transform'] = 'Yes'
 if (params.skip_diff_analysis)    summary['Skip Differential Analysis'] = 'Yes'
@@ -1144,7 +1146,7 @@ process MERGED_LIB_MACS2_ANNOTATE {
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}", mode: params.publish_dir_mode
 
     when:
-    params.macs_gsize
+    params.macs_gsize && !params.skip_peak_annotation
 
     input:
     tuple val(name), path(peak) from ch_mlib_macs_homer
@@ -1175,7 +1177,7 @@ process MERGED_LIB_MACS2_QC {
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/qc", mode: params.publish_dir_mode
 
     when:
-    params.macs_gsize && !params.skip_peak_qc
+    params.macs_gsize && !params.skip_peak_annotation && !params.skip_peak_qc
 
     input:
     path peaks from ch_mlib_macs_qc.collect{ it[1] }
@@ -1266,7 +1268,7 @@ process MERGED_LIB_CONSENSUS_ANNOTATE {
     publishDir "${params.outdir}/bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus", mode: params.publish_dir_mode
 
     when:
-    params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks
+    params.macs_gsize && (replicatesExist || multipleGroups) && !params.skip_consensus_peaks && !params.skip_peak_annotation
 
     input:
     path bed from ch_mlib_macs_consensus_bed
@@ -1640,7 +1642,7 @@ process MERGED_REP_MACS2_ANNOTATE {
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}", mode: params.publish_dir_mode
 
     when:
-    !params.skip_merge_replicates && replicatesExist && params.macs_gsize
+    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && !params.skip_peak_annotation
 
     input:
     tuple val(name), path(peak) from ch_mrep_macs_homer
@@ -1671,7 +1673,7 @@ process MERGED_REP_MACS2_QC {
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/qc", mode: params.publish_dir_mode
 
     when:
-    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && !params.skip_peak_qc
+    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && !params.skip_peak_qc && !params.skip_peak_annotation
 
     input:
     path peaks from ch_mrep_macs_qc.collect{ it[1] }
@@ -1761,7 +1763,7 @@ process MERGED_REP_CONSENSUS_ANNOTATE {
     publishDir "${params.outdir}/bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus", mode: params.publish_dir_mode
 
     when:
-    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks
+    !params.skip_merge_replicates && replicatesExist && params.macs_gsize && multipleGroups && !params.skip_consensus_peaks && !params.skip_peak_annotation
 
     input:
     path bed from ch_mrep_macs_consensus_bed
