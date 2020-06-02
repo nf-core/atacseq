@@ -1000,7 +1000,7 @@ process MERGED_LIB_BIGWIG {
 }
 
 /*
- * STEP 5.4: Generate gene body coverage plot with deepTools plotProfile
+ * STEP 5.4: Generate gene body coverage plot with deepTools plotProfile and plotHeatmap
  */
 process MERGED_LIB_PLOTPROFILE {
     tag "$name"
@@ -1036,6 +1036,10 @@ process MERGED_LIB_PLOTPROFILE {
     plotProfile --matrixFile ${prefix}.computeMatrix.mat.gz \\
         --outFileName ${prefix}.plotProfile.pdf \\
         --outFileNameData ${prefix}.plotProfile.tab
+
+    plotHeatmap --matrixFile ${prefix}.computeMatrix.mat.gz \\
+        --outFileName ${prefix}.plotHeatmap.pdf \\
+        --outFileNameMatrix ${prefix}.plotHeatmap.mat.tab
     """
 }
 
