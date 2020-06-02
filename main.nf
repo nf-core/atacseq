@@ -1014,7 +1014,7 @@ process MERGED_LIB_PLOTPROFILE {
 
     output:
     path '*.plotProfile.tab' into ch_mlib_plotprofile_mqc
-    path '*.{gz,pdf}'
+    path '*.{gz,pdf,mat.tab}'
 
     script:
     prefix = "${name}.mLb.clN"
@@ -1023,7 +1023,7 @@ process MERGED_LIB_PLOTPROFILE {
         --regionsFileName $bed \\
         --scoreFileName $bigwig \\
         --outFileName ${prefix}.computeMatrix.mat.gz \\
-        --outFileNameMatrix ${prefix}.computeMatrix.vals.mat.gz \\
+        --outFileNameMatrix ${prefix}.computeMatrix.vals.mat.tab \\
         --regionBodyLength 1000 \\
         --beforeRegionStartLength 3000 \\
         --afterRegionStartLength 3000 \\
