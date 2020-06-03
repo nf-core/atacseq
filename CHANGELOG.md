@@ -14,8 +14,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [#79](https://github.com/nf-core/atacseq/issues/79) - Parallelize DESeq2
 * [#80](https://github.com/nf-core/atacseq/pull/80) - Added social preview image
 * [#97](https://github.com/nf-core/atacseq/issues/97) - PBC1, PBC2 from pipeline?
+* [nf-core/chipseq#153](https://github.com/nf-core/chipseq/issues/153) - Add plotHeatmap
 * Update template to tools `1.9`
+* Replace `set` with `tuple` and `file()` with `path()` in all processes
+* Capitalise process names
 * Parameters:
+  * `--skip_peak_qc` to skip MACS2 peak QC plot generation
+  * `--skip_peak_annotation` to skip annotation of MACS2 and consensus peaks with HOMER
   * `--skip_consensus_peaks` to skip consensus peak generation
   * `--deseq2_vst` to use variance stabilizing transformation (VST) instead of regularized log transformation (rlog) with DESeq2
   * `--publish_dir_mode` to customise method of publishing results to output directory [nf-core/tools#585](https://github.com/nf-core/tools/issues/585)
@@ -27,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [#102](https://github.com/nf-core/atacseq/issues/102) - Incorrect Group ID assigned by featurecounts_deseq2.r
 * [nf-core/chipseq#118](https://github.com/nf-core/chipseq/issues/118) - Running on with SGE
 * [nf-core/chipseq#132](https://github.com/nf-core/chipseq/issues/132) - BigWig Error: sort: cannot create temporary file in '': Read-only file system
+* [nf-core/chipseq#154](https://github.com/nf-core/chipseq/issues/154) - computeMatrix.val.mat.gz files not zipped
 * Make executables in `bin/` compatible with Python 3
 
 ### `Dependencies`
