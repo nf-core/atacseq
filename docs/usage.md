@@ -41,7 +41,11 @@
   * [`--broad_cutoff`](#--broad_cutoff)
   * [`--min_reps_consensus`](#--min_reps_consensus)
   * [`--save_macs_pileup`](#--save_macs_pileup)
+  * [`--skip_peak_qc`](#--skip_peak_qc)
+  * [`--skip_peak_annotation`](#--skip_peak_annotation)
   * [`--skip_consensus_peaks`](#--skip_consensus_peaks)
+* [Differential analysis](#differential_analysis)
+  * [`--deseq2_vst`](#--deseq2_vst)
   * [`--skip_diff_analysis`](#--skip_diff_analysis)
 * [Skipping QC steps](#skipping-qc-steps)
 * [Job resources](#job-resources)
@@ -53,6 +57,7 @@
   * [`--awscli`](#--awscli)
 * [Other command line parameters](#other-command-line-parameters)
   * [`--outdir`](#--outdir)
+  * [`--publish_dir_mode`](#--publish_dir_mode)
   * [`--email`](#--email)
   * [`--email_on_fail`](#--email_on_fail)
   * [`--max_multiqc_email_size`](#--max_multiqc_email_size)
@@ -395,9 +400,23 @@ Number of biological replicates required from a given condition for a peak to co
 
 Instruct MACS2 to create bedGraph files using the `-B --SPMR` parameters.
 
+### `--skip_peak_qc`
+
+Skip MACS2 peak QC plot generation.
+
+### `--skip_peak_annotation`
+
+Skip annotation of MACS2 and consensus peaks with HOMER.
+
 ### `--skip_consensus_peaks`
 
 Skip consensus peak generation, annotation and counting.
+
+## Differential analysis
+
+### `--deseq2_vst`
+
+Use `vst` transformation instead of `rlog` with DESeq2. See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).
 
 ### `--skip_diff_analysis`
 
@@ -456,6 +475,10 @@ Please make sure to also set the `-w/--work-dir` and `--outdir` parameters to a 
 ### `--outdir`
 
 The output directory where the results will be saved.
+
+### `--publish_dir_mode`
+
+Value passed to Nextflow [`publishDir`](https://www.nextflow.io/docs/latest/process.html#publishdir) directive for publishing results in the output directory. Available: 'symlink', 'rellink', 'link', 'copy', 'copyNoFollow' and 'move' (Default: 'copy').
 
 ### `--email`
 

@@ -38,6 +38,7 @@ option_list <- list(make_option(c("-i", "--featurecount_file"), type="character"
                     make_option(c("-o", "--outdir"), type="character", default='./', help="Output directory", metavar="path"),
                     make_option(c("-p", "--outprefix"), type="character", default='differential', help="Output prefix", metavar="string"),
                     make_option(c("-s", "--outsuffix"), type="character", default='', help="Output suffix for comparison-level results", metavar="string"),
+                    make_option(c("-v", "--vst"), type="logical", default=FALSE, help="Run vst transform instead of rlog", metavar="boolean"),
                     make_option(c("-c", "--cores"), type="integer", default=1, help="Number of cores", metavar="integer"))
 
 opt_parser <- OptionParser(option_list=option_list)
@@ -77,7 +78,7 @@ if (file.exists(opt$outdir) == FALSE) {
 setwd(opt$outdir)
 
 samples.vec <- sort(colnames(count.table))
-groups <- substr(samples.vec, 1, nchar(samples.vec)-3)
+groups <- sub("_[^_]+$", "", samples.vec)
 print(unique(groups))
 if (length(unique(groups)) == 1) {
     quit(save = "no", status = 0, runLast = FALSE)
@@ -89,7 +90,11 @@ if (file.exists(DDSFile) == FALSE) {
     coldata <- data.frame(row.names=colnames(counts),condition=groups)
     dds <- DESeqDataSetFromMatrix(countData = round(counts), colData = coldata, design = ~ condition)
     dds <- DESeq(dds, parallel=TRUE, BPPARAM=MulticoreParam(opt$cores))
-    rld <- rlog(dds)
+    if (!opt$vst) {
+        rld <- rlog(dds)
+    } else {
+        rld <- vst(dds)
+    }
     save(dds,rld,file=DDSFile)
 }
 
