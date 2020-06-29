@@ -10,8 +10,7 @@
             "properties": {
                 "input": {
                     "type": "string",
-                    "default": "./design.csv",
-                    "description": "Comma-separated file containing information about the samples in the experiment.",
+                    "description": "Path to comma-separated file containing information about the samples in the experiment.",
                     "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row. See [usage docs](https://nf-co.re/atacseq/docs/usage#--input).",
                     "fa_icon": "fas fa-file-csv"
                 },
@@ -36,7 +35,7 @@
                 },
                 "outdir": {
                     "type": "string",
-                    "description": "The output directory where the results will be saved.",
+                    "description": "Path to the output directory where the results will be saved.",
                     "default": "./results",
                     "fa_icon": "fas fa-folder-open",
                     "help_text": ""
@@ -77,7 +76,7 @@
                 },
                 "bwa_index": {
                     "type": "string",
-                    "description": "Full path to directory containing BWA index including base name i.e. /path/to/index/genome.fa.",
+                    "description": "Full path to directory containing BWA index including base name. i.e. `/path/to/index/genome.fa.`",
                     "fa_icon": "fas fa-bezier-curve",
                     "help_text": ""
                 },
@@ -280,6 +279,13 @@
                     "description": "Skip consensus peak generation, annotation and counting.",
                     "fa_icon": "fas fa-forward",
                     "help_text": ""
+                },
+                "anno_readme": {
+                    "type": "string",
+                    "description": "Path to annotation readme file from AWS iGenomes",
+                    "hidden": true,
+                    "help_text": "This parameter is typically set within institutional iGenomes config files.",
+                    "fa_icon": "fas fa-file-alt"
                 }
             },
             "fa_icon": "fas fa-chart-area"
@@ -347,6 +353,14 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Skip IGV.",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_peak_qc": {
+                    "type": "string",
+                    "fa_icon": "fas fa-forward"
+                },
+                "skip_peak_annotation": {
+                    "type": "string",
                     "fa_icon": "fas fa-forward"
                 },
                 "skip_multiqc": {
@@ -535,6 +549,5 @@
             },
             "fa_icon": "fas fa-file-import"
         }
-    },
-    "required": ["Input/output options"]
+    }
 }
