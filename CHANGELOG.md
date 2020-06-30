@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [nf-core/chipseq#132](https://github.com/nf-core/chipseq/issues/132) - BigWig Error: sort: cannot create temporary file in '': Read-only file system
 * [nf-core/chipseq#154](https://github.com/nf-core/chipseq/issues/154) - computeMatrix.val.mat.gz files not zipped
 * Make executables in `bin/` compatible with Python 3
+* [#110](https://github.com/nf-core/atacseq/pull/110) - updated AWS test GitHub actions
 
 ### `Dependencies`
 
