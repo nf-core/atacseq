@@ -30,11 +30,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [#73](https://github.com/nf-core/atacseq/issues/73) - macs_annotatePeaks.mLb.clN.summary.txt file is not created
 * [#86](https://github.com/nf-core/atacseq/issues/86) - bug in the plot_homer_annotatepeaks.r script
 * [#102](https://github.com/nf-core/atacseq/issues/102) - Incorrect Group ID assigned by featurecounts_deseq2.r
+* [#110](https://github.com/nf-core/atacseq/pull/110) - updated AWS test GitHub actions
 * [nf-core/chipseq#118](https://github.com/nf-core/chipseq/issues/118) - Running on with SGE
 * [nf-core/chipseq#132](https://github.com/nf-core/chipseq/issues/132) - BigWig Error: sort: cannot create temporary file in '': Read-only file system
 * [nf-core/chipseq#154](https://github.com/nf-core/chipseq/issues/154) - computeMatrix.val.mat.gz files not zipped
 * Make executables in `bin/` compatible with Python 3
-* [#110](https://github.com/nf-core/atacseq/pull/110) - updated AWS test GitHub actions
 
 ### `Dependencies`
 
@@ -49,16 +49,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update gawk `4.2.1` -> `5.1.0`
 * Update r-base `3.4.1` -> `3.6.2`
 * Update r-optparse `1.6.0` -> `1.6.6`
-* Update r-ggplot2 `3.1.0` -> `3.3.0`
+* Update r-ggplot2 `3.1.0` -> `3.3.2`
 * Update r-pheatmap `1.0.10` -> `1.0.12`
 * Update r-lattice `0.20_35` -> `0.20_41`
 * Update r-upsetr `1.3.3` -> `1.4.0`
 * Update r-scales `1.0.0` -> `1.1.1`  
-* Update r-xfun `0.3` -> `0.14`
+* Update r-xfun `0.3` -> `0.15`
 * Update fastqc `0.11.8` -> `0.11.9`
 * Update trim-galore `0.5.0` -> `0.6.5`
 * Update samtools `1.9` -> `1.10`
-* Update picard `2.19.0` -> `2.22.8`
+* Update picard `2.19.0` -> `2.23.1`
 * Update pysam `0.15.2` -> `0.15.3`
 * Update bedtools `2.27.1` -> `2.29.2`
 * Update ucsc-bedgraphtobigwig `377` -> `357`
@@ -66,7 +66,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * Update macs2 `2.1.2` -> `2.2.7.1`
 * Update homer `4.9.1` -> `4.11`
 * Update ataqv `1.0.0` -> `1.1.1`
-* Update subread `1.6.4` -> `2.0.0`
+* Update subread `1.6.4` -> `2.0.1`
 * Update multiqc `1.7` -> `1.8`
 * Update bioconductor-deseq2 `1.20.0` -> `1.26.0`
 * Update bioconductor-vsn `3.46.0` -> `3.54.0`
