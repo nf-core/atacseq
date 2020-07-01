@@ -51,6 +51,7 @@ def helpMessage() {
       --save_trimmed [bool]           Save the trimmed FastQ files in the results directory (Default: false)
 
     Alignments
+      --bwa_min_score [int]           Don’t output BWA MEM alignments with score lower than this parameter (Default: false)
       --keep_mito [bool]              Reads mapping to mitochondrial contig are not filtered from alignments (Default: false)
       --keep_dups [bool]              Duplicate reads are not filtered from alignments (Default: false)
       --keep_multi_map [bool]         Reads mapping to multiple locations are not filtered from alignments (Default: false)
@@ -60,6 +61,8 @@ def helpMessage() {
     Peaks
       --narrow_peak [bool]            Run MACS2 in narrowPeak mode (Default: false)
       --broad_cutoff [float]          Specifies broad cutoff value for MACS2. Only used when --narrow_peak isnt specified (Default: 0.1)
+      --macs_fdr [float]              Minimum FDR (q-value) cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive (Default: false)
+      --macs_pvalue [float]           p-value cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive (Default: false)
       --min_reps_consensus [int]      Number of biological replicates required from a given condition for a peak to contribute to a consensus peak (Default: 1)
       --save_macs_pileup [bool]       Instruct MACS2 to create bedGraph files normalised to signal per million reads (Default: false)
       --skip_peak_qc [bool]           Skip MACS2 peak QC plot generation (Default: false)
@@ -237,10 +240,13 @@ if (params.tss_bed)               summary['TSS BED File'] = params.tss_bed
 if (params.bwa_index)             summary['BWA Index'] = params.bwa_index
 if (params.blacklist)             summary['Blacklist BED'] = params.blacklist
 if (params.mito_name)             summary['Mitochondrial Contig'] = params.mito_name
+if (params.bwa_min_score)         summary['BWA Min Score'] = params.bwa_min_score
 summary['MACS2 Genome Size']      = params.macs_gsize ?: 'Not supplied'
 summary['Min Consensus Reps']     = params.min_reps_consensus
 if (params.macs_gsize)            summary['MACS2 Narrow Peaks'] = params.narrow_peak ? 'Yes' : 'No'
 if (!params.narrow_peak)          summary['MACS2 Broad Cutoff'] = params.broad_cutoff
+if (params.macs_fdr)              summary['MACS2 FDR'] = params.macs_fdr
+if (params.macs_pvalue)           summary['MACS2 P-value'] = params.macs_pvalue
 if (params.skip_trimming) {
     summary['Trimming Step']      = 'Skipped'
 } else {
@@ -409,7 +415,17 @@ if (!params.bwa_index) {
 /*
  * PREPROCESSING: Generate gene BED file
  */
+// If --gtf is supplied along with --genome
+// Make gene bed from supplied --gtf instead of using iGenomes one automatically
+def MAKE_BED = false
 if (!params.gene_bed) {
+    MAKE_BED = true
+} else if (params.genome && params.gtf) {
+    if (params.genomes[ params.genome ].gtf != params.gtf) {
+        MAKE_BED = true
+    }
+}
+if (MAKE_BED) {
     process MAKE_GENE_BED {
         tag "$gtf"
         label 'process_low'
@@ -623,11 +639,13 @@ process BWA_MEM {
     if (params.seq_center) {
         rg = "\'@RG\\tID:${name}\\tSM:${name.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${name}\\tPU:1\\tCN:${params.seq_center}\'"
     }
+    score = params.bwa_min_score ? "-T ${params.bwa_min_score}" : ''
     """
     bwa mem \\
         -t $task.cpus \\
         -M \\
         -R $rg \\
+        $score \\
         ${index}/${bwa_base} \\
         $reads \\
         | samtools view -@ $task.cpus -b -h -F 0x0100 -O BAM -o ${prefix}.bam -
@@ -1121,6 +1139,8 @@ process MERGED_LIB_MACS2 {
     broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
     format = params.single_end ? 'BAM' : 'BAMPE'
     pileup = params.save_macs_pileup ? '-B --SPMR' : ''
+    fdr = params.macs_fdr ? "--qvalue ${params.macs_fdr}" : ''
+    pvalue = params.macs_pvalue ? "--pvalue ${params.macs_pvalue}" : ''
     """
     macs2 callpeak \\
         -t ${bam[0]} \\
@@ -1129,6 +1149,8 @@ process MERGED_LIB_MACS2 {
         -g $params.macs_gsize \\
         -n $prefix \\
         $pileup \\
+        $fdr \\
+        $pvalue \\
         --keep-dup all \\
         --nomodel
 

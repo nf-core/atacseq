@@ -14,11 +14,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 * [#79](https://github.com/nf-core/atacseq/issues/79) - Parallelize DESeq2
 * [#80](https://github.com/nf-core/atacseq/pull/80) - Added social preview image
 * [#97](https://github.com/nf-core/atacseq/issues/97) - PBC1, PBC2 from pipeline?
+* [#107](https://github.com/nf-core/atacseq/issues/107) - Add options to change MACS2 parameters
+* [#109](https://github.com/nf-core/atacseq/issues/109) - Specify custom gtf but gene bed is not generated from that gtf?
 * [nf-core/chipseq#153](https://github.com/nf-core/chipseq/issues/153) - Add plotHeatmap
+* [nf-core/chipseq#159](https://github.com/nf-core/chipseq/issues/159) - expose bwa mem -T parameter
+* Regenerated screenshots and added collapsible sections for output files in `docs/output.md`
 * Update template to tools `1.9`
 * Replace `set` with `tuple` and `file()` with `path()` in all processes
 * Capitalise process names
 * Parameters:
+    * `--bwa_min_score` to set minimum alignment score for BWA MEM
+    * `--macs_fdr` to provide FDR threshold for MACS2 peak calling
+    * `--macs_pvalue` to provide p-value threshold for MACS2 peak calling
     * `--skip_peak_qc` to skip MACS2 peak QC plot generation
     * `--skip_peak_annotation` to skip annotation of MACS2 and consensus peaks with HOMER
     * `--skip_consensus_peaks` to skip consensus peak generation
