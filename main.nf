@@ -60,6 +60,8 @@ def helpMessage() {
     Peaks
       --narrow_peak [bool]            Run MACS2 in narrowPeak mode (Default: false)
       --broad_cutoff [float]          Specifies broad cutoff value for MACS2. Only used when --narrow_peak isnt specified (Default: 0.1)
+      --macs_fdr [float]              Minimum FDR (q-value) cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive (Default: false)
+      --macs_pvalue [float]           p-value cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive (Default: false)
       --min_reps_consensus [int]      Number of biological replicates required from a given condition for a peak to contribute to a consensus peak (Default: 1)
       --save_macs_pileup [bool]       Instruct MACS2 to create bedGraph files normalised to signal per million reads (Default: false)
       --skip_peak_qc [bool]           Skip MACS2 peak QC plot generation (Default: false)
@@ -241,6 +243,8 @@ summary['MACS2 Genome Size']      = params.macs_gsize ?: 'Not supplied'
 summary['Min Consensus Reps']     = params.min_reps_consensus
 if (params.macs_gsize)            summary['MACS2 Narrow Peaks'] = params.narrow_peak ? 'Yes' : 'No'
 if (!params.narrow_peak)          summary['MACS2 Broad Cutoff'] = params.broad_cutoff
+if (params.macs_fdr)              summary['MACS2 FDR'] = params.macs_fdr
+if (params.macs_pvalue)           summary['MACS2 P-value'] = params.macs_pvalue
 if (params.skip_trimming) {
     summary['Trimming Step']      = 'Skipped'
 } else {
@@ -1131,6 +1135,8 @@ process MERGED_LIB_MACS2 {
     broad = params.narrow_peak ? '' : "--broad --broad-cutoff ${params.broad_cutoff}"
     format = params.single_end ? 'BAM' : 'BAMPE'
     pileup = params.save_macs_pileup ? '-B --SPMR' : ''
+    fdr = params.macs_fdr ? "--qvalue ${params.macs_fdr}" : ''
+    pvalue = params.macs_pvalue ? "--pvalue ${params.macs_pvalue}" : ''
     """
     macs2 callpeak \\
         -t ${bam[0]} \\
@@ -1139,6 +1145,8 @@ process MERGED_LIB_MACS2 {
         -g $params.macs_gsize \\
         -n $prefix \\
         $pileup \\
+        $fdr \\
+        $pvalue \\
         --keep-dup all \\
         --nomodel
 
