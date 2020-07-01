@@ -1,9 +1,9 @@
 #id: 'mrep_peak_count'
-#section_name: 'MACS2: Peak count (merged replicate)'
+#section_name: 'MERGED REP: MACS2 Peak count'
 #description: "is calculated from total number of peaks called by
 #	       <a href='https://github.com/taoliu/MACS' target='_blank'>MACS2</a>"
 #plot_type: 'bargraph'
-#anchor: 'nfcore_atacseq-mrep_peak_count'
+#anchor: 'mrep_peak_count'
 #pconfig:
 #    title: 'Total peak count'
 #    ylab: 'Peak count'
