@@ -7,7 +7,7 @@
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/)
 [![Docker](https://img.shields.io/docker/automated/nfcore/atacseq.svg)](https://hub.docker.com/r/nfcore/atacseq)
-![[Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23atacseq-4A154B?logo=slack)](https://nfcore.slack.com/channels/atacseq)
+[![Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23atacseq-4A154B?logo=slack)](https://nfcore.slack.com/channels/atacseq)
 
 ## Introduction
 
