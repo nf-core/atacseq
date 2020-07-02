@@ -1,11 +1,13 @@
-# ![nfcore/atacseq](docs/images/nf-core-atacseq_logo.png)
+# ![nf-core/atacseq](docs/images/nf-core-atacseq_logo.png)
 
-[![Build Status](https://travis-ci.com/nf-core/atacseq.svg?branch=master)](https://travis-ci.com/nf-core/atacseq)
+[![GitHub Actions CI Status](https://github.com/nf-core/atacseq/workflows/nf-core%20CI/badge.svg)](https://github.com/nf-core/atacseq/actions)
+[![GitHub Actions Linting Status](https://github.com/nf-core/atacseq/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/atacseq/actions)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A519.10.0-brightgreen.svg)](https://www.nextflow.io/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2634132.svg)](https://doi.org/10.5281/zenodo.2634132)
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/)
 [![Docker](https://img.shields.io/docker/automated/nfcore/atacseq.svg)](https://hub.docker.com/r/nfcore/atacseq)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2634132.svg)](https://doi.org/10.5281/zenodo.2634132)
+![[Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23atacseq-4A154B?logo=slack)](https://nfcore.slack.com/channels/atacseq)
 
 ## Introduction
 
@@ -35,7 +37,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
         * reads that arent in FR orientation ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); *paired-end only*)
         * reads where only one read of the pair fails the above criteria ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); *paired-end only*)
     3. Alignment-level QC and estimation of library complexity ([`picard`](https://broadinstitute.github.io/picard/), [`Preseq`](http://smithlabresearch.org/software/preseq/))
-    4. Create normalised bigWig files scaled to 1 million mapped reads ([`BEDTools`](https://github.com/arq5x/bedtools2/), [`wigToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
+    4. Create normalised bigWig files scaled to 1 million mapped reads ([`BEDTools`](https://github.com/arq5x/bedtools2/), [`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
     5. Generate gene-body meta-profile from bigWig files ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html))
     6. Calculate genome-wide enrichment ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html))
     7. Call broad/narrow peaks ([`MACS2`](https://github.com/taoliu/MACS))
@@ -47,7 +49,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 6. Merge filtered alignments across replicates ([`picard`](https://broadinstitute.github.io/picard/))
     1. Re-mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
     2. Remove duplicate reads ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
-    3. Create normalised bigWig files scaled to 1 million mapped reads ([`BEDTools`](https://github.com/arq5x/bedtools2/), [`wigToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
+    3. Create normalised bigWig files scaled to 1 million mapped reads ([`BEDTools`](https://github.com/arq5x/bedtools2/), [`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
     4. Call broad/narrow peaks ([`MACS2`](https://github.com/taoliu/MACS))
     5. Annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
     6. Create consensus peakset across all samples and create tabular file to aid in the filtering of the data ([`BEDTools`](https://github.com/arq5x/bedtools2/))
@@ -58,23 +60,23 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 ## Quick Start
 
-i. Install [`nextflow`](https://nf-co.re/usage/installation)
+1. Install [`nextflow`](https://nf-co.re/usage/installation)
 
-ii. Install one of [`docker`](https://docs.docker.com/engine/installation/), [`singularity`](https://www.sylabs.io/guides/3.0/user-guide/) or [`conda`](https://conda.io/miniconda.html)
+2. Install either [`Docker`](https://docs.docker.com/engine/installation/) or [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/) for full pipeline reproducibility _(please only use [`Conda`](https://conda.io/miniconda.html) as a last resort; see [docs](https://nf-co.re/usage/configuration#basic-configuration-profiles))_
 
-iii. Download the pipeline and test it on a minimal dataset with a single command
+3. Download the pipeline and test it on a minimal dataset with a single command:
 
-```bash
-nextflow run nf-core/atacseq -profile test,<docker/singularity/conda/institute>
-```
+    ```bash
+    nextflow run nf-core/atacseq -profile test,<docker/singularity/conda/institute>
+    ```
 
-> Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile institute` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.
+    > Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile <institute>` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.
 
-iv. Start running your own analysis!
+4. Start running your own analysis!
 
-```bash
-nextflow run nf-core/atacseq -profile <docker/singularity/conda/institute> --input design.csv --genome GRCh37
-```
+    ```bash
+    nextflow run nf-core/atacseq -profile <docker/singularity/conda/institute> --input design.csv --genome GRCh37
+    ```
 
 See [usage docs](docs/usage.md) for all of the available options when running the pipeline.
 
@@ -97,21 +99,25 @@ The pipeline was originally written by [The Bioinformatics & Biostatistics Group
 
 The pipeline was developed by [Harshil Patel](mailto:harshil.patel@crick.ac.uk).
 
-The [nf-core/rnaseq](https://github.com/nf-core/rnaseq) and [nf-core/chipseq](https://github.com/nf-core/chipseq) pipelines developed by Phil Ewels were initially used as a template for this pipeline. Many thanks to Phil for all of his help and advice, and the team at SciLifeLab.
-
-Many thanks to others who have helped out along the way too, including (but not limited to): [@apeltzer](https://github.com/apeltzer), [@sven1103](https://github.com/sven1103), [@MaxUlysse](https://github.com/MaxUlysse), [@micans](https://github.com/micans), [@jinmingda](https://github.com/jinmingda), [@ktrns](https://github.com/ktrns), [@crickbabs](https://github.com/crickbabs), [@pditommaso](https://github.com/pditommaso).
+Many thanks to others who have helped out and contributed along the way too, including (but not limited to): [@ewels](https://github.com/ewels), [@apeltzer](https://github.com/apeltzer), [@crickbabs](https://github.com/crickbabs), [drewjbeh](https://github.com/drewjbeh), [@houghtos](https://github.com/houghtos), [@jinmingda](https://github.com/jinmingda), [@ktrns](https://github.com/ktrns), [@MaxUlysse](https://github.com/MaxUlysse), [@mashehu](https://github.com/mashehu), [@micans](https://github.com/micans), [@pditommaso](https://github.com/pditommaso) and [@sven1103](https://github.com/sven1103).
 
 ## Contributions and Support
 
 If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
 
-For further information or help, don't hesitate to get in touch on [Slack](https://nfcore.slack.com/channels/atacseq) (you can join with [this invite](https://nf-co.re/join/slack)).
+For further information or help, don't hesitate to get in touch on the [Slack `#atacseq` channel](https://nfcore.slack.com/channels/atacseq) (you can join with [this invite](https://nf-co.re/join/slack)).
 
 ## Citation
 
 If you use nf-core/atacseq for your analysis, please cite it using the following doi: [10.5281/zenodo.2634132](https://doi.org/10.5281/zenodo.2634132)
 
-You can cite the `nf-core` pre-print as follows:  
-> Ewels PA, Peltzer A, Fillinger S, Alneberg JA, Patel H, Wilm A, Garcia MU, Di Tommaso P, Nahnsen S. **nf-core: Community curated bioinformatics pipelines**. *bioRxiv*. 2019. p. 610741. [doi: 10.1101/610741](https://www.biorxiv.org/content/10.1101/610741v1).
-
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
+
+You can cite the `nf-core` publication as follows:
+
+> **The nf-core framework for community-curated bioinformatics pipelines.**
+>
+> Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
+>
+> _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).  
+> ReadCube: [Full Access Link](https://rdcu.be/b1GjZ)
