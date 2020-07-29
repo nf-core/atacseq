@@ -180,7 +180,7 @@
                     "default": false,
                     "description": "Skip the adapter trimming step.",
                     "help_text": "Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "save_trimmed": {
                     "type": "boolean",
@@ -224,7 +224,7 @@
                     "default": false,
                     "description": "Do not perform alignment merging and downstream analysis by merging replicates i.e. only do this by merging resequenced libraries.",
                     "help_text": "An additional series of steps are performed by the pipeline for merging the replicates from the same experimental group. This is primarily to increase the sequencing depth in order to perform downstream analyses such as footprinting. Specifying this parameter means that these steps will not be performed.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "save_align_intermeds": {
                     "type": "boolean",
@@ -295,13 +295,13 @@
                 },
                 "skip_peak_qc": {
                     "type": "boolean",
-                    "fa_icon": "fas fa-forward",
+                    "fa_icon": "fas fa-fast-forward",
                     "description": "Skip MACS2 peak QC plot generation.",
                     "default": false
                 },
                 "skip_peak_annotation": {
                     "type": "boolean",
-                    "fa_icon": "fas fa-forward",
+                    "fa_icon": "fas fa-fast-forward",
                     "description": "Skip annotation of MACS2 and consensus peaks with HOMER.",
                     "default": false
                 },
@@ -309,7 +309,7 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Skip consensus peak generation, annotation and counting.",
-                    "fa_icon": "fas fa-forward",
+                    "fa_icon": "fas fa-fast-forward",
                     "help_text": ""
                 }
             },
@@ -330,7 +330,7 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Skip differential accessibility analysis.",
-                    "fa_icon": "fas fa-forward",
+                    "fa_icon": "fas fa-fast-forward",
                     "help_text": ""
                 }
             },
@@ -344,52 +344,52 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Skip FastQC.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_picard_metrics": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip Picard CollectMultipleMetrics.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_preseq": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip Preseq.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_plot_profile": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip deepTools plotProfile.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_plot_fingerprint": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip deepTools plotFingerprint.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_ataqv": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip Ataqv.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_igv": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip IGV.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "skip_multiqc": {
                     "type": "boolean",
                     "default": false,
                     "description": "Skip MultiQC.",
-                    "fa_icon": "fas fa-forward"
+                    "fa_icon": "fas fa-fast-forward"
                 }
             },
-            "fa_icon": "fas fa-forward"
+            "fa_icon": "fas fa-fast-forward"
         },
         "institutional_config_options": {
             "title": "Institutional config options",
