@@ -54,4 +54,4 @@ These tests are run both with the latest available version of `Nextflow` and als
 
 ## Getting help
 
-For further information/help, please consult the [nf-core/atacseq documentation](https://nf-co.re/nf-core/atacseq/docs) and don't hesitate to get in touch on the nf-core Slack [#atacseq](https://nfcore.slack.com/channels/atacseq) channel ([join our Slack here](https://nf-co.re/join/slack)).
+For further information/help, please consult the [nf-core/atacseq documentation](https://nf-co.re/atacseq/docs) and don't hesitate to get in touch on the nf-core Slack [#atacseq](https://nfcore.slack.com/channels/atacseq) channel ([join our Slack here](https://nf-co.re/join/slack)).
