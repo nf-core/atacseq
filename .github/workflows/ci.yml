@@ -1,6 +1,10 @@
 name: nf-core CI
+<<<<<<< HEAD
 # This workflow is triggered on releases and pull-requests.
 # It runs the pipeline with the minimal test dataset to check that it completes without any syntax errors
+=======
+# This workflow runs the pipeline with the minimal test dataset to check that it completes without any syntax errors
+>>>>>>> TEMPLATE
 on:
   push:
     branches:
@@ -37,6 +41,7 @@ jobs:
         if: env.GIT_DIFF
         run: docker build --no-cache . -t nfcore/atacseq:dev
 
+<<<<<<< HEAD
       - name: Pull docker image
         if: ${{ !env.GIT_DIFF }}
         run: |
@@ -77,6 +82,8 @@ jobs:
         if: env.GIT_DIFF
         run: docker build --no-cache . -t nfcore/atacseq:dev
 
+=======
+>>>>>>> TEMPLATE
       - name: Pull docker image
         if: ${{ !env.GIT_DIFF }}
         run: |
@@ -84,6 +91,7 @@ jobs:
           docker tag nfcore/atacseq:dev nfcore/atacseq:dev
 
       - name: Install Nextflow
+<<<<<<< HEAD
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
@@ -123,3 +131,15 @@ jobs:
           docker push nfcore/atacseq:latest
           docker tag nfcore/atacseq:latest nfcore/atacseq:${{ github.event.release.tag_name }}
           docker push nfcore/atacseq:${{ github.event.release.tag_name }}
+=======
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Run pipeline with test data
+        # TODO nf-core: You can customise CI pipeline run tests as required
+        # For example: adding multiple test runs with different parameters
+        # Remember that you can parallelise this by using strategy.matrix
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile test,docker
+>>>>>>> TEMPLATE
