@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### `Added`
 
+* Update template to tools `1.10.2`
+
 ### `Fixed`
 
 ### `Dependencies`
