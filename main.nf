@@ -136,7 +136,7 @@ params.gene_bed = params.genome ? params.genomes[ params.genome ].bed12 ?: false
 params.mito_name = params.genome ? params.genomes[ params.genome ].mito_name ?: false : false
 params.macs_gsize = params.genome ? params.genomes[ params.genome ].macs_gsize ?: false : false
 params.blacklist = params.genome ? params.genomes[ params.genome ].blacklist ?: false : false
-params.anno_readme = params.genome ? params.genomes[ params.genome ].readme ?: false : false
+anno_readme = params.genome ? params.genomes[ params.genome ].readme ?: false : false
 
 // Global variables
 def PEAK_TYPE = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
@@ -199,9 +199,9 @@ if (params.bwa_index) {
 }
 
 // Save AWS IGenomes file containing annotation version
-if (params.anno_readme && file(params.anno_readme).exists()) {
+if (anno_readme && file(anno_readme).exists()) {
     file("${params.outdir}/genome/").mkdirs()
-    file(params.anno_readme).copyTo("${params.outdir}/genome/")
+    file(anno_readme).copyTo("${params.outdir}/genome/")
 }
 
 ////////////////////////////////////////////////////
