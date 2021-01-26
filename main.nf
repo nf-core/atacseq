@@ -1049,6 +1049,7 @@ process MERGED_LIB_PLOTPROFILE {
         --afterRegionStartLength 3000 \\
         --skipZeros \\
         --smartLabels \\
+        --missingDataAsZero \\
         --numberOfProcessors $task.cpus
 
     plotProfile --matrixFile ${prefix}.computeMatrix.mat.gz \\
