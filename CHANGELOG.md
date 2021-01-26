@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### `Fixed`
 
+* [#139](https://github.com/nf-core/atacseq/issues/139) - mergedLibray plotHeatmap returning black graph
+
 ### `Dependencies`
 
 ## [1.2.1] - 2020-07-29
