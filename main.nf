@@ -326,7 +326,7 @@ if (!params.macs_gsize) {
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
- * PREPROCESSING: Reformat design file and check validitiy
+ * PREPROCESSING: Reformat design file and check validity
  */
 process CHECK_DESIGN {
     tag "$design"
