@@ -1,0 +1,29 @@
+{
+    "name": "nf-core/atacseq",
+    "homePage": "https://github.com/nf-core/atacseq",
+    "repos": {
+        "nf-core/modules": {
+            "bwa/index": {
+                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+            },
+            "bwa/mem": {
+                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+            },
+            "custom/dumpsoftwareversions": {
+                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+            },
+            "custom/getchromsizes": {
+                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+            },
+            "gffread": {
+                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+            },
+            "gunzip": {
+                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+            },
+            "untar": {
+                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+            }
+        }
+    }
+}
