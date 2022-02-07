@@ -8,7 +8,7 @@ import argparse
 def parse_args(args=None):
     Description = "Reformat nf-core/atacseq design file and check its contents."
     Epilog = "Example usage: python check_design.py <DESIGN_FILE_IN> <DESIGN_FILE_OUT>"
-    
+
     parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
     parser.add_argument("FILE_IN", help="Input samplesheet file.")
     parser.add_argument("FILE_OUT", help="Output file.")
@@ -102,7 +102,7 @@ def check_samplesheet(file_in, file_out):
                             "Line",
                             line,
                         )
-            
+
             ## Check condition column has valid values
             if condition:
                 if condition.find(" ") != -1:
@@ -119,7 +119,7 @@ def check_samplesheet(file_in, file_out):
                 sample_info = ["1", fastq_1, fastq_2, condition]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
-    
+
             ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2, condition ]]}
             if sample not in sample_mapping_dict:
                 sample_mapping_dict[sample] = [sample_info]

@@ -1,7 +1,50 @@
 # nf-core/atacseq: Changelog
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unpublished Version / DEV]
+
+### Major enhancements
+
+* Port pipeline to the updated Nextflow DSL2 syntax adopted on nf-core/modules
+    * Removed `--publish_dir_mode` as it is no longer required for the new syntax
+* Bump minimum Nextflow version from `19.10.0` -> `21.10.3`
+* Updated pipeline template to [nf-core/tools 2.2](https://github.com/nf-core/tools/releases/tag/2.2)
+
+
+### Other enhancements & fixes
+
+* Update pipeline template to nf-core/tools `2.2`
+
+### Parameters
+
+| Old parameter                | New parameter              |
+|------------------------------|----------------------------|
+| `--clusterOptions`           |                            |
+| `--conda`                    | `--enable_conda`           |
+| `--single_end`               |                            |
+
+
+> **NB:** Parameter has been __updated__ if both old and new parameter information is present.
+> **NB:** Parameter has been __added__ if just the new parameter information is present.
+> **NB:** Parameter has been __removed__ if parameter information isn't present.
+
+### Software dependencies
+
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+
+<!---
+TODO: update all new dependencies
+-->
+| Dependency  | Old version | New version |
+|-------------|-------------|-------------|
+|             |             |             |
+|             |             |             |
+
+> **NB:** Dependency has been __updated__ if both old and new version information is present.
+> **NB:** Dependency has been __added__ if just the new version information is present.
+> **NB:** Dependency has been __removed__ if version information isn't present.
 
 ## [1.2.1] - 2020-07-29
 
