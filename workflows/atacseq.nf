@@ -41,8 +41,8 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 
 
 // // JSON files required by BAMTools for alignment filtering
-// ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
-// ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
+ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
+ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
 
 // // Header files for MultiQC
 // ch_mlib_peak_count_header = file("$baseDir/assets/multiqc/mlib_peak_count_header.txt", checkIfExists: true)
