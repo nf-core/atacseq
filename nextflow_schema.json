@@ -99,18 +99,6 @@
                     "description": "Path to directory or tar.gz archive for pre-built BWA index.",
                     "fa_icon": "fas fa-bezier-curve"
                 },
-                "bowtie2_index": {
-                    "type": "string",
-                    "format": "path",
-                    "fa_icon": "fas fa-bezier-curve",
-                    "description": "Path to directory or tar.gz archive for pre-built Bowtie2 index."
-                },
-                "star_index": {
-                    "type": "string",
-                    "format": "path",
-                    "fa_icon": "fas fa-bezier-curve",
-                    "description": "Path to directory or tar.gz archive for pre-built STAR index."
-                },
                 "gene_bed": {
                     "type": "string",
                     "format": "file-path",
@@ -151,6 +139,225 @@
                     "fa_icon": "fas fa-ban",
                     "hidden": true,
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                },
+                "keep_mito": {
+                    "type": "boolean",
+                    "description": "Reads mapping to mitochondrial contig are not filtered from alignments.",
+                    "default": "false"
+                }
+            }
+        },
+        "adapter_trimming_options": {
+            "title": "Adapter trimming options",
+            "type": "object",
+            "fa_icon": "fas fa-cut",
+            "description": "Options to adjust adapter trimming criteria.",
+            "properties": {
+                "clip_r1": {
+                    "type": "integer",
+                    "description": "Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads).",
+                    "fa_icon": "fas fa-cut"
+                },
+                "clip_r2": {
+                    "type": "integer",
+                    "description": "Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only).",
+                    "fa_icon": "fas fa-cut"
+                },
+                "three_prime_clip_r1": {
+                    "type": "integer",
+                    "description": "Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "three_prime_clip_r2": {
+                    "type": "integer",
+                    "description": "Instructs Trim Galore to remove bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "trim_nextseq": {
+                    "type": "integer",
+                    "description": "Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails.",
+                    "help_text": "This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "skip_trimming": {
+                    "type": "boolean",
+                    "description": "Skip the adapter trimming step.",
+                    "help_text": "Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "save_trimmed": {
+                    "type": "boolean",
+                    "description": "Save the trimmed FastQ files in the results directory.",
+                    "help_text": "By default, trimmed FastQ files will not be saved to the results directory. Specify this flag (or set to true in your config file) to copy these files to the results directory when complete.",
+                    "fa_icon": "fas fa-save"
+                }
+            }
+        },
+        "alignment_options": {
+            "title": "Alignment options",
+            "type": "object",
+            "fa_icon": "fas fa-map-signs",
+            "description": "Options to adjust parameters and filtering criteria for read alignments.",
+            "properties": {
+                "keep_dups": {
+                    "type": "boolean",
+                    "description": "Duplicate reads are not filtered from alignments.",
+                    "fa_icon": "fas fa-cart-arrow-down"
+                },
+                "keep_multi_map": {
+                    "type": "boolean",
+                    "description": "Reads mapping to multiple locations are not filtered from alignments.",
+                    "fa_icon": "fas fa-cart-arrow-down"
+                },
+                "bwa_min_score": {
+                    "type": "integer",
+                    "description": "Don\u2019t output BWA MEM alignments with score lower than this parameter.",
+                    "fa_icon": "fas fa-hand-paper"
+                },
+                "bamtools_filter_pe_config": {
+                    "type": "string",
+                    "default": "$projectDir/assets/bamtools_filter_pe.json",
+                    "hidden": true,
+                    "description": "BAMTools JSON file with custom filters for paired-end data.",
+                    "fa_icon": "fas fa-cog"
+                },
+                "bamtools_filter_se_config": {
+                    "type": "string",
+                    "default": "$projectDir/assets/bamtools_filter_se.json",
+                    "hidden": true,
+                    "description": "BAMTools JSON file with custom filters for single-end data.",
+                    "fa_icon": "fas fa-cog"
+                }
+            }
+        },
+        "peak_calling_options": {
+            "title": "Peak calling options",
+            "type": "object",
+            "fa_icon": "fas fa-chart-area",
+            "description": "Options to adjust peak calling criteria.",
+            "properties": {
+                "narrow_peak": {
+                    "type": "boolean",
+                    "description": "Run MACS2 in narrowPeak mode.",
+                    "help_text": "MACS2 is run by default with the [`--broad`](https://github.com/taoliu/MACS#--broad) flag. Specify this flag to call peaks in narrowPeak mode.",
+                    "fa_icon": "fas fa-arrows-alt-h"
+                },
+                "broad_cutoff": {
+                    "type": "number",
+                    "default": 0.1,
+                    "description": "Specifies broad cutoff value for MACS2. Only used when --narrow_peak isnt specified.",
+                    "fa_icon": "fas fa-hand-scissors"
+                },
+                "macs_fdr": {
+                    "type": "number",
+                    "description": "Minimum FDR (q-value) cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive.",
+                    "fa_icon": "fas fa-sort-amount-down"
+                },
+                "macs_pvalue": {
+                    "type": "number",
+                    "description": "p-value cutoff for peak detection, --macs_fdr and --macs_pvalue are mutually exclusive. If --macs_pvalue cutoff is set, q-value will not be calculated and reported as -1 in the final .xls file.",
+                    "fa_icon": "fas fa-sort-amount-down"
+                },
+                "min_reps_consensus": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Number of biological replicates required from a given condition for a peak to contribute to a consensus peak.",
+                    "help_text": "If you are confident you have good reproducibility amongst your replicates then you can increase the value of this parameter to create a 'reproducible' set of consensus peaks. For example, a value of 2 will mean peaks that have been called in at least 2 replicates will contribute to the consensus set of peaks, and as such peaks that are unique to a given replicate will be discarded.",
+                    "fa_icon": "fas fa-sort-numeric-down"
+                },
+                "save_macs_pileup": {
+                    "type": "boolean",
+                    "description": "Instruct MACS2 to create bedGraph files normalised to signal per million reads.",
+                    "fa_icon": "fas fa-save"
+                },
+                "skip_peak_qc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip MACS2 peak QC plot generation."
+                },
+                "skip_peak_annotation": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip annotation of MACS2 and consensus peaks with HOMER."
+                },
+                "skip_consensus_peaks": {
+                    "type": "boolean",
+                    "description": "Skip consensus peak generation, annotation and counting.",
+                    "fa_icon": "fas fa-fast-forward"
+                }
+            }
+        },
+        "deseq_qc_options": {
+            "title": "Differential analysis options",
+            "type": "object",
+            "fa_icon": "fas fa-not-equal",
+            "description": "Options to adjust differential analysis criteria.",
+            "properties": {
+                "deseq2_vst": {
+                    "type": "boolean",
+                    "description": "Use vst transformation instead of rlog with DESeq2.",
+                    "help_text": "See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).",
+                    "fa_icon": "fas fa-dolly"
+                }
+            }
+        },
+        "process_skipping_options": {
+            "title": "Process skipping options",
+            "type": "object",
+            "fa_icon": "fas fa-fast-forward",
+            "description": "Options to skip various steps within the workflow.",
+            "properties": {
+                "skip_fastqc": {
+                    "type": "boolean",
+                    "description": "Skip FastQC.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_picard_metrics": {
+                    "type": "boolean",
+                    "description": "Skip Picard CollectMultipleMetrics.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_preseq": {
+                    "type": "boolean",
+                    "description": "Skip Preseq.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_plot_profile": {
+                    "type": "boolean",
+                    "description": "Skip deepTools plotProfile.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_plot_fingerprint": {
+                    "type": "boolean",
+                    "description": "Skip deepTools plotFingerprint.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_igv": {
+                    "type": "boolean",
+                    "description": "Skip IGV.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_multiqc": {
+                    "type": "boolean",
+                    "description": "Skip MultiQC.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_qc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip all QC steps except for MultiQC."
+                },
+                "skip_diff_analysis": {
+                    "type": "string",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip differential accessibility analysis.",
+                    "default": "false"
+                },
+                "skip_ataqv": {
+                    "type": "string",
+                    "default": "false",
+                    "description": "Skip Ataqv.",
+                    "fa_icon": "fas fa-fast-forward"
                 }
             }
         },
