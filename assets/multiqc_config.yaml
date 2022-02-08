@@ -8,18 +8,6 @@ report_section_order:
     nf-core-atacseq-summary:
         order: -1001
 
-data_format: 'yaml'
-
-run_modules:
-    - custom_content
-    - fastqc
-    - cutadapt
-    - samtools
-    - picard
-    - preseq
-    - featureCounts
-    - deeptools
-
 exclude_modules:
     - 'general_stats'
 
