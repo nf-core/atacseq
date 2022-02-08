@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Bump minimum Nextflow version from `19.10.0` -> `21.10.3`
 * Updated pipeline template to [nf-core/tools 2.2](https://github.com/nf-core/tools/releases/tag/2.2)
 
-
 ### Other enhancements & fixes
 
 * Update pipeline template to nf-core/tools `2.2`
@@ -24,7 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | `--clusterOptions`           |                            |
 | `--conda`                    | `--enable_conda`           |
 | `--single_end`               |                            |
-
 
 > **NB:** Parameter has been __updated__ if both old and new parameter information is present.
 > **NB:** Parameter has been __added__ if just the new parameter information is present.
@@ -68,14 +66,14 @@ TODO: update all new dependencies
 * Replace `set` with `tuple` and `file()` with `path()` in all processes
 * Capitalise process names
 * Parameters:
-  * `--bwa_min_score` to set minimum alignment score for BWA MEM
-  * `--macs_fdr` to provide FDR threshold for MACS2 peak calling
-  * `--macs_pvalue` to provide p-value threshold for MACS2 peak calling
-  * `--skip_peak_qc` to skip MACS2 peak QC plot generation
-  * `--skip_peak_annotation` to skip annotation of MACS2 and consensus peaks with HOMER
-  * `--skip_consensus_peaks` to skip consensus peak generation
-  * `--deseq2_vst` to use variance stabilizing transformation (VST) instead of regularized log transformation (rlog) with DESeq2
-  * `--publish_dir_mode` to customise method of publishing results to output directory [nf-core/tools#585](https://github.com/nf-core/tools/issues/585)
+    * `--bwa_min_score` to set minimum alignment score for BWA MEM
+    * `--macs_fdr` to provide FDR threshold for MACS2 peak calling
+    * `--macs_pvalue` to provide p-value threshold for MACS2 peak calling
+    * `--skip_peak_qc` to skip MACS2 peak QC plot generation
+    * `--skip_peak_annotation` to skip annotation of MACS2 and consensus peaks with HOMER
+    * `--skip_consensus_peaks` to skip consensus peak generation
+    * `--deseq2_vst` to use variance stabilizing transformation (VST) instead of regularized log transformation (rlog) with DESeq2
+    * `--publish_dir_mode` to customise method of publishing results to output directory [nf-core/tools#585](https://github.com/nf-core/tools/issues/585)
 
 ### `Fixed`
 
@@ -136,14 +134,14 @@ TODO: update all new dependencies
 * Add `CITATIONS.md` file
 * Capitalised process names
 * Add parameters:
-  * `--seq_center`
-  * `--trim_nextseq`
-  * `--fingerprint_bins`
-  * `--broad_cutoff`
-  * `--min_reps_consensus`
-  * `--save_macs_pileup`
-  * `--skip_diff_analysis`
-  * `--skip_*` for skipping QC steps
+    * `--seq_center`
+    * `--trim_nextseq`
+    * `--fingerprint_bins`
+    * `--broad_cutoff`
+    * `--min_reps_consensus`
+    * `--save_macs_pileup`
+    * `--skip_diff_analysis`
+    * `--skip_*` for skipping QC steps
 
 ### `Fixed`
 
