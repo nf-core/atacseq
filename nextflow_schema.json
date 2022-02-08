@@ -348,13 +348,13 @@
                     "description": "Skip all QC steps except for MultiQC."
                 },
                 "skip_diff_analysis": {
-                    "type": "string",
+                    "type": "boolean",
                     "fa_icon": "fas fa-fast-forward",
                     "description": "Skip differential accessibility analysis.",
                     "default": "false"
                 },
                 "skip_ataqv": {
-                    "type": "string",
+                    "type": "boolean",
                     "default": "false",
                     "description": "Skip Ataqv.",
                     "fa_icon": "fas fa-fast-forward"

@@ -15,10 +15,16 @@
             "custom/getchromsizes": {
                 "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
             },
+            "fastqc": {
+                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+            },
             "gffread": {
                 "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
             },
             "gunzip": {
+                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+            },
+            "multiqc": {
                 "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
             },
             "untar": {
