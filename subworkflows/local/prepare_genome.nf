@@ -131,6 +131,6 @@ workflow PREPARE_GENOME {
     chrom_sizes   = ch_chrom_sizes            //    path: genome.sizes
     blacklist     = ch_blacklist              //    path: blacklist.bed
     bwa_index     = ch_bwa_index              //    path: bwa/index/
-    
+
     versions    = ch_versions.ifEmpty(null) // channel: [ versions.yml ]
 }
