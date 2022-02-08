@@ -5,4 +5,5 @@ lint:
     - assets/email_template.txt
     - lib/NfcoreTemplate.groovy
     - assets/multiqc_config.yaml
+    - .github/workflows/linting.yml
 
