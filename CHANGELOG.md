@@ -24,9 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | `--conda`                    | `--enable_conda`           |
 | `--single_end`               |                            |
 
-> **NB:** Parameter has been __updated__ if both old and new parameter information is present.
-> **NB:** Parameter has been __added__ if just the new parameter information is present.
-> **NB:** Parameter has been __removed__ if parameter information isn't present.
+> **NB:** Parameter has been **updated** if both old and new parameter information is present.
+> **NB:** Parameter has been **added** if just the new parameter information is present.
+> **NB:** Parameter has been **removed** if parameter information isn't present.
 
 ### Software dependencies
 
@@ -40,9 +40,9 @@ TODO: update all new dependencies
 |             |             |             |
 |             |             |             |
 
-> **NB:** Dependency has been __updated__ if both old and new version information is present.
-> **NB:** Dependency has been __added__ if just the new version information is present.
-> **NB:** Dependency has been __removed__ if version information isn't present.
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
 
 ## [1.2.1] - 2020-07-29
 
