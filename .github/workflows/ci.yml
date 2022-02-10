@@ -56,10 +56,10 @@ jobs:
     strategy:
       matrix:
         parameters:
-        - "--single_end"
-        - "--skip_trimming"
-        - "--skip_merge_replicates"
-        - "--skip_consensus_peaks"
+          - "--single_end"
+          - "--skip_trimming"
+          - "--skip_merge_replicates"
+          - "--skip_consensus_peaks"
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
