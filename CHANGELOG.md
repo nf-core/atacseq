@@ -5,15 +5,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unpublished Version / DEV]
 
-### `Added`
+### Major enhancements
 
-* Update pipeline template to nf-core/tools `1.12.1`
+* Port pipeline to the updated Nextflow DSL2 syntax adopted on nf-core/modules
+    * Removed `--publish_dir_mode` as it is no longer required for the new syntax
+* Bump minimum Nextflow version from `19.10.0` -> `21.10.3`
+* Updated pipeline template to [nf-core/tools 2.2](https://github.com/nf-core/tools/releases/tag/2.2)
 
-### `Fixed`
+### Other enhancements & fixes
 
-* [#139](https://github.com/nf-core/atacseq/issues/139) - mergedLibray plotHeatmap returning black graph
+* Update pipeline template to nf-core/tools `2.2`
 
-### `Dependencies`
+### Parameters
+
+| Old parameter                | New parameter              |
+|------------------------------|----------------------------|
+| `--clusterOptions`           |                            |
+| `--conda`                    | `--enable_conda`           |
+| `--single_end`               |                            |
+
+> **NB:** Parameter has been **updated** if both old and new parameter information is present.
+> **NB:** Parameter has been **added** if just the new parameter information is present.
+> **NB:** Parameter has been **removed** if parameter information isn't present.
+
+### Software dependencies
+
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+
+<!---
+TODO: update all new dependencies
+-->
+| Dependency  | Old version | New version |
+|-------------|-------------|-------------|
+|             |             |             |
+|             |             |             |
+
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
 
 ## [1.2.1] - 2020-07-29
 
@@ -37,14 +66,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Replace `set` with `tuple` and `file()` with `path()` in all processes
 * Capitalise process names
 * Parameters:
-  * `--bwa_min_score` to set minimum alignment score for BWA MEM
-  * `--macs_fdr` to provide FDR threshold for MACS2 peak calling
-  * `--macs_pvalue` to provide p-value threshold for MACS2 peak calling
-  * `--skip_peak_qc` to skip MACS2 peak QC plot generation
-  * `--skip_peak_annotation` to skip annotation of MACS2 and consensus peaks with HOMER
-  * `--skip_consensus_peaks` to skip consensus peak generation
-  * `--deseq2_vst` to use variance stabilizing transformation (VST) instead of regularized log transformation (rlog) with DESeq2
-  * `--publish_dir_mode` to customise method of publishing results to output directory [nf-core/tools#585](https://github.com/nf-core/tools/issues/585)
+    * `--bwa_min_score` to set minimum alignment score for BWA MEM
+    * `--macs_fdr` to provide FDR threshold for MACS2 peak calling
+    * `--macs_pvalue` to provide p-value threshold for MACS2 peak calling
+    * `--skip_peak_qc` to skip MACS2 peak QC plot generation
+    * `--skip_peak_annotation` to skip annotation of MACS2 and consensus peaks with HOMER
+    * `--skip_consensus_peaks` to skip consensus peak generation
+    * `--deseq2_vst` to use variance stabilizing transformation (VST) instead of regularized log transformation (rlog) with DESeq2
+    * `--publish_dir_mode` to customise method of publishing results to output directory [nf-core/tools#585](https://github.com/nf-core/tools/issues/585)
 
 ### `Fixed`
 
@@ -105,14 +134,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Add `CITATIONS.md` file
 * Capitalised process names
 * Add parameters:
-  * `--seq_center`
-  * `--trim_nextseq`
-  * `--fingerprint_bins`
-  * `--broad_cutoff`
-  * `--min_reps_consensus`
-  * `--save_macs_pileup`
-  * `--skip_diff_analysis`
-  * `--skip_*` for skipping QC steps
+    * `--seq_center`
+    * `--trim_nextseq`
+    * `--fingerprint_bins`
+    * `--broad_cutoff`
+    * `--min_reps_consensus`
+    * `--save_macs_pileup`
+    * `--skip_diff_analysis`
+    * `--skip_*` for skipping QC steps
 
 ### `Fixed`
 

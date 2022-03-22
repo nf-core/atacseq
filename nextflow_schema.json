@@ -16,21 +16,19 @@
             "properties": {
                 "input": {
                     "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/csv",
+                    "pattern": "^\\S+\\.csv$",
+                    "schema": "assets/schema_input.json",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row. See [usage docs](https://nf-co.re/atacseq/docs/usage#introduction).",
-                    "fa_icon": "fas fa-file-csv",
-                    "default": "./design.csv"
-                },
-                "single_end": {
-                    "type": "boolean",
-                    "description": "Specifies that the input is single-end reads.",
-                    "help_text": "By default, the pipeline expects paired-end data. If you have single-end data, specify this parameter on the command line when you launch the pipeline. It is not possible to run a mixture of single-end and paired-end files in one run.",
-                    "fa_icon": "fas fa-align-center"
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row. See [usage docs](https://nf-co.re/chipseq/docs/usage#introduction).",
+                    "fa_icon": "fas fa-file-csv"
                 },
                 "fragment_size": {
                     "type": "integer",
                     "description": "Estimated fragment size used to extend single-end reads.",
-                    "fa_icon": "fas fa-chart-area"
+                    "fa_icon": "fas fa-chart-area",
+                    "default": 200
                 },
                 "seq_center": {
                     "type": "string",
@@ -49,6 +47,11 @@
                     "fa_icon": "fas fa-envelope",
                     "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
                     "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
+                },
+                "multiqc_title": {
+                    "type": "string",
+                    "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
+                    "fa_icon": "fas fa-file-signature"
                 }
             }
         },
@@ -66,33 +69,46 @@
                 },
                 "fasta": {
                     "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
                     "description": "Path to FASTA genome file.",
-                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
+                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have the appropriate alignment index available this will be generated for you automatically. Combine with `--save_reference` to save alignment index for future runs.",
                     "fa_icon": "far fa-file-code"
                 },
                 "gtf": {
                     "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.gtf(\\.gz)?$",
                     "description": "Path to GTF annotation file.",
-                    "fa_icon": "fas fa-file-invoice",
+                    "fa_icon": "fas fa-code-branch",
                     "help_text": "This parameter is *mandatory* if `--genome` is not specified."
+                },
+                "gff": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.gff(\\.gz)?$",
+                    "fa_icon": "fas fa-code-branch",
+                    "description": "Path to GFF3 annotation file.",
+                    "help_text": "This parameter must be specified if `--genome` or `--gtf` are not specified."
                 },
                 "bwa_index": {
                     "type": "string",
-                    "description": "Full path to directory containing BWA index including base name. i.e. `/path/to/index/genome.fa`.",
+                    "description": "Path to directory or tar.gz archive for pre-built BWA index.",
                     "fa_icon": "fas fa-bezier-curve"
                 },
                 "gene_bed": {
                     "type": "string",
-                    "description": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified.",
-                    "fa_icon": "fas fa-procedures"
-                },
-                "tss_bed": {
-                    "type": "string",
-                    "description": "Path to BED file containing transcription start sites. This will be created from the gene BED file if not specified.",
-                    "fa_icon": "fas fa-procedures"
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.bed(\\.gz)?$",
+                    "fa_icon": "fas fa-procedures",
+                    "description": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified."
                 },
                 "macs_gsize": {
-                    "type": "string",
+                    "type": "number",
                     "description": "Effective genome size parameter required by MACS2.",
                     "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter is not specified then the MACS2 peak-calling and differential analysis will be skipped.",
                     "fa_icon": "fas fa-arrows-alt-h"
@@ -103,12 +119,6 @@
                     "help_text": "If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.",
                     "fa_icon": "fas fa-book-dead"
                 },
-                "mito_name": {
-                    "type": "string",
-                    "description": "Name of mitochondrial chomosome in reference assembly e.g. chrM.",
-                    "help_text": "Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the [`igenomes.config`](../conf/igenomes.config).",
-                    "fa_icon": "fas fa-signature"
-                },
                 "save_reference": {
                     "type": "boolean",
                     "description": "If generated by the pipeline save the BWA index in the results directory.",
@@ -117,8 +127,9 @@
                 },
                 "igenomes_base": {
                     "type": "string",
+                    "format": "directory-path",
                     "description": "Directory / URL base for iGenomes references.",
-                    "default": "s3://ngi-igenomes/igenomes/",
+                    "default": "s3://ngi-igenomes/igenomes",
                     "fa_icon": "fas fa-cloud-download-alt",
                     "hidden": true
                 },
@@ -128,6 +139,11 @@
                     "fa_icon": "fas fa-ban",
                     "hidden": true,
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                },
+                "keep_mito": {
+                    "type": "boolean",
+                    "description": "Reads mapping to mitochondrial contig are not filtered from alignments.",
+                    "default": "false"
                 }
             }
         },
@@ -183,11 +199,6 @@
             "fa_icon": "fas fa-map-signs",
             "description": "Options to adjust parameters and filtering criteria for read alignments.",
             "properties": {
-                "keep_mito": {
-                    "type": "boolean",
-                    "description": "Reads mapping to mitochondrial contig are not filtered from alignments.",
-                    "fa_icon": "fas fa-cart-arrow-down"
-                },
                 "keep_dups": {
                     "type": "boolean",
                     "description": "Duplicate reads are not filtered from alignments.",
@@ -202,18 +213,6 @@
                     "type": "integer",
                     "description": "Don\u2019t output BWA MEM alignments with score lower than this parameter.",
                     "fa_icon": "fas fa-hand-paper"
-                },
-                "skip_merge_replicates": {
-                    "type": "boolean",
-                    "description": "Do not perform alignment merging and downstream analysis by merging replicates i.e. only do this by merging resequenced libraries.",
-                    "help_text": "An additional series of steps are performed by the pipeline for merging the replicates from the same experimental group. This is primarily to increase the sequencing depth in order to perform downstream analyses such as footprinting. Specifying this parameter means that these steps will not be performed.",
-                    "fa_icon": "fas fa-fast-forward"
-                },
-                "save_align_intermeds": {
-                    "type": "boolean",
-                    "description": "Save the intermediate BAM files from the alignment step.",
-                    "help_text": "By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set this parameter to also save other intermediate BAM files.",
-                    "fa_icon": "fas fa-save"
                 },
                 "bamtools_filter_pe_config": {
                     "type": "string",
@@ -288,7 +287,7 @@
                 }
             }
         },
-        "differential_analysis_options": {
+        "deseq_qc_options": {
             "title": "Differential analysis options",
             "type": "object",
             "fa_icon": "fas fa-not-equal",
@@ -299,11 +298,6 @@
                     "description": "Use vst transformation instead of rlog with DESeq2.",
                     "help_text": "See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).",
                     "fa_icon": "fas fa-dolly"
-                },
-                "skip_diff_analysis": {
-                    "type": "boolean",
-                    "description": "Skip differential accessibility analysis.",
-                    "fa_icon": "fas fa-fast-forward"
                 }
             }
         },
@@ -338,11 +332,6 @@
                     "description": "Skip deepTools plotFingerprint.",
                     "fa_icon": "fas fa-fast-forward"
                 },
-                "skip_ataqv": {
-                    "type": "boolean",
-                    "description": "Skip Ataqv.",
-                    "fa_icon": "fas fa-fast-forward"
-                },
                 "skip_igv": {
                     "type": "boolean",
                     "description": "Skip IGV.",
@@ -351,6 +340,23 @@
                 "skip_multiqc": {
                     "type": "boolean",
                     "description": "Skip MultiQC.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "skip_qc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip all QC steps except for MultiQC."
+                },
+                "skip_diff_analysis": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip differential accessibility analysis.",
+                    "default": "false"
+                },
+                "skip_ataqv": {
+                    "type": "boolean",
+                    "default": "false",
+                    "description": "Skip Ataqv.",
                     "fa_icon": "fas fa-fast-forward"
                 }
             }
@@ -377,9 +383,9 @@
                     "help_text": "If you're running offline, Nextflow will not be able to fetch the institutional config files from the internet. If you don't need them, then this is not a problem. If you do need them, you should download the files from the repo and tell Nextflow where to find them with this parameter.",
                     "fa_icon": "fas fa-users-cog"
                 },
-                "hostnames": {
+                "config_profile_name": {
                     "type": "string",
-                    "description": "Institutional configs hostname.",
+                    "description": "Institutional config name.",
                     "hidden": true,
                     "fa_icon": "fas fa-users-cog"
                 },
@@ -423,6 +429,7 @@
                     "description": "Maximum amount of memory that can be requested for any single job.",
                     "default": "128.GB",
                     "fa_icon": "fas fa-memory",
+                    "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
                     "hidden": true,
                     "help_text": "Use to set an upper-limit for the memory requirement for each process. Should be a string in the format integer-unit e.g. `--max_memory '8.GB'`"
                 },
@@ -431,6 +438,7 @@
                     "description": "Maximum amount of time that can be requested for any single job.",
                     "default": "240.h",
                     "fa_icon": "far fa-clock",
+                    "pattern": "^(\\d+\\.?\\s*(s|m|h|day)\\s*)+$",
                     "hidden": true,
                     "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
                 }
@@ -456,29 +464,6 @@
                     "fa_icon": "fas fa-dumpster",
                     "hidden": true
                 },
-                "publish_dir_mode": {
-                    "type": "string",
-                    "default": "copy",
-                    "description": "Method used to save pipeline results to output directory.",
-                    "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
-                    "fa_icon": "fas fa-copy",
-                    "enum": [
-                        "symlink",
-                        "rellink",
-                        "link",
-                        "copy",
-                        "copyNoFollow",
-                        "move"
-                    ],
-                    "hidden": true
-                },
-                "name": {
-                    "type": "string",
-                    "description": "Workflow name.",
-                    "fa_icon": "fas fa-address-card",
-                    "help_text": "A custom name for the pipeline run. Unlike the core nextflow `-name` option with one hyphen this parameter can be reused multiple times, for example if using `-resume`. Passed through to steps such as MultiQC and used for things like report filenames and titles.",
-                    "hidden": true
-                },
                 "email_on_fail": {
                     "type": "string",
                     "description": "Email address for completion summary, only when pipeline fails.",
@@ -496,6 +481,7 @@
                 "max_multiqc_email_size": {
                     "type": "string",
                     "description": "File size limit when attaching MultiQC reports to summary emails.",
+                    "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
                     "default": "25.MB",
                     "fa_icon": "fas fa-file-upload",
                     "hidden": true
@@ -519,11 +505,25 @@
                     "fa_icon": "fas fa-cogs",
                     "hidden": true
                 },
-                "clusterOptions": {
-                    "type": "string",
-                    "description": "Arguments passed to Nextflow clusterOptions.",
-                    "fa_icon": "fas fa-network-wired",
+                "validate_params": {
+                    "type": "boolean",
+                    "description": "Boolean whether to validate parameters against the schema at runtime",
+                    "default": true,
+                    "fa_icon": "fas fa-check-square",
                     "hidden": true
+                },
+                "show_hidden_params": {
+                    "type": "boolean",
+                    "fa_icon": "far fa-eye-slash",
+                    "description": "Show all params when using `--help`",
+                    "hidden": true,
+                    "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
+                },
+                "enable_conda": {
+                    "type": "boolean",
+                    "description": "Run this workflow with Conda. You can also use '-profile conda' instead of providing this parameter.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-bacon"
                 }
             }
         }
@@ -545,7 +545,7 @@
             "$ref": "#/definitions/peak_calling_options"
         },
         {
-            "$ref": "#/definitions/differential_analysis_options"
+            "$ref": "#/definitions/deseq_qc_options"
         },
         {
             "$ref": "#/definitions/process_skipping_options"
