@@ -4,31 +4,31 @@
     "repos": {
         "nf-core/modules": {
             "bwa/index": {
-                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "bwa/mem": {
-                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+                "git_sha": "950700bcdc0e9a2b6883d40d2c51c6fc435cd714"
             },
             "custom/dumpsoftwareversions": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "custom/getchromsizes": {
-                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+                "git_sha": "950700bcdc0e9a2b6883d40d2c51c6fc435cd714"
             },
             "fastqc": {
                 "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
             },
             "gffread": {
-                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "gunzip": {
-                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "multiqc": {
                 "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
             },
             "untar": {
-                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+                "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
             }
         }
     }
