@@ -1,8 +1,8 @@
+repository_type: pipeline
 lint:
   files_unchanged:
-    - .markdownlint.yml
-    - assets/email_template.html
-    - assets/email_template.txt
-    - lib/NfcoreTemplate.groovy
-    - assets/multiqc_config.yaml
+    - .github/workflows/branch.yml
+    - .github/workflows/linting_comment.yml
     - .github/workflows/linting.yml
+    - .github/PULL_REQUEST_TEMPLATE.md
+    - bin/check_samplesheet.py
