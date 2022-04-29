@@ -3,6 +3,15 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2022-04-29
+
+* Minor patch release to fix Conda environment
+
+### `Dependencies`
+
+* Update r-base `3.6.2` -> `3.6.3`
+* Update r-xfun `0.15`  -> `0.20`
+
 ## [1.2.1] - 2020-07-29
 
 * [#118](https://github.com/nf-core/atacseq/issues/118) - Minor patch release to update pipeline schema
