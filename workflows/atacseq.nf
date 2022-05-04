@@ -82,6 +82,7 @@ include { PREPARE_GENOME      } from '../subworkflows/local/prepare_genome'
 //
 // MODULE: Installed directly from nf-core/modules
 //
+include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'
 
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
 
@@ -112,6 +113,49 @@ workflow ATACSEQ {
         params.seq_center
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
+
+    //
+    // SUBWORKFLOW: Read QC and trim adapters
+    //
+    FASTQC_TRIMGALORE (
+        INPUT_CHECK.out.reads,
+        params.skip_fastqc || params.skip_qc,
+        params.skip_trimming
+    )
+    ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
+
+    //
+    // ADAPTER TRIMMING
+    //
+
+    //
+    // ALIGN
+    //
+
+    //
+    // MERGE LIBRARY BAM
+    //
+
+    //
+    // MERGE LIBRARY BAM POST-ANALYSIS
+    //
+
+    //
+    // MERGE LIBRARY PEAK ANALYSIS
+    //
+
+    //
+    // MERGE REPLICATE BAM
+    //
+
+    //
+    // MERGE REPLICATE BAM POST-ANALYSIS
+    //
+
+            //
+            // Create IGV session
+            //
+
 
     //
     // MODULE: Pipeline reporting
