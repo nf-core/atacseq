@@ -5,12 +5,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [1.2.2] - 2022-04-29
 
-* Minor patch release to fix Conda environment
-
+* Minor patch release to fix Conda environment and enable DSL1 by default in the `nextflow.config`.
 ### `Dependencies`
 
 * Update r-base `3.6.2` -> `3.6.3`
-* Update r-xfun `0.15`  -> `0.20`
+* Update r-xfun `0.15`  -> `0.22`
 
 ## [1.2.1] - 2020-07-29
 
