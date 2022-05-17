@@ -7,10 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Major enhancements
 
+- Updated pipeline template to [nf-core/tools 2.4.1](https://github.com/nf-core/tools/releases/tag/2.4.1)
 - Port pipeline to the updated Nextflow DSL2 syntax adopted on nf-core/modules
   - Removed `--publish_dir_mode` as it is no longer required for the new syntax
 - Bump minimum Nextflow version from `19.10.0` -> `21.10.3`
-- Updated pipeline template to [nf-core/tools 2.2](https://github.com/nf-core/tools/releases/tag/2.2)
 
 ### Other enhancements & fixes
 
