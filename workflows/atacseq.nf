@@ -71,6 +71,7 @@ include { MACS2_CONSENSUS                     } from '../modules/local/macs2_con
 // include { DESEQ2_QC                           } from '../modules/local/deseq2_qc'
 // include { IGV                                 } from '../modules/local/igv'
 include { MULTIQC                             } from '../modules/local/multiqc'
+include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_custom_peaks'
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -277,29 +278,14 @@ workflow ATACSEQ {
     }
 
     //
-    // Refactor channels: [ val(meta), [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
+    // Refactor channels: [ val(meta), bam, bai ]
     //
     FILTER_BAM_BAMTOOLS
         .out
         .bam
         .join (FILTER_BAM_BAMTOOLS.out.bai, by: [0])
-        .map {
-            meta, bam, bai ->
-                meta.control ? null : [ meta.id, [ bam ] , [ bai ] ]
-        }
-        .set { ch_control_bam_bai }
+        .set { ch_bam_bai }
 
-    FILTER_BAM_BAMTOOLS
-        .out
-        .bam
-        .join (FILTER_BAM_BAMTOOLS.out.bai, by: [0])
-        .map {
-            meta, bam, bai ->
-                meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null
-        }
-        .combine(ch_control_bam_bai, by: 0)
-        .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
-        .set { ch_ip_control_bam_bai }
 
     //
     // plotFingerprint for IP and control together
@@ -307,7 +293,7 @@ workflow ATACSEQ {
     ch_deeptoolsplotfingerprint_multiqc = Channel.empty()
     if (!params.skip_plot_fingerprint) {
         DEEPTOOLS_PLOTFINGERPRINT (
-            ch_ip_control_bam_bai
+            ch_bam_bai
         )
         ch_deeptools_plotfingerprintmultiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
         ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
@@ -322,8 +308,8 @@ workflow ATACSEQ {
     // ch_subreadfeaturecounts_multiqc   = Channel.empty()
     if (params.macs_gsize) {
         // Create channel: [ val(meta), ip_bam, control_bam ]
-        ch_ip_control_bam_bai
-            .map { meta, bams, bais -> [ meta , bams[0], bams[1] ] }
+        ch_bam_bai
+            .map { meta, bam, bai -> [ meta , bam, [] ] }
             .set { ch_ip_control_bam }
 
         MACS2_CALLPEAK (
@@ -429,8 +415,8 @@ workflow ATACSEQ {
             //     // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
             //     // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
             // }
-
-
+        }
+    }
 
     //
     // MERGE REPLICATE BAM
