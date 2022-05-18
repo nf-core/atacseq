@@ -197,6 +197,13 @@
             "fa_icon": "fas fa-map-signs",
             "description": "Options to adjust parameters and filtering criteria for read alignments.",
             "properties": {
+                "aligner": {
+                    "type": "string",
+                    "default": "bwa",
+                    "description": "Specifies the alignment algorithm to use - available options is 'bwa'.",
+                    "fa_icon": "fas fa-map-signs",
+                    "enum": ["bwa", "bowtie2", "chromap", "star"]
+                },
                 "keep_dups": {
                     "type": "boolean",
                     "description": "Duplicate reads are not filtered from alignments.",
@@ -211,6 +218,12 @@
                     "type": "integer",
                     "description": "Don\u2019t output BWA MEM alignments with score lower than this parameter.",
                     "fa_icon": "fas fa-hand-paper"
+                },
+                "save_align_intermeds": {
+                    "type": "boolean",
+                    "description": "Save the intermediate BAM files from the alignment step.",
+                    "help_text": "By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set this parameter to also save other intermediate BAM files.",
+                    "fa_icon": "fas fa-save"
                 },
                 "bamtools_filter_pe_config": {
                     "type": "string",
