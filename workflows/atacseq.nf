@@ -310,10 +310,10 @@ workflow ATACSEQ {
         // Create channel: [ val(meta), ip_bam, control_bam ]
         ch_bam_bai
             .map { meta, bam, bai -> [ meta , bam, [] ] }
-            .set { ch_ip_control_bam }
+            .set { ch_bam }
 
         MACS2_CALLPEAK (
-            ch_ip_control_bam,
+            ch_bam,
             params.macs_gsize
         )
         ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions.first())
@@ -327,23 +327,23 @@ workflow ATACSEQ {
             .filter { meta, peaks -> peaks.size() > 0 }
             .set { ch_macs2_peaks }
 
-        ch_ip_control_bam
+        ch_bam
             .join(ch_macs2_peaks, by: [0])
             .map { it -> [ it[0], it[1], it[3] ] }
-            .set { ch_ip_peak }
+            .set { ch_peak }
 
         FRIP_SCORE (
-            ch_ip_peak
+            ch_peak
         )
         ch_versions = ch_versions.mix(FRIP_SCORE.out.versions.first())
 
-        ch_ip_peak
+        ch_peak
             .join(FRIP_SCORE.out.txt, by: [0])
             .map { it -> [ it[0], it[2], it[3] ] }
-            .set { ch_ip_peak_frip }
+            .set { ch_peak_frip }
 
         MULTIQC_CUSTOM_PEAKS (
-            ch_ip_peak_frip,
+            ch_peak_frip,
             ch_mlib_peak_count_header,
             ch_mlib_frip_score_header
         )
@@ -381,29 +381,28 @@ workflow ATACSEQ {
             // Create channel: [ meta , [ peaks ] ]
             // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
             ch_macs2_peaks
-                .map { meta, peak -> [ meta.antibody, meta.id.split('_')[0..-2].join('_'), peak ] }
+                .map { meta, peak -> [ meta.id.split('_')[0..-2].join('_'), peak ] }
                 .groupTuple()
                 .map {
-                    antibody, groups, peaks ->
+                    groups, peaks ->
                         [
-                            antibody,
                             groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
                             peaks
                         ] }
                 .map {
-                    antibody, groups, peaks ->
+                    groups, peaks ->
                         def meta = [:]
-                        meta.id = antibody
+                        meta.id = 'consensus_peaks'
                         meta.multiple_groups = groups.size() > 1
                         meta.replicates_exist = groups.max { groups.value }.value > 1
                         [ meta, peaks ] }
-                .set { ch_antibody_peaks }
+                .set { ch_consensus_peaks }
 
             //L1285?    find * -type f -name "${prefix}.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/"{}"\\t0,0,0" \\; > ${prefix}.bed.igv.txt
             MACS2_CONSENSUS (
-                ch_antibody_peaks
+                ch_consensus_peaks
             )
-            // ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
+            ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
 
             // if (!params.skip_peak_annotation) {
             //     HOMER_ANNOTATEPEAKS_CONSENSUS (
