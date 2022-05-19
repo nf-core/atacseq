@@ -99,10 +99,11 @@ include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/modules/deept
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deeptools/plotheatmap/main'
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'
 include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'
+include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
 
 include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2     } from '../modules/nf-core/modules/homer/annotatepeaks/main'
-// include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/modules/homer/annotatepeaks/main'
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS } from '../modules/nf-core/modules/homer/annotatepeaks/main'
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -381,10 +382,10 @@ workflow ATACSEQ {
             // Create channel: [ meta , [ peaks ] ]
             // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
             ch_macs2_peaks
-                .map { meta, peak -> [ meta.id.split('_')[0..-2].join('_'), peak ] }
+                .map { meta, peak -> [ '', meta.id.split('_')[0..-2].join('_'), peak ] }
                 .groupTuple()
                 .map {
-                    groups, peaks ->
+                    key, groups, peaks ->
                         [
                             groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
                             peaks
@@ -404,16 +405,43 @@ workflow ATACSEQ {
             )
             ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
 
-            // if (!params.skip_peak_annotation) {
-            //     HOMER_ANNOTATEPEAKS_CONSENSUS (
-            //         MACS2_CONSENSUS.out.bed,
-            //         PREPARE_GENOME.out.fasta,
-            //         PREPARE_GENOME.out.gtf
-            //     )
-            //     ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS.out.versions)
-            //     // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-            //     // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
-            // }
+            if (!params.skip_peak_annotation) {
+                HOMER_ANNOTATEPEAKS_CONSENSUS (
+                    MACS2_CONSENSUS.out.bed,
+                    PREPARE_GENOME.out.fasta,
+                    PREPARE_GENOME.out.gtf
+                )
+                ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS.out.versions)
+                // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
+                // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
+            }
+
+            // // Create channel: [ val(meta), ip_bam ]
+            // MACS2_CONSENSUS
+            //     .out
+            //     .saf
+            //     .map { meta, saf -> [ meta.id, meta, saf ] }
+            //     .set { ch_ip_saf }
+
+            // ch_bam
+            //     .map { meta, ip_bam, control_bam -> [ meta, ip_bam ] }
+            //     .groupTuple()
+            //     .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
+            //     .join(ch_ip_saf)
+            //     .map {
+            //         it ->
+            //             fmeta = it[1]
+            //             fmeta['id'] = it[3]['id']
+            //             fmeta['replicates_exist'] = it[3]['replicates_exist']
+            //             fmeta['multiple_groups']  = it[3]['multiple_groups']
+            //             [ fmeta, it[2], it[4] ] }
+            //     .set { ch_ip_bam }
+
+            // SUBREAD_FEATURECOUNTS (
+            //     ch_ip_bam
+            // )
+            // ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS.out.summary
+            // ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
         }
     }
 
@@ -428,7 +456,6 @@ workflow ATACSEQ {
             //
             // Create IGV session
             //
-
 
     //
     // MODULE: Pipeline reporting
