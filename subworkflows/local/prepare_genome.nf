@@ -9,10 +9,10 @@ include {
     GUNZIP as GUNZIP_GENE_BED
     GUNZIP as GUNZIP_BLACKLIST } from '../../modules/nf-core/modules/gunzip/main'
 
-include { UNTAR as UNTAR_BWA_INDEX } from '../../modules/nf-core/modules/untar/main'
-include { GFFREAD                  } from '../../modules/nf-core/modules/gffread/main'
-include { CUSTOM_GETCHROMSIZES     } from '../../modules/nf-core/modules/custom/getchromsizes/main'
-include { BWA_INDEX                } from '../../modules/nf-core/modules/bwa/index/main'
+include { UNTAR                } from '../../modules/nf-core/modules/untar/main'
+include { GFFREAD              } from '../../modules/nf-core/modules/gffread/main'
+include { CUSTOM_GETCHROMSIZES } from '../../modules/nf-core/modules/custom/getchromsizes/main'
+include { BWA_INDEX            } from '../../modules/nf-core/modules/bwa/index/main'
 
 include { GTF2BED                  } from '../../modules/local/gtf2bed'
 include { GENOME_BLACKLIST_REGIONS } from '../../modules/local/genome_blacklist_regions'
@@ -117,8 +117,8 @@ workflow PREPARE_GENOME {
     ch_bwa_index = Channel.empty()
     if (params.bwa_index) {
         if (params.bwa_index.endsWith('.tar.gz')) {
-            ch_bwa_index = UNTAR_BWA_INDEX ( [:], params.bwa_index ).untar.map{ it[1] }
-            ch_versions  = ch_versions.mix(UNTAR_BWA_INDEX.out.versions)
+            ch_bwa_index = UNTAR ( [:], params.bwa_index ).untar.map{ it[1] }
+            ch_versions  = ch_versions.mix(UNTAR.out.versions)
         } else {
             ch_bwa_index = file(params.bwa_index)
         }

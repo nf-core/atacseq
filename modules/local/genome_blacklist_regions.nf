@@ -23,7 +23,7 @@ process GENOME_BLACKLIST_REGIONS {
     def mito_filter = params.keep_mito ? '' : name_filter
     if (blacklist) {
         """
-        sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes > $file_out
+        sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes $mito_filter > $file_out
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
@@ -32,7 +32,7 @@ process GENOME_BLACKLIST_REGIONS {
         """
     } else {
         """
-        awk '{print \$1, '0' , \$2}' OFS='\t' $sizes > $file_out
+        awk '{print \$1, '0' , \$2}' OFS='\t' $sizes $mito_filter > $file_out
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":

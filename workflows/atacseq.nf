@@ -211,6 +211,18 @@ workflow ATACSEQ {
     ch_versions = ch_versions.mix(FILTER_BAM_BAMTOOLS.out.versions.first().ifEmpty(null))
 
     //
+    // MODULE: Library coverage
+    //
+    ch_preseq_multiqc = Channel.empty()
+    if (!params.skip_preseq) {
+        PRESEQ_LCEXTRAP (
+            MARK_DUPLICATES_PICARD.out.bam
+        )
+        ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
+        ch_versions       = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
+    }
+
+    //
     // MODULE: Post alignment QC
     //
     ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
@@ -219,22 +231,8 @@ workflow ATACSEQ {
             FILTER_BAM_BAMTOOLS.out.bam,
             PREPARE_GENOME.out.fasta
         )
-        ch_picardcollectmultiplemetrics_multiqc = MARK_DUPLICATES_PICARD.out.metrics
+        ch_picardcollectmultiplemetrics_multiqc = PICARD_COLLECTMULTIPLEMETRICS.out.metrics
         ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
-    }
-
-    //
-    // MODULE: Library coverage
-    //
-    ch_preseq_multiqc = Channel.empty()
-    if (!params.skip_preseq) {
-        PRESEQ_LCEXTRAP (
-            // TODO: check whether argument is not possibly rather
-            // MARK_DUPLICATES_PICARD.out.bam
-            FILTER_BAM_BAMTOOLS.out.bam
-        )
-        ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
-        ch_versions       = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
     }
 
     //
@@ -286,7 +284,6 @@ workflow ATACSEQ {
         .bam
         .join (FILTER_BAM_BAMTOOLS.out.bai, by: [0])
         .set { ch_bam_bai }
-
 
     //
     // plotFingerprint for IP and control together
@@ -352,13 +349,7 @@ workflow ATACSEQ {
         ch_custompeaks_frip_multiqc  = MULTIQC_CUSTOM_PEAKS.out.frip
         ch_custompeaks_count_multiqc = MULTIQC_CUSTOM_PEAKS.out.count
 
-        if (!params.skip_peak_annotation && !params.skip_peak_qc) {
-            PLOT_MACS2_QC (
-                ch_macs2_peaks.collect{it[1]}
-            )
-            ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
-
-            // Check if this should be run if params.skip_peak_qc is set
+        if (!params.skip_peak_annotation) {
             HOMER_ANNOTATEPEAKS_MACS2 (
                 ch_macs2_peaks,
                 PREPARE_GENOME.out.fasta,
@@ -366,13 +357,20 @@ workflow ATACSEQ {
             )
             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2.out.versions.first())
 
-            PLOT_HOMER_ANNOTATEPEAKS (
-                HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
-                ch_mlib_peak_annotation_header,
-                "_peaks.annotatePeaks.txt"
-            )
-            ch_plothomerannotatepeaks_multiqc = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
-            ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
+            if (!params.skip_peak_qc){
+                PLOT_MACS2_QC (
+                    ch_macs2_peaks.collect{it[1]}
+                )
+                ch_versions = ch_versions.mix(PLOT_MACS2_QC.out.versions)
+
+                PLOT_HOMER_ANNOTATEPEAKS (
+                    HOMER_ANNOTATEPEAKS_MACS2.out.txt.collect{it[1]},
+                    ch_mlib_peak_annotation_header,
+                    "_peaks.annotatePeaks.txt"
+                )
+                ch_plothomerannotatepeaks_multiqc = PLOT_HOMER_ANNOTATEPEAKS.out.tsv
+                ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS.out.versions)
+            }
         }
 
         //
@@ -381,6 +379,7 @@ workflow ATACSEQ {
         if (!params.skip_consensus_peaks) {
             // Create channel: [ meta , [ peaks ] ]
             // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
+            // TODO: simplify groupTuple
             ch_macs2_peaks
                 .map { meta, peak -> [ '', meta.id.split('_')[0..-2].join('_'), peak ] }
                 .groupTuple()
@@ -424,7 +423,7 @@ workflow ATACSEQ {
             //     .set { ch_ip_saf }
 
             // ch_bam
-            //     .map { meta, ip_bam, control_bam -> [ meta, ip_bam ] }
+            //     .map { meta, bam, emptylist -> [ '',  meta, bam ] }
             //     .groupTuple()
             //     .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
             //     .join(ch_ip_saf)
@@ -435,7 +434,7 @@ workflow ATACSEQ {
             //             fmeta['replicates_exist'] = it[3]['replicates_exist']
             //             fmeta['multiple_groups']  = it[3]['multiple_groups']
             //             [ fmeta, it[2], it[4] ] }
-            //     .set { ch_ip_bam }
+            //     .set { ch_bam_saf }
 
             // SUBREAD_FEATURECOUNTS (
             //     ch_ip_bam
