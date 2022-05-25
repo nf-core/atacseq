@@ -309,6 +309,11 @@
                     "description": "Use vst transformation instead of rlog with DESeq2.",
                     "help_text": "See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).",
                     "fa_icon": "fas fa-dolly"
+                },
+                "skip_deseq2_qc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip DESeq2 PCA and heatmap plotting."
                 }
             }
         },
@@ -357,12 +362,6 @@
                     "type": "boolean",
                     "fa_icon": "fas fa-fast-forward",
                     "description": "Skip all QC steps except for MultiQC."
-                },
-                "skip_diff_analysis": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-fast-forward",
-                    "description": "Skip differential accessibility analysis.",
-                    "default": "false"
                 },
                 "skip_ataqv": {
                     "type": "boolean",

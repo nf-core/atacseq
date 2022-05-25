@@ -48,8 +48,8 @@ ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExi
 ch_mlib_peak_count_header = file("$baseDir/assets/multiqc/mlib_peak_count_header.txt", checkIfExists: true)
 ch_mlib_frip_score_header = file("$baseDir/assets/multiqc/mlib_frip_score_header.txt", checkIfExists: true)
 ch_mlib_peak_annotation_header = file("$baseDir/assets/multiqc/mlib_peak_annotation_header.txt", checkIfExists: true)
-// ch_mlib_deseq2_pca_header = file("$baseDir/assets/multiqc/mlib_deseq2_pca_header.txt", checkIfExists: true)
-// ch_mlib_deseq2_clustering_header = file("$baseDir/assets/multiqc/mlib_deseq2_clustering_header.txt", checkIfExists: true)
+ch_mlib_deseq2_pca_header = file("$baseDir/assets/multiqc/mlib_deseq2_pca_header.txt", checkIfExists: true)
+ch_mlib_deseq2_clustering_header = file("$baseDir/assets/multiqc/mlib_deseq2_clustering_header.txt", checkIfExists: true)
 
 // ch_mrep_peak_count_header = file("$baseDir/assets/multiqc/mrep_peak_count_header.txt", checkIfExists: true)
 // ch_mrep_frip_score_header = file("$baseDir/assets/multiqc/mrep_frip_score_header.txt", checkIfExists: true)
@@ -68,7 +68,7 @@ include { FRIP_SCORE                          } from '../modules/local/frip_scor
 include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs2_qc'
 include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'
 include { MACS2_CONSENSUS                     } from '../modules/local/macs2_consensus'
-// include { DESEQ2_QC                           } from '../modules/local/deseq2_qc'
+include { DESEQ2_QC                           } from '../modules/local/deseq2_qc'
 // include { IGV                                 } from '../modules/local/igv'
 include { MULTIQC                             } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_custom_peaks'
@@ -415,32 +415,40 @@ workflow ATACSEQ {
                 // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
             }
 
-            // // Create channel: [ val(meta), ip_bam ]
-            // MACS2_CONSENSUS
-            //     .out
-            //     .saf
-            //     .map { meta, saf -> [ meta.id, meta, saf ] }
-            //     .set { ch_ip_saf }
+            // Create channel: [ val(meta), ip_bam ]
+            MACS2_CONSENSUS
+                .out
+                .saf
+                .map { meta, saf -> [ meta.id, meta, saf ] }
+                .set { ch_saf }
 
-            // ch_bam
-            //     .map { meta, bam, emptylist -> [ '',  meta, bam ] }
-            //     .groupTuple()
-            //     .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
-            //     .join(ch_ip_saf)
-            //     .map {
-            //         it ->
-            //             fmeta = it[1]
-            //             fmeta['id'] = it[3]['id']
-            //             fmeta['replicates_exist'] = it[3]['replicates_exist']
-            //             fmeta['multiple_groups']  = it[3]['multiple_groups']
-            //             [ fmeta, it[2], it[4] ] }
-            //     .set { ch_bam_saf }
+            ch_bam
+                .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
+                .groupTuple()
+                .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
+                .join(ch_saf)
+                .map {
+                    it ->
+                        fmeta = it[1]
+                        fmeta['id'] = it[3]['id']
+                        fmeta['replicates_exist'] = it[3]['replicates_exist']
+                        fmeta['multiple_groups']  = it[3]['multiple_groups']
+                        [ fmeta, it[2], it[4] ] }
+                .set { ch_bam_saf }
 
-            // SUBREAD_FEATURECOUNTS (
-            //     ch_ip_bam
-            // )
-            // ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS.out.summary
-            // ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
+            SUBREAD_FEATURECOUNTS (
+                ch_bam_saf
+            )
+            ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS.out.summary
+            ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions.first())
+
+            if (!params.skip_deseq2_qc) {
+                DESEQ2_QC (
+                    SUBREAD_FEATURECOUNTS.out.counts,
+                    ch_mlib_deseq2_pca_header,
+                    ch_mlib_deseq2_clustering_header
+                )
+            }
         }
     }
 
