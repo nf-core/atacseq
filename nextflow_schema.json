@@ -197,6 +197,13 @@
             "fa_icon": "fas fa-map-signs",
             "description": "Options to adjust parameters and filtering criteria for read alignments.",
             "properties": {
+                "aligner": {
+                    "type": "string",
+                    "default": "bwa",
+                    "description": "Specifies the alignment algorithm to use - available options is 'bwa'.",
+                    "fa_icon": "fas fa-map-signs",
+                    "enum": ["bwa"]
+                },
                 "keep_dups": {
                     "type": "boolean",
                     "description": "Duplicate reads are not filtered from alignments.",
@@ -211,6 +218,12 @@
                     "type": "integer",
                     "description": "Don\u2019t output BWA MEM alignments with score lower than this parameter.",
                     "fa_icon": "fas fa-hand-paper"
+                },
+                "save_align_intermeds": {
+                    "type": "boolean",
+                    "description": "Save the intermediate BAM files from the alignment step.",
+                    "help_text": "By default, intermediate BAM files will not be saved. The final BAM files created after the appropriate filtering step are always saved to limit storage usage. Set this parameter to also save other intermediate BAM files.",
+                    "fa_icon": "fas fa-save"
                 },
                 "bamtools_filter_pe_config": {
                     "type": "string",
@@ -296,6 +309,11 @@
                     "description": "Use vst transformation instead of rlog with DESeq2.",
                     "help_text": "See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization).",
                     "fa_icon": "fas fa-dolly"
+                },
+                "skip_deseq2_qc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-fast-forward",
+                    "description": "Skip DESeq2 PCA and heatmap plotting."
                 }
             }
         },
@@ -344,12 +362,6 @@
                     "type": "boolean",
                     "fa_icon": "fas fa-fast-forward",
                     "description": "Skip all QC steps except for MultiQC."
-                },
-                "skip_diff_analysis": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-fast-forward",
-                    "description": "Skip differential accessibility analysis.",
-                    "default": "false"
                 },
                 "skip_ataqv": {
                     "type": "boolean",
