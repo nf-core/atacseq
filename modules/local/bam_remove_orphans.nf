@@ -17,7 +17,7 @@ process BAM_REMOVE_ORPHANS {
     tuple val(meta), path("${prefix}.bam"), emit: bam
     path "versions.yml"                   , emit: versions
 
-    script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
+    script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
     def args = task.ext.args ?: ''
     prefix   = task.ext.prefix ?: "${meta.id}"
     if (!meta.single_end) {

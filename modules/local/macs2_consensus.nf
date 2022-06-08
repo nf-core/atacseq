@@ -24,7 +24,7 @@ process MACS2_CONSENSUS {
     when:
     (meta.multiple_groups || meta.replicates_exist)
 
-    script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
+    script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
 
     def prefix       = task.ext.prefix    ?: "${meta.id}"
     def peak_type    = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
