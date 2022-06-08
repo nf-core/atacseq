@@ -100,6 +100,7 @@ include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/modules/deept
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/modules/deeptools/plotfingerprint/main'
 include { MACS2_CALLPEAK                } from '../modules/nf-core/modules/macs2/callpeak/main'
 include { SUBREAD_FEATURECOUNTS         } from '../modules/nf-core/modules/subread/featurecounts/main'
+include { ATAQV_ATAQV                   } from '../modules/nf-core/modules/ataqv/ataqv/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
 
 include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2     } from '../modules/nf-core/modules/homer/annotatepeaks/main'
@@ -277,7 +278,7 @@ workflow ATACSEQ {
     }
 
     //
-    // Refactor channels: [ val(meta), bam, bai ]
+    // Refactor channels: [ val(meta), [bam], [bai] ]
     //
     FILTER_BAM_BAMTOOLS
         .out
@@ -303,9 +304,10 @@ workflow ATACSEQ {
     ch_custompeaks_frip_multiqc       = Channel.empty()
     ch_custompeaks_count_multiqc      = Channel.empty()
     ch_plothomerannotatepeaks_multiqc = Channel.empty()
-    // ch_subreadfeaturecounts_multiqc   = Channel.empty()
+    ch_macs2_peaks                    = Channel.empty()
+    ch_subreadfeaturecounts_multiqc   = Channel.empty()
     if (params.macs_gsize) {
-        // Create channel: [ val(meta), ip_bam, control_bam ]
+        // Create channel: [ val(meta), bam, empty_list ]
         ch_bam_bai
             .map { meta, bam, bai -> [ meta , bam, [] ] }
             .set { ch_bam }
@@ -378,7 +380,7 @@ workflow ATACSEQ {
         //
         if (!params.skip_consensus_peaks) {
             // Create channel: [ meta , [ peaks ] ]
-            // Where meta = [ id:antibody, multiple_groups:true/false, replicates_exist:true/false ]
+            // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
             // TODO: simplify groupTuple
             ch_macs2_peaks
                 .map { meta, peak -> [ '', meta.id.split('_')[0..-2].join('_'), peak ] }
@@ -415,7 +417,7 @@ workflow ATACSEQ {
                 // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
             }
 
-            // Create channel: [ val(meta), ip_bam ]
+            // Create channel: [ val(meta), bam ]
             MACS2_CONSENSUS
                 .out
                 .saf
@@ -450,6 +452,25 @@ workflow ATACSEQ {
                 )
             }
         }
+    }
+
+    // Create channel: [ val(meta), bam, bai, peak_file]
+    MARK_DUPLICATES_PICARD
+        .out
+        .bam
+        .join(MARK_DUPLICATES_PICARD.out.bai, by: [0])
+        .join(ch_macs2_peaks, by: [0])
+        .set { ch_bam_peak }
+
+    if (!params.skip_ataqv) {
+        ATAQV_ATAQV (
+            ch_bam_peak,
+            'NA',
+            PREPARE_GENOME.out.tss_bed,
+            [],
+            PREPARE_GENOME.out.autosomes
+        )
+        ch_versions = ch_versions.mix(ATAQV_ATAQV.out.versions)
     }
 
     //

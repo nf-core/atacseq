@@ -3,6 +3,9 @@
     "homePage": "https://github.com/nf-core/atacseq",
     "repos": {
         "nf-core/modules": {
+            "ataqv/ataqv": {
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+            },
             "bwa/index": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
