@@ -69,6 +69,7 @@ include { PLOT_MACS2_QC                       } from '../modules/local/plot_macs
 include { PLOT_HOMER_ANNOTATEPEAKS            } from '../modules/local/plot_homer_annotatepeaks'
 include { MACS2_CONSENSUS                     } from '../modules/local/macs2_consensus'
 include { DESEQ2_QC                           } from '../modules/local/deseq2_qc'
+include { ATAQV_MKARV                         } from '../modules/local/ataqv_mkarv'
 // include { IGV                                 } from '../modules/local/igv'
 include { MULTIQC                             } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_PEAKS                } from '../modules/local/multiqc_custom_peaks'
@@ -471,6 +472,11 @@ workflow ATACSEQ {
             PREPARE_GENOME.out.autosomes
         )
         ch_versions = ch_versions.mix(ATAQV_ATAQV.out.versions)
+
+        ATAQV_MKARV (
+            ATAQV_ATAQV.out.json.collect{it[1]}
+        )
+        ch_versions = ch_versions.mix(ATAQV_MKARV.out.versions)
     }
 
     //

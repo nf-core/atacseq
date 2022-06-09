@@ -1,5 +1,4 @@
-process ATAQV_ATAQV {
-    tag "$meta.id"
+process ATAQV_MKARV {
     label 'process_medium'
 
     conda (params.enable_conda ? "bioconda::ataqv=1.2.1" : null)
@@ -8,15 +7,10 @@ process ATAQV_ATAQV {
         'quay.io/biocontainers/ataqv:1.2.1--py39ha23c084_2' }"
 
     input:
-    tuple val(meta), path(bam), path(bai), path(peak_file)
-    val organism
-    path tss_file
-    path excl_regs_file
-    path autosom_ref_file
+    path json
 
     output:
-    tuple val(meta), path("*.ataqv.json"), emit: json
-    tuple val(meta), path("*.problems")  , emit: problems, optional: true
+    path "html"                          , emit: html
     path "versions.yml"                  , emit: versions
 
     when:
@@ -24,26 +18,17 @@ process ATAQV_ATAQV {
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
-    def peak        = peak_file        ? "--peak-file $peak_file"                       : ''
-    def tss         = tss_file         ? "--tss-file $tss_file"                         : ''
-    def excl_regs   = excl_regs_file   ? "--excluded-region-file $excl_regs_file"       : ''
-    def autosom_ref = autosom_ref_file ? "--autosomal-reference-file $autosom_ref_file" : ''
     """
-    ataqv \\
+    mkarv \\
         $args \\
-        $peak \\
-        $tss \\
-        $excl_regs \\
-        $autosom_ref \\
-        --metrics-file "${prefix}.ataqv.json" \\
-        --threads $task.cpus \\
-        --name $prefix \\
-        $organism \\
-        $bam
+        --concurrency $task.cpus \\
+        --force \\
+        ./html/ \\
+        ${json.join(' ')}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
+        # mkarv: \$( mkarv --version )
         ataqv: \$( ataqv --version )
     END_VERSIONS
     """
