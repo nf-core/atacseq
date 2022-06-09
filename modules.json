@@ -46,16 +46,16 @@
                 "git_sha": "f0800157544a82ae222931764483331a81812012"
             },
             "multiqc": {
-                "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
+                "git_sha": "e5f8924fabf4c8380f55fb7aee89fd2c268161b1"
             },
             "picard/collectmultiplemetrics": {
-                "git_sha": "00467ac64affbbc17b255762f10a6c8fa362aabc"
+                "git_sha": "63db63757cab03cfa7a02c0d0f134b66fbfadea6"
             },
             "picard/markduplicates": {
-                "git_sha": "20ebb89ff97a2665106be9cace5ccb9aa4eed1be"
+                "git_sha": "63db63757cab03cfa7a02c0d0f134b66fbfadea6"
             },
             "picard/mergesamfiles": {
-                "git_sha": "20ebb89ff97a2665106be9cace5ccb9aa4eed1be"
+                "git_sha": "63db63757cab03cfa7a02c0d0f134b66fbfadea6"
             },
             "preseq/lcextrap": {
                 "git_sha": "7111e571cc5b6069de4673cd6165af680f17b4d7"
@@ -85,7 +85,7 @@
                 "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
             },
             "untar": {
-                "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
+                "git_sha": "51be617b1ca9bff973655eb899d591ed6ab253b5"
             }
         }
     }
