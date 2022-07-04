@@ -22,10 +22,11 @@ process MACS2_CONSENSUS {
     path "versions.yml"                     , emit: versions
 
     when:
-    (meta.multiple_groups || meta.replicates_exist)
+    task.ext.when == null || task.ext.when
 
     script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
 
+    def args         = task.ext.args ?: ''
     def prefix       = task.ext.prefix    ?: "${meta.id}"
     def peak_type    = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
     def mergecols    = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
@@ -39,7 +40,7 @@ process MACS2_CONSENSUS {
         ${prefix}.txt \\
         ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${peak_type}","")} \\
         ${prefix}.boolean.txt \\
-        --min_replicates $params.min_reps_consensus \\
+        $args \\
         $expandparam
 
     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
