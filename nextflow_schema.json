@@ -231,6 +231,13 @@
                     "description": "Don\u2019t output BWA MEM alignments with score lower than this parameter.",
                     "fa_icon": "fas fa-hand-paper"
                 },
+                "skip_merge_replicates": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Do not perform alignment merging and downstream analysis by merging replicates i.e. only do this by merging resequenced libraries.",
+                    "help_text": "An additional series of steps are performed by the pipeline for merging the replicates from the same experimental group. This is primarily to increase the sequencing depth in order to perform downstream analyses such as footprinting. Specifying this parameter means that these steps will not be performed.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
                 "save_align_intermeds": {
                     "type": "boolean",
                     "description": "Save the intermediate BAM files from the alignment step.",
