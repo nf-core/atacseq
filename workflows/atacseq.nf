@@ -389,6 +389,7 @@ workflow ATACSEQ {
         //
         //  Consensus peaks analysis
         //
+        ch_macs2_consensus_bed_lib = Channel.empty()
         if (!params.skip_consensus_peaks) {
             // Create channel: [ meta , [ peaks ] ]
             // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
@@ -414,7 +415,8 @@ workflow ATACSEQ {
             MACS2_CONSENSUS_LIB (
                 ch_consensus_peaks
             )
-            ch_versions = ch_versions.mix(MACS2_CONSENSUS_LIB.out.versions)
+            ch_macs2_consensus_bed_lib = MACS2_CONSENSUS_LIB.out.bed
+            ch_versions                = ch_versions.mix(MACS2_CONSENSUS_LIB.out.versions)
 
             if (!params.skip_peak_annotation) {
                 HOMER_ANNOTATEPEAKS_CONSENSUS_LIB (
@@ -616,6 +618,7 @@ workflow ATACSEQ {
         //
         //  Consensus peaks analysis
         //
+        ch_macs2_consensus_bed_rep = Channel.empty()
         if (!params.skip_consensus_peaks) {
             // Create channel: [ meta , [ peaks ] ]
             // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
@@ -641,7 +644,8 @@ workflow ATACSEQ {
             MACS2_CONSENSUS_REP (
                 ch_consensus_peaks_rep
             )
-            ch_versions = ch_versions.mix(MACS2_CONSENSUS_REP.out.versions)
+            ch_macs2_consensus_bed_rep = MACS2_CONSENSUS_REP.out.bed
+            ch_versions                = ch_versions.mix(MACS2_CONSENSUS_REP.out.versions)
 
             if (!params.skip_peak_annotation) {
                 HOMER_ANNOTATEPEAKS_CONSENSUS_REP (
@@ -699,10 +703,10 @@ workflow ATACSEQ {
             PREPARE_GENOME.out.fasta,
             UCSC_BEDGRAPHTOBIGWIG_LIB.out.bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
-            MACS2_CONSENSUS_LIB.out.bed.collect{it[1]}.ifEmpty([]),
+            ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
             UCSC_BEDGRAPHTOBIGWIG_REP.out.bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks_rep.collect{it[1]}.ifEmpty([]),
-            MACS2_CONSENSUS_REP.out.bed.collect{it[1]}.ifEmpty([]),
+            ch_macs2_consensus_bed_rep.collect{it[1]}.ifEmpty([]),
             "bwa/mergedLibrary/bigwig",
             { ["bwa/mergedLibrary/macs2",
                 params.narrow_peak? '/narrowPeak' : '/broadPeak'
