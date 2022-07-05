@@ -31,12 +31,12 @@ process IGV {
 
     script: // scripts are bundled with the pipeline in nf-core/atacseq/bin/
     """
-    find $bigwig_lib_publish_dir -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; > mLb_bigwig.igv.txt
-    find $peak_lib_publish_dir -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; > mLb_peaks.igv.txt
-    find $consensus_lib_publish_dir -type f -name "*.bed" -exec echo -e ""{}"\\t0,0,0" \\; > mLb_.bed.igv.txt
-    find $bigwig_rep_publish_dir -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; > mRp_bigwig.igv.txt
-    find $peak_rep_publish_dir -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; > mRp_peaks.igv.txt
-    find $consensus_rep_publish_dir -type f -name "*.bed" -exec echo -e ""{}"\\t0,0,0" \\; > mRp_.bed.igv.txt
+    find * -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$bigwig_lib_publish_dir" || test \$? = 1; } > mLb_bigwig.igv.txt
+    find * -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$peak_lib_publish_dir" || test \$? = 1; } > mLb_peaks.igv.txt
+    find * -type l -name "*.bed" -exec echo -e ""{}"\\t0,0,0" \\; | { grep "^$consensus_lib_publish_dir" || test \$? = 1; } > mLb_bed.igv.txt
+    find * -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$bigwig_rep_publish_dir" || test \$? = 1; } > mRp_bigwig.igv.txt
+    find * -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$peak_rep_publish_dir" || test \$? = 1; } > mRp_peaks.igv.txt
+    find * -type l -name "*.bed" -exec echo -e ""{}"\\t0,0,0" \\; | { grep "^$consensus_rep_publish_dir" || test \$? = 1; } > mRp_bed.igv.txt
 
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'

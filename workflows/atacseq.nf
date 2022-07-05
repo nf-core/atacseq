@@ -490,207 +490,210 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(ATAQV_MKARV.out.versions)
     }
 
-    //
-    // MERGE REPLICATE BAM
-    //
-
-    FILTER_BAM_BAMTOOLS
-        .out
-        .bam
-        .map {
-            meta, bam ->
-                def fmeta = meta.findAll { it.key != 'read_group' }
-                fmeta.id = fmeta.id.split('_')[0..-2].join('_')
-                [ fmeta, fmeta.id, bam ] }
-        .groupTuple(by: [0])
-        .map {
-            meta, ids, bams ->
-                meta.replicates_exist = ids.size() > 1
-                meta.multiple_bams    = bams.size() > 1
-                [ meta, bams.flatten() ] }
-        .set { ch_mlib_rm_orphan_bam_mrep }
-
-    PICARD_MERGESAMFILES_REP (
-        ch_mlib_rm_orphan_bam_mrep
-    )
-    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_REP.out.versions.first().ifEmpty(null))
-
-    // TODO: check whether "bam_files.size() == 1" is working because of missing
-    //       touch ${prefix}.MarkDuplicates.metrics.txt
-    MARK_DUPLICATES_PICARD_REP (
-        PICARD_MERGESAMFILES_REP.out.bam
-    )
-
-    //
-    // MERGE REPLICATE BAM POST-ANALYSIS
-    // MODULE: Coverage tracks
-    //
-    BEDTOOLS_GENOMECOV_REP (
-        MARK_DUPLICATES_PICARD_REP.out.bam.join(MARK_DUPLICATES_PICARD_REP.out.flagstat, by: [0])
-    )
-    ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV_REP.out.versions.first())
-
-    //
-    // MODULE: Coverage tracks
-    //
-    UCSC_BEDGRAPHTOBIGWIG_REP (
-        BEDTOOLS_GENOMECOV_REP.out.bedgraph,
-        PREPARE_GENOME.out.chrom_sizes
-    )
-    ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG_REP.out.versions.first())
-
-
-    //
-    // MERGE LIBRARY PEAK ANALYSIS
-    //
-    ch_custompeaks_frip_multiqc_rep       = Channel.empty()
-    ch_custompeaks_count_multiqc_rep      = Channel.empty()
-    ch_plothomerannotatepeaks_multiqc_rep = Channel.empty()
-    ch_macs2_peaks_rep                    = Channel.empty()
-    ch_subreadfeaturecounts_multiqc_rep   = Channel.empty()
-    if (params.macs_gsize) {
-        // Create channel: [ val(meta), bam, empty_list ]
-        MARK_DUPLICATES_PICARD_REP.out.bam
-            .map { meta, bam -> [ meta , bam, [] ] }
-            .set { ch_bam_rep }
-        MACS2_CALLPEAK_REP (
-            ch_bam_rep,
-            params.macs_gsize
-        )
-        ch_versions = ch_versions.mix(MACS2_CALLPEAK_REP.out.versions.first())
-
+    ch_ucsc_bedgraphtobigwig_rep_bigwig = Channel.empty()
+    ch_macs2_peaks_rep                  = Channel.empty()
+    ch_macs2_consensus_bed_rep          = Channel.empty()
+    if (!params.skip_merge_replicates) {
         //
-        // Filter for MACS2 files without peaks
+        // MERGE REPLICATE BAM
         //
-        MACS2_CALLPEAK_REP
+        FILTER_BAM_BAMTOOLS
             .out
-            .peak
-            .filter { meta, peaks -> peaks.size() > 0 }
-            .set { ch_macs2_peaks_rep }
+            .bam
+            .map {
+                meta, bam ->
+                    def fmeta = meta.findAll { it.key != 'read_group' }
+                    fmeta.id = fmeta.id.split('_')[0..-2].join('_')
+                    [ fmeta, fmeta.id, bam ] }
+            .groupTuple(by: [0])
+            .map {
+                meta, ids, bams ->
+                    meta.replicates_exist = ids.size() > 1
+                    meta.multiple_bams    = bams.size() > 1
+                    [ meta, bams.flatten() ] }
+            .set { ch_mlib_rm_orphan_bam_mrep }
 
-        ch_bam_rep
-            .join(ch_macs2_peaks_rep, by: [0])
-            .map { it -> [ it[0], it[1], it[3] ] }
-            .set { ch_peak_rep }
+        PICARD_MERGESAMFILES_REP (
+            ch_mlib_rm_orphan_bam_mrep
+        )
+        ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_REP.out.versions.first().ifEmpty(null))
 
-        FRIP_SCORE_REP (
+        // TODO: check whether "bam_files.size() == 1" is working because of missing
+        //       touch ${prefix}.MarkDuplicates.metrics.txt
+        MARK_DUPLICATES_PICARD_REP (
+            PICARD_MERGESAMFILES_REP.out.bam
+        )
+
+        //
+        // MERGE REPLICATE BAM POST-ANALYSIS
+        // MODULE: Coverage tracks
+        //
+        BEDTOOLS_GENOMECOV_REP (
+            MARK_DUPLICATES_PICARD_REP.out.bam.join(MARK_DUPLICATES_PICARD_REP.out.flagstat, by: [0])
+        )
+        ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV_REP.out.versions.first())
+
+        //
+        // MODULE: Coverage tracks
+        //
+        UCSC_BEDGRAPHTOBIGWIG_REP (
+            BEDTOOLS_GENOMECOV_REP.out.bedgraph,
+            PREPARE_GENOME.out.chrom_sizes
+        )
+        ch_ucsc_bedgraphtobigwig_rep_bigwig = UCSC_BEDGRAPHTOBIGWIG_REP.out.bigwig
+        ch_versions                         = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG_REP.out.versions.first())
+
+
+        //
+        // MERGE REPLICATE PEAK ANALYSIS
+        //
+        ch_custompeaks_frip_multiqc_rep       = Channel.empty()
+        ch_custompeaks_count_multiqc_rep      = Channel.empty()
+        ch_plothomerannotatepeaks_multiqc_rep = Channel.empty()
+        ch_subreadfeaturecounts_multiqc_rep   = Channel.empty()
+        if (params.macs_gsize) {
+            // Create channel: [ val(meta), bam, empty_list ]
+            MARK_DUPLICATES_PICARD_REP.out.bam
+                .map { meta, bam -> [ meta , bam, [] ] }
+                .set { ch_bam_rep }
+            MACS2_CALLPEAK_REP (
+                ch_bam_rep,
+                params.macs_gsize
+            )
+            ch_versions = ch_versions.mix(MACS2_CALLPEAK_REP.out.versions.first())
+
+            //
+            // Filter for MACS2 files without peaks
+            //
+            MACS2_CALLPEAK_REP
+                .out
+                .peak
+                .filter { meta, peaks -> peaks.size() > 0 }
+                .set { ch_macs2_peaks_rep }
+
+            ch_bam_rep
+                .join(ch_macs2_peaks_rep, by: [0])
+                .map { it -> [ it[0], it[1], it[3] ] }
+                .set { ch_peak_rep }
+
+            FRIP_SCORE_REP (
+                ch_peak_rep
+            )
+            ch_versions = ch_versions.mix(FRIP_SCORE_REP.out.versions.first())
+
             ch_peak_rep
-        )
-        ch_versions = ch_versions.mix(FRIP_SCORE_REP.out.versions.first())
+                .join(FRIP_SCORE_REP.out.txt, by: [0])
+                .map { it -> [ it[0], it[2], it[3] ] }
+                .set { ch_peak_frip_rep }
 
-        ch_peak_rep
-            .join(FRIP_SCORE_REP.out.txt, by: [0])
-            .map { it -> [ it[0], it[2], it[3] ] }
-            .set { ch_peak_frip_rep }
-
-        MULTIQC_CUSTOM_PEAKS_REP (
-            ch_peak_frip_rep,
-            ch_mrep_peak_count_header,
-            ch_mrep_frip_score_header
-        )
-        ch_custompeaks_frip_multiqc_rep  = MULTIQC_CUSTOM_PEAKS_REP.out.frip
-        ch_custompeaks_count_multiqc_rep = MULTIQC_CUSTOM_PEAKS_REP.out.count
-
-        if (!params.skip_peak_annotation) {
-            HOMER_ANNOTATEPEAKS_MACS2_REP (
-                ch_macs2_peaks_rep,
-                PREPARE_GENOME.out.fasta,
-                PREPARE_GENOME.out.gtf
+            MULTIQC_CUSTOM_PEAKS_REP (
+                ch_peak_frip_rep,
+                ch_mrep_peak_count_header,
+                ch_mrep_frip_score_header
             )
-            ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2_REP.out.versions.first())
-
-            if (!params.skip_peak_qc){
-                PLOT_MACS2_QC_REP (
-                    ch_macs2_peaks_rep.collect{it[1]}
-                )
-                ch_versions = ch_versions.mix(PLOT_MACS2_QC_REP.out.versions)
-
-                PLOT_HOMER_ANNOTATEPEAKS_REP (
-                    HOMER_ANNOTATEPEAKS_MACS2_REP.out.txt.collect{it[1]},
-                    ch_mrep_peak_annotation_header,
-                    "_peaks.annotatePeaks.txt"
-                )
-                ch_plothomerannotatepeaks_multiqc_rep = PLOT_HOMER_ANNOTATEPEAKS_REP.out.tsv
-                ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS_REP.out.versions)
-            }
-        }
-
-        //
-        //  Consensus peaks analysis
-        //
-        ch_macs2_consensus_bed_rep = Channel.empty()
-        if (!params.skip_consensus_peaks) {
-            // Create channel: [ meta , [ peaks ] ]
-            // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
-            // TODO: simplify groupTuple
-            ch_macs2_peaks_rep
-                .map { meta, peak -> [ '', meta.id.split('_')[0..-2].join('_'), peak ] }
-                .groupTuple()
-                .map {
-                    key, groups, peaks ->
-                        [
-                            groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
-                            peaks
-                        ] }
-                .map {
-                    groups, peaks ->
-                        def meta = [:]
-                        meta.id = 'consensus_peaks'
-                        meta.multiple_groups = groups.size() > 1
-                        meta.replicates_exist = groups.max { groups.value }.value > 1
-                        [ meta, peaks ] }
-                .set { ch_consensus_peaks_rep }
-
-            MACS2_CONSENSUS_REP (
-                ch_consensus_peaks_rep
-            )
-            ch_macs2_consensus_bed_rep = MACS2_CONSENSUS_REP.out.bed
-            ch_versions                = ch_versions.mix(MACS2_CONSENSUS_REP.out.versions)
+            ch_custompeaks_frip_multiqc_rep  = MULTIQC_CUSTOM_PEAKS_REP.out.frip
+            ch_custompeaks_count_multiqc_rep = MULTIQC_CUSTOM_PEAKS_REP.out.count
 
             if (!params.skip_peak_annotation) {
-                HOMER_ANNOTATEPEAKS_CONSENSUS_REP (
-                    MACS2_CONSENSUS_REP.out.bed,
+                HOMER_ANNOTATEPEAKS_MACS2_REP (
+                    ch_macs2_peaks_rep,
                     PREPARE_GENOME.out.fasta,
                     PREPARE_GENOME.out.gtf
                 )
-                ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS_REP.out.versions)
-                // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-                // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
+                ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2_REP.out.versions.first())
+
+                if (!params.skip_peak_qc){
+                    PLOT_MACS2_QC_REP (
+                        ch_macs2_peaks_rep.collect{it[1]}
+                    )
+                    ch_versions = ch_versions.mix(PLOT_MACS2_QC_REP.out.versions)
+
+                    PLOT_HOMER_ANNOTATEPEAKS_REP (
+                        HOMER_ANNOTATEPEAKS_MACS2_REP.out.txt.collect{it[1]},
+                        ch_mrep_peak_annotation_header,
+                        "_peaks.annotatePeaks.txt"
+                    )
+                    ch_plothomerannotatepeaks_multiqc_rep = PLOT_HOMER_ANNOTATEPEAKS_REP.out.tsv
+                    ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS_REP.out.versions)
+                }
             }
 
-            // Create channel: [ val(meta), bam ]
-            MACS2_CONSENSUS_REP
-                .out
-                .saf
-                .map { meta, saf -> [ meta.id, meta, saf ] }
-                .set { ch_saf_rep }
+            //
+            //  Consensus peaks analysis
+            //
+            if (!params.skip_consensus_peaks) {
+                // Create channel: [ meta , [ peaks ] ]
+                // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
+                // TODO: simplify groupTuple
+                ch_macs2_peaks_rep
+                    .map { meta, peak -> [ '', meta.id.split('_')[0..-2].join('_'), peak ] }
+                    .groupTuple()
+                    .map {
+                        key, groups, peaks ->
+                            [
+                                groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
+                                peaks
+                            ] }
+                    .map {
+                        groups, peaks ->
+                            def meta = [:]
+                            meta.id = 'consensus_peaks'
+                            meta.multiple_groups = groups.size() > 1
+                            meta.replicates_exist = groups.max { groups.value }.value > 1
+                            [ meta, peaks ] }
+                    .set { ch_consensus_peaks_rep }
 
-            ch_bam_rep
-                .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
-                .groupTuple()
-                .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
-                .join(ch_saf_rep)
-                .map {
-                    it ->
-                        def fmeta = it[1]
-                        fmeta['id'] = it[3]['id']
-                        fmeta['replicates_exist'] = it[3]['replicates_exist']
-                        fmeta['multiple_groups']  = it[3]['multiple_groups']
-                        [ fmeta, it[2], it[4] ] }
-                .set { ch_bam_saf_rep }
-
-            SUBREAD_FEATURECOUNTS_REP (
-                ch_bam_saf_rep
-            )
-            ch_subreadfeaturecounts_multiqc_rep = SUBREAD_FEATURECOUNTS_REP.out.summary
-            ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_REP.out.versions.first())
-
-            if (!params.skip_deseq2_qc) {
-                DESEQ2_QC_REP (
-                    SUBREAD_FEATURECOUNTS_REP.out.counts,
-                    ch_mrep_deseq2_pca_header,
-                    ch_mrep_deseq2_clustering_header
+                MACS2_CONSENSUS_REP (
+                    ch_consensus_peaks_rep
                 )
+                ch_macs2_consensus_bed_rep = MACS2_CONSENSUS_REP.out.bed
+                ch_versions                = ch_versions.mix(MACS2_CONSENSUS_REP.out.versions)
+
+                if (!params.skip_peak_annotation) {
+                    HOMER_ANNOTATEPEAKS_CONSENSUS_REP (
+                        MACS2_CONSENSUS_REP.out.bed,
+                        PREPARE_GENOME.out.fasta,
+                        PREPARE_GENOME.out.gtf
+                    )
+                    ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS_REP.out.versions)
+                    // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
+                    // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
+                }
+
+                // Create channel: [ val(meta), bam ]
+                MACS2_CONSENSUS_REP
+                    .out
+                    .saf
+                    .map { meta, saf -> [ meta.id, meta, saf ] }
+                    .set { ch_saf_rep }
+
+                ch_bam_rep
+                    .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
+                    .groupTuple()
+                    .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
+                    .join(ch_saf_rep)
+                    .map {
+                        it ->
+                            def fmeta = it[1]
+                            fmeta['id'] = it[3]['id']
+                            fmeta['replicates_exist'] = it[3]['replicates_exist']
+                            fmeta['multiple_groups']  = it[3]['multiple_groups']
+                            [ fmeta, it[2], it[4] ] }
+                    .set { ch_bam_saf_rep }
+
+                SUBREAD_FEATURECOUNTS_REP (
+                    ch_bam_saf_rep
+                )
+                ch_subreadfeaturecounts_multiqc_rep = SUBREAD_FEATURECOUNTS_REP.out.summary
+                ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_REP.out.versions.first())
+
+                if (!params.skip_deseq2_qc) {
+                    DESEQ2_QC_REP (
+                        SUBREAD_FEATURECOUNTS_REP.out.counts,
+                        ch_mrep_deseq2_pca_header,
+                        ch_mrep_deseq2_clustering_header
+                    )
+                }
             }
         }
     }
@@ -704,7 +707,7 @@ workflow ATACSEQ {
             UCSC_BEDGRAPHTOBIGWIG_LIB.out.bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
-            UCSC_BEDGRAPHTOBIGWIG_REP.out.bigwig.collect{it[1]}.ifEmpty([]),
+            ch_ucsc_bedgraphtobigwig_rep_bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks_rep.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_rep.collect{it[1]}.ifEmpty([]),
             "bwa/mergedLibrary/bigwig",
