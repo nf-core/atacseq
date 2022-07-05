@@ -490,9 +490,13 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(ATAQV_MKARV.out.versions)
     }
 
-    ch_ucsc_bedgraphtobigwig_rep_bigwig = Channel.empty()
-    ch_macs2_peaks_rep                  = Channel.empty()
-    ch_macs2_consensus_bed_rep          = Channel.empty()
+    ch_ucsc_bedgraphtobigwig_rep_bigwig    = Channel.empty()
+    ch_macs2_peaks_rep                     = Channel.empty()
+    ch_macs2_consensus_bed_rep             = Channel.empty()
+    ch_mark_duplicates_picard_rep_stats    = Channel.empty()
+    ch_mark_duplicates_picard_rep_flagstat = Channel.empty()
+    ch_mark_duplicates_picard_rep_idxstats = Channel.empty()
+    ch_mark_duplicates_picard_rep_metrics  = Channel.empty()
     if (!params.skip_merge_replicates) {
         //
         // MERGE REPLICATE BAM
@@ -523,6 +527,10 @@ workflow ATACSEQ {
         MARK_DUPLICATES_PICARD_REP (
             PICARD_MERGESAMFILES_REP.out.bam
         )
+        ch_mark_duplicates_picard_rep_stats    = MARK_DUPLICATES_PICARD_REP.out.stats
+        ch_mark_duplicates_picard_rep_flagstat = MARK_DUPLICATES_PICARD_REP.out.flagstat
+        ch_mark_duplicates_picard_rep_idxstats = MARK_DUPLICATES_PICARD_REP.out.idxstats
+        ch_mark_duplicates_picard_rep_metrics  = MARK_DUPLICATES_PICARD_REP.out.metrics
 
         //
         // MERGE REPLICATE BAM POST-ANALYSIS
@@ -747,6 +755,44 @@ workflow ATACSEQ {
             ch_multiqc_custom_config.collect().ifEmpty([]),
             CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
             ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
+
+            FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
+
+            ch_samtools_stats.collect{it[1]}.ifEmpty([]),
+            ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
+            ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
+
+            MARK_DUPLICATES_PICARD_LIB.out.stats.collect{it[1]}.ifEmpty([]),
+            MARK_DUPLICATES_PICARD_LIB.out.flagstat.collect{it[1]}.ifEmpty([]),
+            MARK_DUPLICATES_PICARD_LIB.out.idxstats.collect{it[1]}.ifEmpty([]),
+            MARK_DUPLICATES_PICARD_LIB.out.metrics.collect{it[1]}.ifEmpty([]),
+
+            FILTER_BAM_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
+            FILTER_BAM_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
+            FILTER_BAM_BAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]),
+            ch_picardcollectmultiplemetrics_multiqc.collect{it[1]}.ifEmpty([]),
+
+            ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
+
+            ch_custompeaks_frip_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_plothomerannotatepeaks_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([]),
+            // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
+
+            ch_mark_duplicates_picard_rep_stats.collect{it[1]}.ifEmpty([]),
+            ch_mark_duplicates_picard_rep_flagstat.collect{it[1]}.ifEmpty([]),
+            ch_mark_duplicates_picard_rep_idxstats.collect{it[1]}.ifEmpty([]),
+            ch_mark_duplicates_picard_rep_metrics.collect{it[1]}.ifEmpty([]),
+
+            ch_custompeaks_frip_multiqc_rep.collect{it[1]}.ifEmpty([]),
+            ch_custompeaks_count_multiqc_rep.collect{it[1]}.ifEmpty([]),
+            ch_plothomerannotatepeaks_multiqc_rep.collect{it[1]}.ifEmpty([]),
+            ch_subreadfeaturecounts_multiqc_rep.collect{it[1]}.ifEmpty([])
         )
         multiqc_report       = MULTIQC.out.report.toList()
     }
