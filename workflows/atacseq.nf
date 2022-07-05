@@ -314,10 +314,11 @@ workflow ATACSEQ {
     //
     // MERGE LIBRARY PEAK ANALYSIS
     //
+    ch_macs2_peaks                    = Channel.empty()
     ch_custompeaks_frip_multiqc       = Channel.empty()
     ch_custompeaks_count_multiqc      = Channel.empty()
     ch_plothomerannotatepeaks_multiqc = Channel.empty()
-    ch_macs2_peaks                    = Channel.empty()
+    ch_macs2_consensus_bed_lib        = Channel.empty()
     ch_subreadfeaturecounts_multiqc   = Channel.empty()
     if (params.macs_gsize) {
         // Create channel: [ val(meta), bam, empty_list ]
@@ -497,6 +498,10 @@ workflow ATACSEQ {
     ch_mark_duplicates_picard_rep_flagstat = Channel.empty()
     ch_mark_duplicates_picard_rep_idxstats = Channel.empty()
     ch_mark_duplicates_picard_rep_metrics  = Channel.empty()
+    ch_custompeaks_frip_multiqc_rep       = Channel.empty()
+    ch_custompeaks_count_multiqc_rep      = Channel.empty()
+    ch_plothomerannotatepeaks_multiqc_rep = Channel.empty()
+    ch_subreadfeaturecounts_multiqc_rep   = Channel.empty()
     if (!params.skip_merge_replicates) {
         //
         // MERGE REPLICATE BAM
@@ -555,10 +560,6 @@ workflow ATACSEQ {
         //
         // MERGE REPLICATE PEAK ANALYSIS
         //
-        ch_custompeaks_frip_multiqc_rep       = Channel.empty()
-        ch_custompeaks_count_multiqc_rep      = Channel.empty()
-        ch_plothomerannotatepeaks_multiqc_rep = Channel.empty()
-        ch_subreadfeaturecounts_multiqc_rep   = Channel.empty()
         if (params.macs_gsize) {
             // Create channel: [ val(meta), bam, empty_list ]
             MARK_DUPLICATES_PICARD_REP.out.bam
