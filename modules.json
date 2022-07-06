@@ -3,6 +3,9 @@
     "homePage": "https://github.com/nf-core/atacseq",
     "repos": {
         "nf-core/modules": {
+            "ataqv/ataqv": {
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+            },
             "bwa/index": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
@@ -37,31 +40,31 @@
                 "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
             },
             "homer/annotatepeaks": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                "git_sha": "233fa70811a03a4cecb2ece483b5c8396e2cee1d"
             },
             "macs2/callpeak": {
                 "git_sha": "f0800157544a82ae222931764483331a81812012"
             },
             "multiqc": {
-                "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
+                "git_sha": "08376da6843b14c82d84d444784c0b3635bb7fd5"
             },
             "picard/collectmultiplemetrics": {
-                "git_sha": "00467ac64affbbc17b255762f10a6c8fa362aabc"
+                "git_sha": "63db63757cab03cfa7a02c0d0f134b66fbfadea6"
             },
             "picard/markduplicates": {
-                "git_sha": "20ebb89ff97a2665106be9cace5ccb9aa4eed1be"
+                "git_sha": "63db63757cab03cfa7a02c0d0f134b66fbfadea6"
             },
             "picard/mergesamfiles": {
-                "git_sha": "20ebb89ff97a2665106be9cace5ccb9aa4eed1be"
+                "git_sha": "63db63757cab03cfa7a02c0d0f134b66fbfadea6"
             },
             "preseq/lcextrap": {
                 "git_sha": "7111e571cc5b6069de4673cd6165af680f17b4d7"
             },
             "samtools/flagstat": {
-                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+                "git_sha": "ecece498f10b47b7c9d06f53a310cea5811b4c5f"
             },
             "samtools/idxstats": {
-                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+                "git_sha": "ecece498f10b47b7c9d06f53a310cea5811b4c5f"
             },
             "samtools/index": {
                 "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
@@ -70,7 +73,7 @@
                 "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "samtools/stats": {
-                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+                "git_sha": "ecece498f10b47b7c9d06f53a310cea5811b4c5f"
             },
             "subread/featurecounts": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
@@ -79,10 +82,10 @@
                 "git_sha": "85ec13ff1fc2196c5a507ea497de468101baabed"
             },
             "ucsc/bedgraphtobigwig": {
-                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
+                "git_sha": "233fa70811a03a4cecb2ece483b5c8396e2cee1d"
             },
             "untar": {
-                "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
+                "git_sha": "51be617b1ca9bff973655eb899d591ed6ab253b5"
             }
         }
     }

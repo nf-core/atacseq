@@ -17,7 +17,7 @@ process PLOT_HOMER_ANNOTATEPEAKS {
     path '*.tsv',        emit: tsv
     path "versions.yml", emit: versions
 
-    script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
+    script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
     def args = task.ext.args ?: ''
     """
     plot_homer_annotatepeaks.r \\

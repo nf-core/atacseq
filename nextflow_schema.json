@@ -19,7 +19,7 @@
                     "pattern": "^\\S+\\.csv$",
                     "schema": "assets/schema_input.json",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row. See [usage docs](https://nf-co.re/chipseq/docs/usage#introduction).",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row. See [usage docs](https://nf-co.re/atacseq/docs/usage#introduction).",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "fragment_size": {
@@ -105,6 +105,12 @@
                     "fa_icon": "fas fa-procedures",
                     "description": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified."
                 },
+                "tss_bed": {
+                    "type": "string",
+                    "description": "Path to BED file containing transcription start sites. This will be created from the gene BED file if not specified.",
+                    "fa_icon": "fas fa-procedures",
+                    "help_text": ""
+                },
                 "macs_gsize": {
                     "type": "number",
                     "description": "Effective genome size parameter required by MACS2.",
@@ -116,6 +122,12 @@
                     "description": "Path to blacklist regions in BED format, used for filtering alignments.",
                     "help_text": "If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.",
                     "fa_icon": "fas fa-book-dead"
+                },
+                "mito_name": {
+                    "type": "string",
+                    "description": "Name of Mitochondrial chomosome in reference assembly e.g. chrM.",
+                    "help_text": "Reads aligning to this contig are filtered out if a valid identifier is provided otherwise this step is skipped. Where possible these have been provided in the [`igenomes.config`](../conf/igenomes.config).",
+                    "fa_icon": "fas fa-signature"
                 },
                 "save_reference": {
                     "type": "boolean",
@@ -218,6 +230,13 @@
                     "type": "integer",
                     "description": "Don\u2019t output BWA MEM alignments with score lower than this parameter.",
                     "fa_icon": "fas fa-hand-paper"
+                },
+                "skip_merge_replicates": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Do not perform alignment merging and downstream analysis by merging replicates i.e. only do this by merging resequenced libraries.",
+                    "help_text": "An additional series of steps are performed by the pipeline for merging the replicates from the same experimental group. This is primarily to increase the sequencing depth in order to perform downstream analyses such as footprinting. Specifying this parameter means that these steps will not be performed.",
+                    "fa_icon": "fas fa-fast-forward"
                 },
                 "save_align_intermeds": {
                     "type": "boolean",

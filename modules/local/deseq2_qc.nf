@@ -23,29 +23,30 @@ process DESEQ2_QC {
     path "size_factors"         , optional:true, emit: size_factors
     path "versions.yml"         , emit: versions
 
+    when:
+    task.ext.when == null || task.ext.when
+
     script:
-    if (meta.multiple_groups || meta.replicates_exist) {
-        def args      = task.ext.args ?: ''
-        def peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
-        def prefix    = "consensus_peaks"
-        """
-        deseq2_qc.r \\
-            --count_file $counts \\
-            --outdir ./ \\
-            --outprefix $prefix \\
-            --cores $task.cpus \\
-            $args
+    def args      = task.ext.args ?: ''
+    def peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
+    def prefix    = "consensus_peaks"
+    """
+    deseq2_qc.r \\
+        --count_file $counts \\
+        --outdir ./ \\
+        --outprefix $prefix \\
+        --cores $task.cpus \\
+        $args
 
-        cat $deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
-        cat $deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
+    cat $deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
+    cat $deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
 
-        find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${peak_type}/consensus/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
+    find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${peak_type}/consensus/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
 
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-            bioconductor-deseq2: \$(Rscript -e "library(DESeq2); cat(as.character(packageVersion('DESeq2')))")
-        END_VERSIONS
-        """
-    }
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
+        bioconductor-deseq2: \$(Rscript -e "library(DESeq2); cat(as.character(packageVersion('DESeq2')))")
+    END_VERSIONS
+    """
 }

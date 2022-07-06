@@ -7,6 +7,7 @@ include {
     GUNZIP as GUNZIP_GTF
     GUNZIP as GUNZIP_GFF
     GUNZIP as GUNZIP_GENE_BED
+    GUNZIP as GUNZIP_TSS_BED
     GUNZIP as GUNZIP_BLACKLIST } from '../../modules/nf-core/modules/gunzip/main'
 
 include { UNTAR                } from '../../modules/nf-core/modules/untar/main'
@@ -16,6 +17,8 @@ include { BWA_INDEX            } from '../../modules/nf-core/modules/bwa/index/m
 
 include { GTF2BED                  } from '../../modules/local/gtf2bed'
 include { GENOME_BLACKLIST_REGIONS } from '../../modules/local/genome_blacklist_regions'
+include { AUTOSOME_GETTER          } from '../../modules/local/autosome_getter'
+include { TSS_EXTRACT              } from '../../modules/local/tss_extract'
 
 workflow PREPARE_GENOME {
     main:
@@ -93,11 +96,35 @@ workflow PREPARE_GENOME {
         }
     }
 
+    if (!params.tss_bed) {
+        ch_tss_bed = TSS_EXTRACT ( ch_gene_bed ).tss
+        ch_versions = ch_versions.mix(TSS_EXTRACT.out.versions)
+    } else {
+        if (params.tss_bed.endsWith('.gz')) {
+            ch_tss_bed = GUNZIP_TSS_BED ( [:], params.tss_bed ).gunzip.map{ it[1] }
+            ch_versions = ch_versions.mix(GUNZIP_TSS_BED.out.versions)
+        } else {
+            ch_tss_bed = file(params.tss_bed)
+        }
+    }
+
     //
     // Create chromosome sizes file
     //
     ch_chrom_sizes = CUSTOM_GETCHROMSIZES ( ch_fasta ).sizes
     ch_versions    = ch_versions.mix(CUSTOM_GETCHROMSIZES.out.versions)
+
+    //
+    // Create autosomal chromosome list for ataqv
+    //
+    ch_genome_autosomes = Channel.empty()
+
+    AUTOSOME_GETTER (
+        CUSTOM_GETCHROMSIZES.out.fai
+    )
+    ch_genome_autosomes = AUTOSOME_GETTER.out.txt
+    ch_versions = ch_versions.mix(AUTOSOME_GETTER.out.versions)
+
 
     //
     // Prepare genome intervals for filtering by removing regions in blacklist file
@@ -131,9 +158,11 @@ workflow PREPARE_GENOME {
     fasta         = ch_fasta                  //    path: genome.fasta
     gtf           = ch_gtf                    //    path: genome.gtf
     gene_bed      = ch_gene_bed               //    path: gene.bed
+    tss_bed       = ch_tss_bed                //    path: tss.bed
     chrom_sizes   = ch_chrom_sizes            //    path: genome.sizes
     filtered_bed  = ch_genome_filtered_bed    //    path: *.include_regions.bed
     bwa_index     = ch_bwa_index              //    path: bwa/index/
+    autosomes     = ch_genome_autosomes       //    path: *.autosomes.txt
 
     versions    = ch_versions.ifEmpty(null) // channel: [ versions.yml ]
 }
