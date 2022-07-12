@@ -112,6 +112,7 @@ workflow PREPARE_GENOME {
     // Create chromosome sizes file
     //
     ch_chrom_sizes = CUSTOM_GETCHROMSIZES ( ch_fasta ).sizes
+    ch_fai         = CUSTOM_GETCHROMSIZES.out.fai
     ch_versions    = ch_versions.mix(CUSTOM_GETCHROMSIZES.out.versions)
 
     //
@@ -156,7 +157,7 @@ workflow PREPARE_GENOME {
 
     emit:
     fasta         = ch_fasta                      //    path: genome.fasta
-    fai           = CUSTOM_GETCHROMSIZES.out.fai  //    path: genome.fai
+    fai           = ch_fai  //    path: genome.fai
     gtf           = ch_gtf                        //    path: genome.gtf
     gene_bed      = ch_gene_bed                   //    path: gene.bed
     tss_bed       = ch_tss_bed                    //    path: tss.bed
