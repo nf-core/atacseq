@@ -75,7 +75,6 @@ include { MACS2_CONSENSUS as MACS2_CONSENSUS_LIB                   } from '../mo
 include { MACS2_CONSENSUS as MACS2_CONSENSUS_REP                   } from '../modules/local/macs2_consensus'
 include { DESEQ2_QC as DESEQ2_QC_LIB                               } from '../modules/local/deseq2_qc'
 include { DESEQ2_QC as DESEQ2_QC_REP                               } from '../modules/local/deseq2_qc'
-include { ATAQV_MKARV                         } from '../modules/local/ataqv_mkarv'
 include { IGV                                 } from '../modules/local/igv'
 include { MULTIQC                             } from '../modules/local/multiqc'
 include { MULTIQC_CUSTOM_PEAKS as MULTIQC_CUSTOM_PEAKS_LIB         } from '../modules/local/multiqc_custom_peaks'
@@ -113,6 +112,7 @@ include { MACS2_CALLPEAK as MACS2_CALLPEAK_REP                 } from '../module
 include { SUBREAD_FEATURECOUNTS as SUBREAD_FEATURECOUNTS_LIB   } from '../modules/nf-core/modules/subread/featurecounts/main'
 include { SUBREAD_FEATURECOUNTS as SUBREAD_FEATURECOUNTS_REP   } from '../modules/nf-core/modules/subread/featurecounts/main'
 include { ATAQV_ATAQV                   } from '../modules/nf-core/modules/ataqv/ataqv/main'
+include { ATAQV_MKARV                   } from '../modules/nf-core/modules/ataqv/mkarv/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
 
 include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2_LIB     } from '../modules/nf-core/modules/homer/annotatepeaks/main'
@@ -203,19 +203,14 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
     //
-    // TODO: check relevance of indexing
-    // L745?:         samtools index ${name}.sorted.bam
     MARK_DUPLICATES_PICARD_LIB (
         PICARD_MERGESAMFILES_LIB.out.bam
     )
+    ch_versions = ch_versions.mix(MARK_DUPLICATES_PICARD_LIB.out.versions)
 
     //
     // SUBWORKFLOW: Fix getting name sorted BAM here for PE/SE
     //
-    // TODO: check relevance of indexing and sorting
-    // L826?:         samtools index ${name}.sorted.bam
-    // ...
-    // L831?:         params.single_end ? '' : "samtools sort -n -@ $task.cpus -o ${prefix}.bam -T $prefix ${prefix}.sorted.bam"
     FILTER_BAM_BAMTOOLS (
         MARK_DUPLICATES_PICARD_LIB.out.bam.join(MARK_DUPLICATES_PICARD_LIB.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
@@ -244,7 +239,8 @@ workflow ATACSEQ {
     if (!params.skip_picard_metrics) {
         PICARD_COLLECTMULTIPLEMETRICS (
             FILTER_BAM_BAMTOOLS.out.bam,
-            PREPARE_GENOME.out.fasta
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fai,
         )
         ch_picardcollectmultiplemetrics_multiqc = PICARD_COLLECTMULTIPLEMETRICS.out.metrics
         ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
@@ -371,7 +367,7 @@ workflow ATACSEQ {
             )
             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2_LIB.out.versions.first())
 
-            if (!params.skip_peak_qc){
+            if (!params.skip_peak_qc) {
                 PLOT_MACS2_QC_LIB (
                     ch_macs2_peaks.collect{it[1]}
                 )

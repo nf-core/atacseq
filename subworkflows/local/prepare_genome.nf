@@ -17,7 +17,7 @@ include { BWA_INDEX            } from '../../modules/nf-core/modules/bwa/index/m
 
 include { GTF2BED                  } from '../../modules/local/gtf2bed'
 include { GENOME_BLACKLIST_REGIONS } from '../../modules/local/genome_blacklist_regions'
-include { AUTOSOME_GETTER          } from '../../modules/local/autosome_getter'
+include { GET_AUTOSOMES            } from '../../modules/local/get_autosomes'
 include { TSS_EXTRACT              } from '../../modules/local/tss_extract'
 
 workflow PREPARE_GENOME {
@@ -112,6 +112,7 @@ workflow PREPARE_GENOME {
     // Create chromosome sizes file
     //
     ch_chrom_sizes = CUSTOM_GETCHROMSIZES ( ch_fasta ).sizes
+    ch_fai         = CUSTOM_GETCHROMSIZES.out.fai
     ch_versions    = ch_versions.mix(CUSTOM_GETCHROMSIZES.out.versions)
 
     //
@@ -119,11 +120,11 @@ workflow PREPARE_GENOME {
     //
     ch_genome_autosomes = Channel.empty()
 
-    AUTOSOME_GETTER (
+    GET_AUTOSOMES (
         CUSTOM_GETCHROMSIZES.out.fai
     )
-    ch_genome_autosomes = AUTOSOME_GETTER.out.txt
-    ch_versions = ch_versions.mix(AUTOSOME_GETTER.out.versions)
+    ch_genome_autosomes = GET_AUTOSOMES.out.txt
+    ch_versions = ch_versions.mix(GET_AUTOSOMES.out.versions)
 
 
     //
@@ -155,14 +156,15 @@ workflow PREPARE_GENOME {
     }
 
     emit:
-    fasta         = ch_fasta                  //    path: genome.fasta
-    gtf           = ch_gtf                    //    path: genome.gtf
-    gene_bed      = ch_gene_bed               //    path: gene.bed
-    tss_bed       = ch_tss_bed                //    path: tss.bed
-    chrom_sizes   = ch_chrom_sizes            //    path: genome.sizes
-    filtered_bed  = ch_genome_filtered_bed    //    path: *.include_regions.bed
-    bwa_index     = ch_bwa_index              //    path: bwa/index/
-    autosomes     = ch_genome_autosomes       //    path: *.autosomes.txt
+    fasta         = ch_fasta                      //    path: genome.fasta
+    fai           = ch_fai  //    path: genome.fai
+    gtf           = ch_gtf                        //    path: genome.gtf
+    gene_bed      = ch_gene_bed                   //    path: gene.bed
+    tss_bed       = ch_tss_bed                    //    path: tss.bed
+    chrom_sizes   = ch_chrom_sizes                //    path: genome.sizes
+    filtered_bed  = ch_genome_filtered_bed        //    path: *.include_regions.bed
+    bwa_index     = ch_bwa_index                  //    path: bwa/index/
+    autosomes     = ch_genome_autosomes           //    path: *.autosomes.txt
 
     versions    = ch_versions.ifEmpty(null) // channel: [ versions.yml ]
 }
