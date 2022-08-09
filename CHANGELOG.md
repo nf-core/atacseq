@@ -7,43 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Major enhancements
 
+- Pipeline has been re-implemented in [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html)
 - Updated pipeline template to [nf-core/tools 2.4.1](https://github.com/nf-core/tools/releases/tag/2.4.1)
 - Port pipeline to the updated Nextflow DSL2 syntax adopted on nf-core/modules
-  - Removed `--publish_dir_mode` as it is no longer required for the new syntax
 - Bump minimum Nextflow version from `19.10.0` -> `21.10.3`
-
-### Other enhancements & fixes
-
-- Update pipeline template to nf-core/tools `2.2`
 
 ### Parameters
 
-| Old parameter      | New parameter    |
-| ------------------ | ---------------- |
-| `--clusterOptions` |                  |
-| `--conda`          | `--enable_conda` |
-| `--single_end`     |                  |
+| Old parameter          | New parameter      |
+| ---------------------- | ------------------ |
+| `--clusterOptions`     |                    |
+| `--conda`              | `--enable_conda`   |
+|                        | `--skip_qc`        |
+|                        | `--aligner`        |
+| `--skip_diff_analysis` | `--skip_deseq2_qc` |
+| `--single_end`         |                    |
 
-> **NB:** Parameter has been **updated** if both old and new parameter information is present.
-> **NB:** Parameter has been **added** if just the new parameter information is present.
-> **NB:** Parameter has been **removed** if parameter information isn't present.
 
 ### Software dependencies
 
 Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
 
-<!---
-TODO: update all new dependencies
--->
-
-| Dependency | Old version | New version |
-| ---------- | ----------- | ----------- |
-|            |             |             |
-|            |             |             |
-
-> **NB:** Dependency has been **updated** if both old and new version information is present.
-> **NB:** Dependency has been **added** if just the new version information is present.
-> **NB:** Dependency has been **removed** if version information isn't present.
+| Dependency              | Old version | New version |
+| ----------------------- | ----------- | ----------- |
+| `ataqv`                 | 1.1.1       | 1.3.0       |
+| `bedtools`              | 2.29.2      | 2.30.0      |
+| `bioconductor-deseq2`   | 1.26.0      | 1.28.0      |
+| `deeptools`             | 3.4.3       | 3.5.1       |
+| `multiqc`               | 1.9         | 1.10.1,1.12 |
+| `ucsc-bedgraphtobigwig` | 357         | 377         |
+| `samtools`              | 1.10        | 1.15.1      |
+| `picard`                | 2.23.1      | 2.27.4      |
+| `preseq`                | 2.0.3       | 3.1.2       |
 
 ## [1.2.1] - 2020-07-29
 
