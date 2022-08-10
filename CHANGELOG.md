@@ -44,11 +44,12 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `picard`                | 2.23.1      | 2.27.4      |
 | `preseq`                | 2.0.3       | 3.1.2       |
 | `r-base`                | 3.6.1       | 4.0.3       |
+| `trim-galore`           | 0.6.5       | 0.6.7       |
+| `r-optparse`            | -           | 1.7.1       |
 | `r-tidyr`               | -           | -           |
 | `r-lattice`             | -           | -           |
 | `r-xfun`                | -           | -           |
 | `bioconductor-vsn`      | -           | -           |
-| `trim-galore`           | 0.6.5       | 0.6.7       |
 
 > **NB:** Dependency has been **updated** if both old and new version information is present.
 > **NB:** Dependency has been **added** if just the new version information is present.
