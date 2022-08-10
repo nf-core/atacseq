@@ -33,7 +33,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `bedtools`              | 2.29.2      | 2.30.0      |
 | `bioconductor-deseq2`   | 1.26.0      | 1.28.0      |
 | `deeptools`             | 3.4.3       | 3.5.1       |
-| `multiqc`               | 1.9         | 1.10.1,1.12 |
+| `multiqc`               | 1.9         | 1.13a       |
 | `ucsc-bedgraphtobigwig` | 357         | 377         |
 | `samtools`              | 1.10        | 1.15.1      |
 | `picard`                | 2.23.1      | 2.27.4      |
