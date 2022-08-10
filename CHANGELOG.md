@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | `--skip_diff_analysis` | `--skip_deseq2_qc` |
 | `--single_end`         |                    |
 
+> **NB:** Parameter has been **updated** if both old and new parameter information is present.
+> **NB:** Parameter has been **added** if just the new parameter information is present.
+> **NB:** Parameter has been **removed** if parameter information isn't present.
+
 ### Software dependencies
 
 Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
@@ -30,6 +34,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | Dependency              | Old version | New version |
 | ----------------------- | ----------- | ----------- |
 | `ataqv`                 | 1.1.1       | 1.3.0       |
+| `bamtools`              | 2.5.1       | 2.5.2       |
 | `bedtools`              | 2.29.2      | 2.30.0      |
 | `bioconductor-deseq2`   | 1.26.0      | 1.28.0      |
 | `deeptools`             | 3.4.3       | 3.5.1       |
@@ -38,6 +43,16 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `samtools`              | 1.10        | 1.15.1      |
 | `picard`                | 2.23.1      | 2.27.4      |
 | `preseq`                | 2.0.3       | 3.1.2       |
+| `r-base`                | 3.6.1       | 4.0.3       |
+| `r-tidyr`               | -           | -           |
+| `r-lattice`             | -           | -           |
+| `r-xfun`                | -           | -           |
+| `bioconductor-vsn`      | -           | -           |
+| `trim-galore`           | 0.6.5       | 0.6.7       |
+
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
 
 ## [1.2.1] - 2020-07-29
 
