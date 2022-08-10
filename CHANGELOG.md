@@ -43,7 +43,9 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `samtools`              | 1.10        | 1.15.1      |
 | `picard`                | 2.23.1      | 2.27.4      |
 | `preseq`                | 2.0.3       | 3.1.2       |
+| `pysam`                 | 0.15.3      | 0.19.0      |
 | `r-base`                | 3.6.1       | 4.0.3       |
+| `r-ggplot2`             | 3.3.2       | 3.3.3       |
 | `trim-galore`           | 0.6.5       | 0.6.7       |
 | `r-optparse`            | -           | 1.7.1       |
 | `r-tidyr`               | -           | -           |
