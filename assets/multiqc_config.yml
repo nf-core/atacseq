@@ -145,7 +145,7 @@ sp:
   cutadapt:
     fn: "*trimming_report.txt"
   preseq:
-    fn: "*.ccurve.txt"
+    fn: "*.lc_extrap.txt"
   deeptools/plotFingerprintOutRawCounts:
     fn: "*plotFingerprint*"
   deeptools/plotProfile:

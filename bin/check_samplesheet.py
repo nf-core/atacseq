@@ -2,6 +2,7 @@
 
 import os
 import sys
+import errno
 import argparse
 
 
@@ -43,7 +44,7 @@ def check_samplesheet(file_in, file_out):
     SPT5_INPUT_REP1,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204809_Spt5-ChIP_Input1_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,,
     SPT5_INPUT_REP2,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R1.fastq.gz,SRR5204810_Spt5-ChIP_Input2_SacCer_ChIP-Seq_ss100k_R2.fastq.gz,,
     For an example see:
-    https://raw.githubusercontent.com/nf-core/test-datasets/chipseq/samplesheet/v2.0/samplesheet_test.csv
+    https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/design.csv
     """
 
     sample_mapping_dict = {}

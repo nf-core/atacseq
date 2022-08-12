@@ -1,10 +1,10 @@
 process MULTIQC {
     label 'process_medium'
 
-    conda (params.enable_conda ? "bioconda::multiqc=1.10.1" : null)
+    conda (params.enable_conda ? "bioconda::multiqc=1.13a" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/multiqc:1.10.1--pyhdfd78af_1':
-        'quay.io/biocontainers/multiqc:1.10.1--pyhdfd78af_1' }"
+        'https://depot.galaxyproject.org/singularity/multiqc:1.13a--pyhdfd78af_1':
+        'quay.io/biocontainers/multiqc:1.13a--pyhdfd78af_1' }"
 
     input:
     path multiqc_config
@@ -12,37 +12,46 @@ process MULTIQC {
     path software_versions
     path workflow_summary
 
-    // path ('fastqc/*')
-    // path ('trimgalore/fastqc/*')
-    // path ('trimgalore/*')
+    path ('fastqc/*')
+    path ('trimgalore/fastqc/*')
+    path ('trimgalore/*')
 
-    // path ('alignment/library/*')
-    // path ('alignment/library/*')
-    // path ('alignment/library/*')
+    path ('alignment/library/*')
+    path ('alignment/library/*')
+    path ('alignment/library/*')
 
-    // path ('alignment/mergedLibrary/unfiltered/*')
-    // path ('alignment/mergedLibrary/unfiltered/*')
-    // path ('alignment/mergedLibrary/unfiltered/*')
-    // path ('alignment/mergedLibrary/unfiltered/picard_metrics/*')
+    path ('alignment/mergedLibrary/unfiltered/*')
+    path ('alignment/mergedLibrary/unfiltered/*')
+    path ('alignment/mergedLibrary/unfiltered/*')
+    path ('alignment/mergedLibrary/unfiltered/picard_metrics/*')
 
-    // path ('alignment/mergedLibrary/filtered/*')
-    // path ('alignment/mergedLibrary/filtered/*')
-    // path ('alignment/mergedLibrary/filtered/*')
-    // path ('alignment/mergedLibrary/filtered/picard_metrics/*')
+    path ('alignment/mergedLibrary/filtered/*')
+    path ('alignment/mergedLibrary/filtered/*')
+    path ('alignment/mergedLibrary/filtered/*')
+    path ('alignment/mergedLibrary/filtered/picard_metrics/*')
 
-    // path ('preseq/*')
-    // path ('deeptools/*')
-    // path ('deeptools/*')
+    path ('preseq/*')
+    path ('deeptools/*')
+    path ('deeptools/*')
     // path ('phantompeakqualtools/*')
     // path ('phantompeakqualtools/*')
     // path ('phantompeakqualtools/*')
     // path ('phantompeakqualtools/*')
 
-    // path ('macs2/peaks/*')
-    // path ('macs2/peaks/*')
-    // path ('macs2/annotation/*')
+    path ('mergedLibrary_macs2/peaks/*')
+    path ('mergedLibrary_macs2/peaks/*')
+    path ('mergedLibrary_macs2/annotation/*')
+    path ('mergedLibrary_featurecounts/*')
 
-    // path ('featurecounts/*')
+    path ('alignment/mergedReplicate/*')
+    path ('alignment/mergedReplicate/*')
+    path ('alignment/mergedReplicate/*')
+    path ('alignment/mergedReplicate/picard_metrics/*')
+
+    path ('mergedReplicate_macs2/peaks/*')
+    path ('mergedReplicate_macs2/peaks/*')
+    path ('mergedReplicate_macs2/annotation/*')
+    path ('mergedReplicate_featurecounts/*')
 
     output:
     path "*multiqc_report.html", emit: report

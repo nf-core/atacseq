@@ -24,6 +24,7 @@ params.gff        = WorkflowMain.getGenomeAttribute(params, 'gff')
 params.gene_bed   = WorkflowMain.getGenomeAttribute(params, 'gene_bed')
 params.macs_gsize = WorkflowMain.getGenomeAttribute(params, 'macs_gsize')
 params.blacklist  = WorkflowMain.getGenomeAttribute(params, 'blacklist')
+params.mito_name  = WorkflowMain.getGenomeAttribute(params, 'mito_name')
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
