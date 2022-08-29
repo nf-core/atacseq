@@ -39,8 +39,7 @@ if (anno_readme && file(anno_readme).exists()) {
 ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
-
-// // JSON files required by BAMTools for alignment filtering
+// JSON files required by BAMTools for alignment filtering
 ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
 ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
 
@@ -153,7 +152,8 @@ workflow ATACSEQ {
     //
     INPUT_CHECK (
         file(params.input),
-        params.seq_center
+        params.seq_center,
+        params.with_control
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
 
@@ -185,6 +185,7 @@ workflow ATACSEQ {
     // MERGE LIBRARY BAM
     // SUBWORKFLOW: Merge resequenced BAM files
     //
+
     ch_genome_bam
         .map {
             meta, bam ->
@@ -287,13 +288,34 @@ workflow ATACSEQ {
     }
 
     //
-    // Refactor channels: [ val(meta), [bam], [bai] ]
+    // Refactor channels: [ val(meta), [bam], [bai] ] or [ val(meta), [ ip_bam, control_bam ] [ ip_bai, control_bai ] ]
     //
     FILTER_BAM_BAMTOOLS
         .out
         .bam
         .join (FILTER_BAM_BAMTOOLS.out.bai, by: [0])
         .set { ch_bam_bai }
+
+    if (params.with_control) {
+        ch_bam_bai
+            .map {
+                meta, bam, bai ->
+                    meta.control ? null : [ meta.id, [ bam ] , [ bai ] ]
+            }
+            .set { ch_control_bam_bai }
+
+        FILTER_BAM_BAMTOOLS
+            .out
+            .bam
+            .join (FILTER_BAM_BAMTOOLS.out.bai, by: [0])
+            .map {
+                meta, bam, bai ->
+                    meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null
+            }
+            .combine(ch_control_bam_bai, by: 0)
+            .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
+            .set { ch_bam_bai }
+    }
 
     //
     // plotFingerprint for IP and control together
@@ -316,11 +338,20 @@ workflow ATACSEQ {
     ch_plothomerannotatepeaks_multiqc = Channel.empty()
     ch_macs2_consensus_bed_lib        = Channel.empty()
     ch_subreadfeaturecounts_multiqc   = Channel.empty()
+
+
     if (params.macs_gsize) {
-        // Create channel: [ val(meta), bam, empty_list ]
-        ch_bam_bai
-            .map { meta, bam, bai -> [ meta , bam, [] ] }
-            .set { ch_bam }
+        // Create channel: [ val(meta), bam, control_bam ]
+        if (params.with_control) {
+            ch_bam_bai
+                .map { meta, bams, bais -> [ meta , bams[0], bams[1] ] }
+                .set { ch_bam }
+        } else {
+            ch_bam_bai
+                .map { meta, bam, bai -> [ meta , bam, [] ] }
+                .set { ch_bam }
+        }
+
         MACS2_CALLPEAK_LIB (
             ch_bam,
             params.macs_gsize
@@ -434,7 +465,7 @@ workflow ATACSEQ {
                 .set { ch_saf }
 
             ch_bam
-                .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
+                .map { meta, bam, control_bam -> [ 'consensus_peaks', meta, bam ] }
                 .groupTuple()
                 .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
                 .join(ch_saf)
@@ -500,7 +531,7 @@ workflow ATACSEQ {
     ch_subreadfeaturecounts_multiqc_rep   = Channel.empty()
     if (!params.skip_merge_replicates) {
         //
-        // MERGE REPLICATE BAM
+        // SUBWORKFLOW: Merge replicate BAM files
         //
         FILTER_BAM_BAMTOOLS
             .out
@@ -509,6 +540,7 @@ workflow ATACSEQ {
                 meta, bam ->
                     def fmeta = meta.findAll { it.key != 'read_group' }
                     fmeta.id = fmeta.id.split('_')[0..-2].join('_')
+                    fmeta.control = fmeta.control ? fmeta.control.split('_')[0..-2].join('_') : ""
                     [ fmeta, fmeta.id, bam ] }
             .groupTuple(by: [0])
             .map {
@@ -523,11 +555,14 @@ workflow ATACSEQ {
         )
         ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_REP.out.versions.first().ifEmpty(null))
 
+        //
+        // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
         // TODO: check whether "bam_files.size() == 1" is working because of missing
         //       touch ${prefix}.MarkDuplicates.metrics.txt
         MARK_DUPLICATES_PICARD_REP (
             PICARD_MERGESAMFILES_REP.out.bam
         )
+
         ch_mark_duplicates_picard_rep_stats    = MARK_DUPLICATES_PICARD_REP.out.stats
         ch_mark_duplicates_picard_rep_flagstat = MARK_DUPLICATES_PICARD_REP.out.flagstat
         ch_mark_duplicates_picard_rep_idxstats = MARK_DUPLICATES_PICARD_REP.out.idxstats
@@ -552,15 +587,34 @@ workflow ATACSEQ {
         ch_ucsc_bedgraphtobigwig_rep_bigwig = UCSC_BEDGRAPHTOBIGWIG_REP.out.bigwig
         ch_versions                         = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG_REP.out.versions.first())
 
-
         //
         // MERGE REPLICATE PEAK ANALYSIS
         //
         if (params.macs_gsize) {
-            // Create channel: [ val(meta), bam, empty_list ]
-            MARK_DUPLICATES_PICARD_REP.out.bam
-                .map { meta, bam -> [ meta , bam, [] ] }
-                .set { ch_bam_rep }
+            // Create channel: [ val(meta), bam, control_bam ]
+
+            if (params.with_control) {
+                MARK_DUPLICATES_PICARD_REP.out.bam
+                    .map {
+                        meta, bam ->
+                            meta.control ? null : [ meta.id, bam ]
+                    }
+                    .set { ch_merged_control_bam }
+
+                MARK_DUPLICATES_PICARD_REP.out.bam
+                    .map {
+                        meta, bam ->
+                            meta.control ? [ meta.control, meta, bam ] : null
+                    }
+                    .combine(ch_merged_control_bam, by: 0)
+                    .map { it -> [ it[1] , it[2], it[3] ] }
+                    .set { ch_bam_rep }
+            } else {
+                MARK_DUPLICATES_PICARD_REP.out.bam
+                    .map { meta, bam -> [ meta , bam, [] ] }
+                    .set { ch_bam_rep }
+            }
+
             MACS2_CALLPEAK_REP (
                 ch_bam_rep,
                 params.macs_gsize
@@ -607,7 +661,7 @@ workflow ATACSEQ {
                 )
                 ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2_REP.out.versions.first())
 
-                if (!params.skip_peak_qc){
+                if (!params.skip_peak_qc) {
                     PLOT_MACS2_QC_REP (
                         ch_macs2_peaks_rep.collect{it[1]}
                     )
@@ -673,7 +727,7 @@ workflow ATACSEQ {
                     .set { ch_saf_rep }
 
                 ch_bam_rep
-                    .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
+                    .map { meta, bam, control_bam -> [ 'consensus_peaks', meta, bam ] }
                     .groupTuple()
                     .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
                     .join(ch_saf_rep)

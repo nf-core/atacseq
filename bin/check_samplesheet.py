@@ -2,16 +2,18 @@
 
 import os
 import sys
+import errno
 import argparse
 
 
 def parse_args(args=None):
-    Description = "Reformat nf-core/atacseq design file and check its contents."
-    Epilog = "Example usage: python check_design.py <DESIGN_FILE_IN> <DESIGN_FILE_OUT>"
+    Description = "Reformat bovreg/atacseq samplesheet file and check its contents."
+    Epilog = "Example usage: python check_samplesheet.py <FILE_IN> <FILE_OUT>"
 
     parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
     parser.add_argument("FILE_IN", help="Input samplesheet file.")
     parser.add_argument("FILE_OUT", help="Output file.")
+    parser.add_argument('--with_control', action='store_true', help="shows output")
     return parser.parse_args(args)
 
 
@@ -34,7 +36,7 @@ def print_error(error, context="Line", context_str=""):
     sys.exit(1)
 
 
-def check_samplesheet(file_in, file_out):
+def check_samplesheet(file_in, file_out, expect_control=False):
     """
     This function checks that the samplesheet follows the following structure:
     sample,fastq_1,fastq_2,antibody,control
@@ -51,8 +53,10 @@ def check_samplesheet(file_in, file_out):
 
         ## Check header
         MIN_COLS = 2
-        HEADER = ["sample", "fastq_1", "fastq_2", "condition"]
-        # HEADER = ["sample", "fastq_1", "fastq_2", "condition", "control"] // bovreg suggestion
+        if expect_control:
+            HEADER = ["sample", "fastq_1", "fastq_2", "condition", "control"]   # bovreg suggestion
+        else:
+            HEADER = ["sample", "fastq_1", "fastq_2", "condition"]              # nf-core header
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
             print(
@@ -80,7 +84,8 @@ def check_samplesheet(file_in, file_out):
                 )
 
             ## Check sample name entries
-            sample, fastq_1, fastq_2, condition = lspl[: len(HEADER)]
+            sample, fastq_1, fastq_2, condition = lspl[: len(HEADER)-1 if expect_control else len(HEADER)]
+            control = lspl[len(HEADER)-1] if expect_control else ''
             if sample.find(" ") != -1:
                 print(
                     f"WARNING: Spaces have been replaced by underscores for sample: {sample}"
@@ -108,17 +113,35 @@ def check_samplesheet(file_in, file_out):
                         f"WARNING: Spaces have been replaced by underscores for condition: {condition}"
                     )
                     condition = condition.replace(" ", "_")
+                if not control and expect_control:
+                    print_error(
+                        "Both condition and control columns must be specified if --with_control is set!",
+                        "Line",
+                        line,
+                    )
+            if expect_control and control:
+                if control.find(" ") != -1:
+                    print(
+                        f"WARNING: Spaces have been replaced by underscores for control: {control}"
+                    )
+                    control = control.replace(" ", "_")
+                if not condition:
+                    print_error(
+                        "Both condition and control columns must be specified if --with_control is set!",
+                        "Line",
+                        line,
+                    )
 
             ## Auto-detect paired-end/single-end
-            sample_info = []  ## [single_end, fastq_1, fastq_2, condition]
+            sample_info = []  ## [single_end, fastq_1, fastq_2, condition] or [single_end, fastq_1, fastq_2, condition, control]
             if sample and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = ["0", fastq_1, fastq_2, condition]
+                sample_info = ["0", fastq_1, fastq_2, condition, control]
             elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
-                sample_info = ["1", fastq_1, fastq_2, condition]
+                sample_info = ["1", fastq_1, fastq_2, condition, control]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
 
-            ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2, condition ]]}
+            ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2, condition ]]} or {sample: [[ single_end, fastq_1, fastq_2, condition, control ]]}
             if sample not in sample_mapping_dict:
                 sample_mapping_dict[sample] = [sample_info]
             else:
@@ -140,6 +163,7 @@ def check_samplesheet(file_in, file_out):
                         "fastq_1",
                         "fastq_2",
                         "condition",
+                        "control",
                     ]
                 )
                 + "\n"
@@ -158,21 +182,22 @@ def check_samplesheet(file_in, file_out):
                     )
 
                 for idx, val in enumerate(sample_mapping_dict[sample]):
-                    # control = val[-1]
-                    # if control and control not in sample_mapping_dict.keys():
-                    #     print_error(
-                    #         f"Control identifier has to match a provided sample identifier!",
-                    #         "Control",
-                    #         control,
-                    #     )
+                    control = val[-1]
+                    if control and control not in sample_mapping_dict.keys():
+                        print_error(
+                            f"Control identifier has to match does a provided sample identifier!",
+                            "Control",
+                            control,
+                        )
 
                     fout.write(",".join([f"{sample}_T{idx+1}"] + val) + "\n")
     else:
         print_error(f"No entries to process!", "Samplesheet: {file_in}")
 
+
 def main(args=None):
     args = parse_args(args)
-    check_samplesheet(args.FILE_IN, args.FILE_OUT)
+    check_samplesheet(args.FILE_IN, args.FILE_OUT, args.with_control)
 
 
 if __name__ == "__main__":
