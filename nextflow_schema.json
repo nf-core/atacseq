@@ -33,6 +33,12 @@
                     "description": "Sequencing center information to be added to read group of BAM files.",
                     "fa_icon": "fas fa-synagogue"
                 },
+                "with_control": {
+                    "type": "boolean",
+                    "description": "Use controls.",
+                    "help_text": "Use this to indicate that your design file lists controls.",
+                    "fa_icon": "fas fa-check-square"
+                },
                 "outdir": {
                     "type": "string",
                     "format": "directory-path",
