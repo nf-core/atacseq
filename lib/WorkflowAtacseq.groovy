@@ -15,6 +15,19 @@ class WorkflowAtacseq {
             log.error "Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file."
             System.exit(1)
         }
+
+        if (!params.gtf && !params.gff) {
+            log.error "No GTF or GFF3 annotation specified! The pipeline requires at least one of these files."
+            System.exit(1)
+        }
+
+        if (params.gtf && params.gff) {
+            gtfGffWarn(log)
+        }
+
+        if (!params.macs_gsize) {
+            macsGsizeWarn(log)
+        }
     }
 
     //
@@ -55,4 +68,26 @@ class WorkflowAtacseq {
             System.exit(1)
         }
     }
+
+    //
+    // Print a warning if both GTF and GFF have been provided
+    //
+    private static void gtfGffWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  Both '--gtf' and '--gff' parameters have been provided.\n" +
+            "  Using GTF file as priority.\n" +
+            "==================================================================================="
+    }
+
+    //
+    // Print a warning if macs_gsize parameter has not been provided
+    //
+    private static void macsGsizeWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  --macs_gsize parameter has not been provided.\n" +
+            "  MACS2 peak-calling and differential analysis will be skipped.\n" +
+            "  Provide '--macs_gsize macs2_genome_size' to change this behaviour.\n" +
+            "==================================================================================="
+    }
+
 }
