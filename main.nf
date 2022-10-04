@@ -4,7 +4,8 @@
     nf-core/atacseq
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Github : https://github.com/nf-core/atacseq
-Website: https://nf-co.re/atacseq
+
+    Website: https://nf-co.re/atacseq
     Slack  : https://nfcore.slack.com/channels/atacseq
 ----------------------------------------------------------------------------------------
 */

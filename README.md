@@ -62,7 +62,7 @@ The nf-core/atacseq pipeline comes with documentation about the pipeline [usage]
 
 ## Credits
 
-nf-core/atacseq was originally written by Harshil Patel.
+nf-core/atacseq was originally written by Patel H, Langer B, Espinosa-Carrasco J.
 
 We thank the following people for their extensive assistance in the development of this pipeline:
 
