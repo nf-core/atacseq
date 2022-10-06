@@ -29,7 +29,7 @@ workflow PREPARE_GENOME {
     // Uncompress genome fasta file if required
     //
     if (params.fasta.endsWith('.gz')) {
-        ch_fasta    = GUNZIP_FASTA ( [:], params.fasta ).gunzip.map{ it[1] }
+        ch_fasta    = GUNZIP_FASTA ( [ [:], params.fasta ] ).gunzip.map{ it[1] }
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
         ch_fasta = file(params.fasta)
@@ -40,14 +40,14 @@ workflow PREPARE_GENOME {
     //
     if (params.gtf) {
         if (params.gtf.endsWith('.gz')) {
-            ch_gtf      = GUNZIP_GTF ( [:], params.gtf ).gunzip.map{ it[1] }
+            ch_gtf      = GUNZIP_GTF ( [ [:], params.gtf ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
         } else {
             ch_gtf = file(params.gtf)
         }
     } else if (params.gff) {
         if (params.gff.endsWith('.gz')) {
-            ch_gff      = GUNZIP_GFF ( [:], params.gff ).gunzip.map{ it[1] }
+            ch_gff      = GUNZIP_GFF ( [ [:], params.gff ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GFF.out.versions)
         } else {
             ch_gff = file(params.gff)
@@ -62,7 +62,7 @@ workflow PREPARE_GENOME {
     ch_blacklist = Channel.empty()
     if (params.blacklist) {
         if (params.blacklist.endsWith('.gz')) {
-            ch_blacklist = GUNZIP_BLACKLIST ( [:], params.blacklist ).gunzip.map{ it[1] }
+            ch_blacklist = GUNZIP_BLACKLIST ( [ [:], params.blacklist ] ).gunzip.map{ it[1] }
             ch_versions  = ch_versions.mix(GUNZIP_BLACKLIST.out.versions)
         } else {
             ch_blacklist = Channel.fromPath(file(params.blacklist))
@@ -89,7 +89,7 @@ workflow PREPARE_GENOME {
         ch_versions = ch_versions.mix(GTF2BED.out.versions)
     } else {
         if (params.gene_bed.endsWith('.gz')) {
-            ch_gene_bed = GUNZIP_GENE_BED ( [:], params.gene_bed ).gunzip.map{ it[1] }
+            ch_gene_bed = GUNZIP_GENE_BED ( [ [:], params.gene_bed ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GENE_BED.out.versions)
         } else {
             ch_gene_bed = file(params.gene_bed)
@@ -101,7 +101,7 @@ workflow PREPARE_GENOME {
         ch_versions = ch_versions.mix(TSS_EXTRACT.out.versions)
     } else {
         if (params.tss_bed.endsWith('.gz')) {
-            ch_tss_bed = GUNZIP_TSS_BED ( [:], params.tss_bed ).gunzip.map{ it[1] }
+            ch_tss_bed = GUNZIP_TSS_BED ( [ [:], params.tss_bed ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_TSS_BED.out.versions)
         } else {
             ch_tss_bed = file(params.tss_bed)
@@ -145,7 +145,7 @@ workflow PREPARE_GENOME {
     ch_bwa_index = Channel.empty()
     if (params.bwa_index) {
         if (params.bwa_index.endsWith('.tar.gz')) {
-            ch_bwa_index = UNTAR ( [:], params.bwa_index ).untar.map{ it[1] }
+            ch_bwa_index = UNTAR ( [ [:], params.bwa_index ] ).untar.map{ it[1] }
             ch_versions  = ch_versions.mix(UNTAR.out.versions)
         } else {
             ch_bwa_index = file(params.bwa_index)
