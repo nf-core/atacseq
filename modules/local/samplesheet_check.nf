@@ -13,12 +13,11 @@ process SAMPLESHEET_CHECK {
     path '*.csv'       , emit: csv
     path "versions.yml", emit: versions
 
-    script: // This script is bundled with the pipeline, in bovreg/atacseq/bin/
-    def args = task.ext.args ?: ''
+    script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
     """
     check_samplesheet.py \\
         $samplesheet \\
-        $args \\
+        samplesheet.valid.csv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

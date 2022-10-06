@@ -6,10 +6,8 @@ include { SAMPLESHEET_CHECK } from '../../modules/local/samplesheet_check'
 
 workflow INPUT_CHECK {
     take:
-    samplesheet  // file: /path/to/samplesheet.csv
-    seq_center   // string: sequencing center for read group
-    with_control // boolean: samplesheet contains controls
-
+    samplesheet // file: /path/to/samplesheet.csv
+    seq_center  // string: sequencing center for read group
 
     main:
     SAMPLESHEET_CHECK ( samplesheet )
@@ -29,7 +27,6 @@ def create_fastq_channel(LinkedHashMap row, String seq_center) {
     meta.id         = row.sample
     meta.single_end = row.single_end.toBoolean()
     meta.condition  = row.condition
-    meta.control    = row.control
 
     def read_group = "\'@RG\\tID:${meta.id}\\tSM:${meta.id.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${meta.id}\\tPU:1\'"
     if (seq_center) {
