@@ -12,8 +12,8 @@ process CUSTOM_GETCHROMSIZES {
 
     output:
     path '*.sizes'      , emit: sizes
-+   path '*.fai'        , emit: fai
-+   path  "versions.yml", emit: versions
+    path '*.fai'        , emit: fai
+    path  "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
