@@ -749,7 +749,7 @@ workflow ATACSEQ {
         workflow_summary    = WorkflowAtacseq.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
-        methods_description    = WorkflowChipseq.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
+        methods_description    = WorkflowAtacseq.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
         ch_methods_description = Channel.value(methods_description)
 
         MULTIQC (
