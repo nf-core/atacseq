@@ -55,9 +55,7 @@ def check_samplesheet(file_in, file_out):
         # HEADER = ["sample", "fastq_1", "fastq_2", "condition", "control"] // bovreg suggestion
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
-            print(
-                f"ERROR: Please check samplesheet header -> {','.join(header)} != {','.join(HEADER)}"
-            )
+            print(f"ERROR: Please check samplesheet header -> {','.join(header)} != {','.join(HEADER)}")
             sys.exit(1)
 
         ## Check sample entries
@@ -82,9 +80,7 @@ def check_samplesheet(file_in, file_out):
             ## Check sample name entries
             sample, fastq_1, fastq_2, condition = lspl[: len(HEADER)]
             if sample.find(" ") != -1:
-                print(
-                    f"WARNING: Spaces have been replaced by underscores for sample: {sample}"
-                )
+                print(f"WARNING: Spaces have been replaced by underscores for sample: {sample}")
                 sample = sample.replace(" ", "_")
             if not sample:
                 print_error("Sample entry has not been specified!", "Line", line)
@@ -104,9 +100,7 @@ def check_samplesheet(file_in, file_out):
             ## Check condition column has valid values
             if condition:
                 if condition.find(" ") != -1:
-                    print(
-                        f"WARNING: Spaces have been replaced by underscores for condition: {condition}"
-                    )
+                    print(f"WARNING: Spaces have been replaced by underscores for condition: {condition}")
                     condition = condition.replace(" ", "_")
 
             ## Auto-detect paired-end/single-end
@@ -147,10 +141,7 @@ def check_samplesheet(file_in, file_out):
             for sample in sorted(sample_mapping_dict.keys()):
 
                 ## Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
-                if not all(
-                    x[0] == sample_mapping_dict[sample][0][0]
-                    for x in sample_mapping_dict[sample]
-                ):
+                if not all(x[0] == sample_mapping_dict[sample][0][0] for x in sample_mapping_dict[sample]):
                     print_error(
                         f"Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end!",
                         "Sample",
@@ -169,6 +160,7 @@ def check_samplesheet(file_in, file_out):
                     fout.write(",".join([f"{sample}_T{idx+1}"] + val) + "\n")
     else:
         print_error(f"No entries to process!", "Samplesheet: {file_in}")
+
 
 def main(args=None):
     args = parse_args(args)

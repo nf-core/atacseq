@@ -110,9 +110,11 @@ report_section_order:
     before: mrep_featurecounts
   mrep_deseq2_clustering:
     before: mrep_deseq2_pca
+  "nf-core-atacseq-methods-description":
+    order: -1000
   software_versions:
     order: -1001
-  nf-core-atacseq-summary:
+  "nf-core-atacseq-summary":
     order: -1002
 
 custom_plot_config:
