@@ -39,6 +39,12 @@
                     "fa_icon": "fas fa-chart-area",
                     "enum": [50, 75, 100, 150, 200]
                 },
+                "with_control": {
+                    "type": "boolean",
+                    "description": "Use controls.",
+                    "help_text": "Use this to indicate that your design file lists controls.",
+                    "fa_icon": "fas fa-check-square"
+                },
                 "outdir": {
                     "type": "string",
                     "format": "directory-path",
