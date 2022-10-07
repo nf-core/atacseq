@@ -29,7 +29,12 @@
                         "maxLength": 0
                     }
                 ]
-            }
+            },
+            "condition": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Condition entry cannot contain spaces"
+            },
         },
         "required": ["sample", "fastq_1"]
     }
