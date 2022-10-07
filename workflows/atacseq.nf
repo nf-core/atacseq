@@ -316,7 +316,6 @@ workflow ATACSEQ {
     ch_custompeaks_frip_multiqc       = Channel.empty()
     ch_custompeaks_count_multiqc      = Channel.empty()
     ch_plothomerannotatepeaks_multiqc = Channel.empty()
-    ch_macs2_consensus_bed_lib        = Channel.empty()
     ch_subreadfeaturecounts_multiqc   = Channel.empty()
     if (params.macs_gsize) {
         // Create channel: [ val(meta), bam, empty_list ]
@@ -389,6 +388,7 @@ workflow ATACSEQ {
         //  Consensus peaks analysis
         //
         ch_macs2_consensus_bed_lib = Channel.empty()
+        ch_macs2_consensus_txt_lib = Channel.empty()
         if (!params.skip_consensus_peaks) {
             // Create channel: [ meta , [ peaks ] ]
             // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
@@ -415,6 +415,7 @@ workflow ATACSEQ {
                 ch_consensus_peaks
             )
             ch_macs2_consensus_bed_lib = MACS2_CONSENSUS_LIB.out.bed
+            ch_macs2_consensus_txt_lib = MACS2_CONSENSUS_LIB.out.txt
             ch_versions                = ch_versions.mix(MACS2_CONSENSUS_LIB.out.versions)
 
             if (!params.skip_peak_annotation) {
@@ -492,6 +493,7 @@ workflow ATACSEQ {
     ch_ucsc_bedgraphtobigwig_rep_bigwig    = Channel.empty()
     ch_macs2_peaks_rep                     = Channel.empty()
     ch_macs2_consensus_bed_rep             = Channel.empty()
+    ch_macs2_consensus_txt_rep             = Channel.empty()
     ch_mark_duplicates_picard_rep_stats    = Channel.empty()
     ch_mark_duplicates_picard_rep_flagstat = Channel.empty()
     ch_mark_duplicates_picard_rep_idxstats = Channel.empty()
@@ -654,6 +656,7 @@ workflow ATACSEQ {
                     ch_consensus_peaks_rep
                 )
                 ch_macs2_consensus_bed_rep = MACS2_CONSENSUS_REP.out.bed
+                ch_macs2_consensus_txt_rep = MACS2_CONSENSUS_REP.out.txt
                 ch_versions                = ch_versions.mix(MACS2_CONSENSUS_REP.out.versions)
 
                 if (!params.skip_peak_annotation) {
@@ -710,27 +713,35 @@ workflow ATACSEQ {
     //
     if (!params.skip_igv) {
         IGV (
+            params.aligner,
+            params.narrow_peak ? 'narrowPeak' : 'broadPeak',
             PREPARE_GENOME.out.fasta,
+
+            // Lib
             UCSC_BEDGRAPHTOBIGWIG_LIB.out.bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
+            ch_macs2_consensus_txt_lib.collect{it[1]}.ifEmpty([]),
+
+            // Rep
             ch_ucsc_bedgraphtobigwig_rep_bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks_rep.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_rep.collect{it[1]}.ifEmpty([]),
-            "bwa/mergedLibrary/bigwig",
-            { ["bwa/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
-                ].join('') },
-            { ["bwa/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
-                ].join('') },
-            "bwa/mergedReplicate/bigwig",
-            { ["bwa/mergedReplicate/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
-                ].join('') },
-            { ["bwa/mergedReplicate/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
-                ].join('') },
+            ch_macs2_consensus_txt_rep.collect{it[1]}.ifEmpty([]),
+            // "bwa/mergedLibrary/bigwig",
+            // { ["bwa/mergedLibrary/macs2",
+            //     params.narrow_peak? '/narrowPeak' : '/broadPeak'
+            //     ].join('') },
+            // { ["bwa/mergedLibrary/macs2",
+            //     params.narrow_peak? '/narrowPeak' : '/broadPeak'
+            //     ].join('') },
+            // "bwa/mergedReplicate/bigwig",
+            // { ["bwa/mergedReplicate/macs2",
+            //     params.narrow_peak? '/narrowPeak' : '/broadPeak'
+            //     ].join('') },
+            // { ["bwa/mergedReplicate/macs2",
+            //     params.narrow_peak? '/narrowPeak' : '/broadPeak'
+            //     ].join('') },
         )
         ch_versions = ch_versions.mix(IGV.out.versions)
     }

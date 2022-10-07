@@ -9,20 +9,17 @@ process IGV {
         'quay.io/biocontainers/python:3.8.3' }"
 
     input:
+    val aligner_dir
+    val peak_dir
     path fasta
-    path ("${bigwig_lib_publish_dir}/*")
-    path ("${peak_lib_publish_dir}/*")
-    path ("${consensus_lib_publish_dir}/*")
-    path ("${bigwig_rep_publish_dir}/*")
-    path ("${peak_rep_publish_dir}/*")
-    path ("${consensus_rep_publish_dir}/*")
-    val bigwig_lib_publish_dir
-    val peak_lib_publish_dir
-    val consensus_lib_publish_dir
-    val bigwig_rep_publish_dir
-    val peak_rep_publish_dir
-    val consensus_rep_publish_dir
-    // path differential_peaks from ch_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
+    path ("${aligner_dir}/mergedLibrary/bigwig/*")
+    path ("${aligner_dir}/mergedLibrary/macs2/${peak_dir}/*")
+    path ("${aligner_dir}/mergedLibrary/macs2/${peak_dir}/consensus/*")
+    path ("mappings_lib/*")
+    path ("${aligner_dir}/mergedReplicate/bigwig/*")
+    path ("${aligner_dir}/mergedReplicate/macs2/${peak_dir}/*")
+    path ("${aligner_dir}/mergedReplicate/macs2/${peak_dir}/consensus/*")
+    path ("mappings_rep/*")
 
     output:
     path "*files.txt"  , emit: txt
@@ -30,16 +27,22 @@ process IGV {
     path "versions.yml", emit: versions
 
     script: // scripts are bundled with the pipeline in nf-core/atacseq/bin/
+    def consensus_dir_lib = "${aligner_dir}/mergedLibrary/macs2/${peak_dir}/consensus/*"
+    def consensus_dir_rep = "${aligner_dir}/mergedReplicate/macs2/${peak_dir}/consensus/*"
     """
-    find * -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$bigwig_lib_publish_dir" || test \$? = 1; } > mLb_bigwig.igv.txt
-    find * -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$peak_lib_publish_dir" || test \$? = 1; } > mLb_peaks.igv.txt
-    find * -type l -name "*.bed" -exec echo -e ""{}"\\t0,0,0" \\; | { grep "^$consensus_lib_publish_dir" || test \$? = 1; } > mLb_bed.igv.txt
-    find * -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$bigwig_rep_publish_dir" || test \$? = 1; } > mRp_bigwig.igv.txt
-    find * -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$peak_rep_publish_dir" || test \$? = 1; } > mRp_peaks.igv.txt
-    find * -type l -name "*.bed" -exec echo -e ""{}"\\t0,0,0" \\; | { grep "^$consensus_rep_publish_dir" || test \$? = 1; } > mRp_bed.igv.txt
+    find * -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; > mLb_bigwig.igv.txt
+    find * -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; > mLb_peaks.igv.txt
+    find * -type l -name "*.bed" -exec echo -e ""{}"\\t0,0,0" \\; | { grep "^$consensus_dir_lib" || test \$? = 1; } > mLb_bed.igv.txt
 
-    cat *.txt > igv_files.txt
-    igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
+    find * -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; > mRp_bigwig.igv.txt
+    find * -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; > mRp_peaks.igv.txt
+    find * -type l -name "*.bed" -exec echo -e ""{}"\\t0,0,0" \\; | { grep "^$consensus_dir_rep" || test \$? = 1; } > mRp_bed.igv.txt
+
+    cat mappings_lib/* > replace_paths.txt
+    cat mappings_rep/* >> replace_paths.txt
+
+    cat *.txt > igv_files_orig.txt
+    igv_files_to_session.py igv_session.xml igv_files_orig.txt replace_paths.txt ../../genome/${fasta.getName()} --path_prefix '../../'
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
