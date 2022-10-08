@@ -28,6 +28,7 @@ workflow PREPARE_GENOME {
     //
     // Uncompress genome fasta file if required
     //
+    ch_fasta = Channel.empty()
     if (params.fasta.endsWith('.gz')) {
         ch_fasta    = GUNZIP_FASTA ( [:], params.fasta ).gunzip.map{ it[1] }
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
