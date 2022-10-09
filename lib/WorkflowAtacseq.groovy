@@ -30,6 +30,13 @@ class WorkflowAtacseq {
         if (!params.macs_gsize) {
             macsGsizeWarn(log)
         }
+
+        if (!params.read_length && !params.macs_gsize) {
+            log.error "Both '--read_length' and '--macs_gsize' not specified! Please specify either to infer MACS2 genome size for peak calling."
+            System.exit(1)
+        }
+
+
     }
 
     //
@@ -104,8 +111,8 @@ class WorkflowAtacseq {
     private static void macsGsizeWarn(log) {
         log.warn "=============================================================================\n" +
             "  --macs_gsize parameter has not been provided.\n" +
-            "  MACS2 peak-calling and differential analysis will be skipped.\n" +
-            "  Provide '--macs_gsize macs2_genome_size' to change this behaviour.\n" +
+            "  It will be auto-calculated by 'khmer unique-kmers.py' using the '--read_length' parameter.\n" +
+            "  Explicitly provide '--macs_gsize macs2_genome_size' to change this behaviour.\n" +
             "==================================================================================="
     }
 
