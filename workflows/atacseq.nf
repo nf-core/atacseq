@@ -321,7 +321,7 @@ workflow ATACSEQ {
     ch_macs2_consensus_bed_lib        = Channel.empty()
     ch_subreadfeaturecounts_multiqc   = Channel.empty()
     ch_macs_gsize                     = params.macs_gsize
-    if (params.macs_gsize) {
+    if (!params.macs_gsize) {
         KHMER_UNIQUEKMERS (
             PREPARE_GENOME.out.fasta,
             params.read_length
@@ -339,7 +339,7 @@ workflow ATACSEQ {
     //
     MACS2_CALLPEAK_LIB (
         ch_bam,
-        params.macs_gsize
+        ch_macs_gsize
     )
     ch_versions = ch_versions.mix(MACS2_CALLPEAK_LIB.out.versions.first())
 
@@ -587,7 +587,7 @@ workflow ATACSEQ {
         //
         MACS2_CALLPEAK_REP (
             ch_bam_rep,
-            params.macs_gsize
+            ch_macs_gsize
         )
         ch_versions = ch_versions.mix(MACS2_CALLPEAK_REP.out.versions.first())
 
