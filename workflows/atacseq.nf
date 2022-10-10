@@ -109,6 +109,7 @@ include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/deeptools/com
 include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile/main'
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap/main'
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint/main'
+include { KHMER_UNIQUEKMERS             } from '../modules/nf-core/khmer/uniquekmers/main'
 include { MACS2_CALLPEAK as MACS2_CALLPEAK_LIB                 } from '../modules/nf-core/macs2/callpeak/main'
 include { MACS2_CALLPEAK as MACS2_CALLPEAK_REP                 } from '../modules/nf-core/macs2/callpeak/main'
 include { SUBREAD_FEATURECOUNTS as SUBREAD_FEATURECOUNTS_LIB   } from '../modules/nf-core/subread/featurecounts/main'
@@ -310,158 +311,176 @@ workflow ATACSEQ {
     }
 
     //
-    // MERGE LIBRARY PEAK ANALYSIS
+    // MERGED LIBRARY PEAK ANALYSIS
     //
+    ch_macs_gsize                     = Channel.empty()
     ch_macs2_peaks                    = Channel.empty()
     ch_custompeaks_frip_multiqc       = Channel.empty()
     ch_custompeaks_count_multiqc      = Channel.empty()
     ch_plothomerannotatepeaks_multiqc = Channel.empty()
     ch_macs2_consensus_bed_lib        = Channel.empty()
     ch_subreadfeaturecounts_multiqc   = Channel.empty()
+    ch_macs_gsize                     = params.macs_gsize
     if (params.macs_gsize) {
-        // Create channel: [ val(meta), bam, empty_list ]
-        ch_bam_bai
-            .map { meta, bam, bai -> [ meta , bam, [] ] }
-            .set { ch_bam }
-        MACS2_CALLPEAK_LIB (
-            ch_bam,
-            params.macs_gsize
+        KHMER_UNIQUEKMERS (
+            PREPARE_GENOME.out.fasta,
+            params.read_length
         )
-        ch_versions = ch_versions.mix(MACS2_CALLPEAK_LIB.out.versions.first())
+        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { it.text.trim() }
+    }
 
-        //
-        // Filter for MACS2 files without peaks
-        //
-        MACS2_CALLPEAK_LIB
-            .out
-            .peak
-            .filter { meta, peaks -> peaks.size() > 0 }
-            .set { ch_macs2_peaks }
+    // Create channel: [ val(meta), bam, empty_list ]
+    ch_bam_bai
+        .map { meta, bam, bai -> [ meta , bam, [] ] }
+        .set { ch_bam }
 
-        ch_bam
-            .join(ch_macs2_peaks, by: [0])
-            .map { it -> [ it[0], it[1], it[3] ] }
-            .set { ch_peak }
+    //
+    // MODULE: Call peaks with MACS2
+    //
+    MACS2_CALLPEAK_LIB (
+        ch_bam,
+        params.macs_gsize
+    )
+    ch_versions = ch_versions.mix(MACS2_CALLPEAK_LIB.out.versions.first())
 
-        FRIP_SCORE_LIB (
-            ch_peak
-        )
-        ch_versions = ch_versions.mix(FRIP_SCORE_LIB.out.versions.first())
+    //
+    // Filter for MACS2 files without peaks
+    //
+    MACS2_CALLPEAK_LIB
+        .out
+        .peak
+        .filter { meta, peaks -> peaks.size() > 0 }
+        .set { ch_macs2_peaks }
 
+    ch_bam
+        .join(ch_macs2_peaks, by: [0])
+        .map { it -> [ it[0], it[1], it[3] ] }
+        .set { ch_peak }
+
+    //
+    // MODULE: Calculate FRiP score
+    //
+    FRIP_SCORE_LIB (
         ch_peak
-            .join(FRIP_SCORE_LIB.out.txt, by: [0])
-            .map { it -> [ it[0], it[2], it[3] ] }
-            .set { ch_peak_frip }
+    )
+    ch_versions = ch_versions.mix(FRIP_SCORE_LIB.out.versions.first())
 
-        MULTIQC_CUSTOM_PEAKS_LIB (
-            ch_peak_frip,
-            ch_mlib_peak_count_header,
-            ch_mlib_frip_score_header
+    ch_peak
+        .join(FRIP_SCORE_LIB.out.txt, by: [0])
+        .map { it -> [ it[0], it[2], it[3] ] }
+        .set { ch_peak_frip }
+
+    //
+    // MODULE: FRiP score custom content for MultiQC
+    //
+    MULTIQC_CUSTOM_PEAKS_LIB (
+        ch_peak_frip,
+        ch_mlib_peak_count_header,
+        ch_mlib_frip_score_header
+    )
+    ch_custompeaks_frip_multiqc  = MULTIQC_CUSTOM_PEAKS_LIB.out.frip
+    ch_custompeaks_count_multiqc = MULTIQC_CUSTOM_PEAKS_LIB.out.count
+
+    if (!params.skip_peak_annotation) {
+        HOMER_ANNOTATEPEAKS_MACS2_LIB (
+            ch_macs2_peaks,
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.gtf
         )
-        ch_custompeaks_frip_multiqc  = MULTIQC_CUSTOM_PEAKS_LIB.out.frip
-        ch_custompeaks_count_multiqc = MULTIQC_CUSTOM_PEAKS_LIB.out.count
+        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2_LIB.out.versions.first())
+
+        if (!params.skip_peak_qc) {
+            PLOT_MACS2_QC_LIB (
+                ch_macs2_peaks.collect{it[1]}
+            )
+            ch_versions = ch_versions.mix(PLOT_MACS2_QC_LIB.out.versions)
+
+            PLOT_HOMER_ANNOTATEPEAKS_LIB (
+                HOMER_ANNOTATEPEAKS_MACS2_LIB.out.txt.collect{it[1]},
+                ch_mlib_peak_annotation_header,
+                "_peaks.annotatePeaks.txt"
+            )
+            ch_plothomerannotatepeaks_multiqc = PLOT_HOMER_ANNOTATEPEAKS_LIB.out.tsv
+            ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS_LIB.out.versions)
+        }
+    }
+
+    //
+    //  Consensus peaks analysis
+    //
+    ch_macs2_consensus_bed_lib = Channel.empty()
+    if (!params.skip_consensus_peaks) {
+        // Create channel: [ meta , [ peaks ] ]
+        // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
+        // TODO: simplify groupTuple
+        ch_macs2_peaks
+            .map { meta, peak -> [ '', meta.id.split('_')[0..-2].join('_'), peak ] }
+            .groupTuple()
+            .map {
+                key, groups, peaks ->
+                    [
+                        groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
+                        peaks
+                    ] }
+            .map {
+                groups, peaks ->
+                    def meta = [:]
+                    meta.id = 'consensus_peaks'
+                    meta.multiple_groups = groups.size() > 1
+                    meta.replicates_exist = groups.max { groups.value }.value > 1
+                    [ meta, peaks ] }
+            .set { ch_consensus_peaks }
+
+        MACS2_CONSENSUS_LIB (
+            ch_consensus_peaks
+        )
+        ch_macs2_consensus_bed_lib = MACS2_CONSENSUS_LIB.out.bed
+        ch_versions                = ch_versions.mix(MACS2_CONSENSUS_LIB.out.versions)
 
         if (!params.skip_peak_annotation) {
-            HOMER_ANNOTATEPEAKS_MACS2_LIB (
-                ch_macs2_peaks,
+            HOMER_ANNOTATEPEAKS_CONSENSUS_LIB (
+                MACS2_CONSENSUS_LIB.out.bed,
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf
             )
-            ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2_LIB.out.versions.first())
-
-            if (!params.skip_peak_qc) {
-                PLOT_MACS2_QC_LIB (
-                    ch_macs2_peaks.collect{it[1]}
-                )
-                ch_versions = ch_versions.mix(PLOT_MACS2_QC_LIB.out.versions)
-
-                PLOT_HOMER_ANNOTATEPEAKS_LIB (
-                    HOMER_ANNOTATEPEAKS_MACS2_LIB.out.txt.collect{it[1]},
-                    ch_mlib_peak_annotation_header,
-                    "_peaks.annotatePeaks.txt"
-                )
-                ch_plothomerannotatepeaks_multiqc = PLOT_HOMER_ANNOTATEPEAKS_LIB.out.tsv
-                ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS_LIB.out.versions)
-            }
+            ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS_LIB.out.versions)
+            // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
+            // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
         }
 
-        //
-        //  Consensus peaks analysis
-        //
-        ch_macs2_consensus_bed_lib = Channel.empty()
-        if (!params.skip_consensus_peaks) {
-            // Create channel: [ meta , [ peaks ] ]
-            // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
-            // TODO: simplify groupTuple
-            ch_macs2_peaks
-                .map { meta, peak -> [ '', meta.id.split('_')[0..-2].join('_'), peak ] }
-                .groupTuple()
-                .map {
-                    key, groups, peaks ->
-                        [
-                            groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
-                            peaks
-                        ] }
-                .map {
-                    groups, peaks ->
-                        def meta = [:]
-                        meta.id = 'consensus_peaks'
-                        meta.multiple_groups = groups.size() > 1
-                        meta.replicates_exist = groups.max { groups.value }.value > 1
-                        [ meta, peaks ] }
-                .set { ch_consensus_peaks }
+        // Create channel: [ val(meta), bam ]
+        MACS2_CONSENSUS_LIB
+            .out
+            .saf
+            .map { meta, saf -> [ meta.id, meta, saf ] }
+            .set { ch_saf }
 
-            MACS2_CONSENSUS_LIB (
-                ch_consensus_peaks
+        ch_bam
+            .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
+            .groupTuple()
+            .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
+            .join(ch_saf)
+            .map {
+                it ->
+                    def fmeta = it[1]
+                    fmeta['id'] = it[3]['id']
+                    fmeta['replicates_exist'] = it[3]['replicates_exist']
+                    fmeta['multiple_groups']  = it[3]['multiple_groups']
+                    [ fmeta, it[2], it[4] ] }
+            .set { ch_bam_saf }
+
+        SUBREAD_FEATURECOUNTS_LIB (
+            ch_bam_saf
+        )
+        ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS_LIB.out.summary
+        ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_LIB.out.versions.first())
+
+        if (!params.skip_deseq2_qc) {
+            DESEQ2_QC_LIB (
+                SUBREAD_FEATURECOUNTS_LIB.out.counts,
+                ch_mlib_deseq2_pca_header,
+                ch_mlib_deseq2_clustering_header
             )
-            ch_macs2_consensus_bed_lib = MACS2_CONSENSUS_LIB.out.bed
-            ch_versions                = ch_versions.mix(MACS2_CONSENSUS_LIB.out.versions)
-
-            if (!params.skip_peak_annotation) {
-                HOMER_ANNOTATEPEAKS_CONSENSUS_LIB (
-                    MACS2_CONSENSUS_LIB.out.bed,
-                    PREPARE_GENOME.out.fasta,
-                    PREPARE_GENOME.out.gtf
-                )
-                ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS_LIB.out.versions)
-                // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-                // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
-            }
-
-            // Create channel: [ val(meta), bam ]
-            MACS2_CONSENSUS_LIB
-                .out
-                .saf
-                .map { meta, saf -> [ meta.id, meta, saf ] }
-                .set { ch_saf }
-
-            ch_bam
-                .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
-                .groupTuple()
-                .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
-                .join(ch_saf)
-                .map {
-                    it ->
-                        def fmeta = it[1]
-                        fmeta['id'] = it[3]['id']
-                        fmeta['replicates_exist'] = it[3]['replicates_exist']
-                        fmeta['multiple_groups']  = it[3]['multiple_groups']
-                        [ fmeta, it[2], it[4] ] }
-                .set { ch_bam_saf }
-
-            SUBREAD_FEATURECOUNTS_LIB (
-                ch_bam_saf
-            )
-            ch_subreadfeaturecounts_multiqc = SUBREAD_FEATURECOUNTS_LIB.out.summary
-            ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_LIB.out.versions.first())
-
-            if (!params.skip_deseq2_qc) {
-                DESEQ2_QC_LIB (
-                    SUBREAD_FEATURECOUNTS_LIB.out.counts,
-                    ch_mlib_deseq2_pca_header,
-                    ch_mlib_deseq2_clustering_header
-                )
-            }
         }
     }
 
@@ -496,10 +515,10 @@ workflow ATACSEQ {
     ch_mark_duplicates_picard_rep_flagstat = Channel.empty()
     ch_mark_duplicates_picard_rep_idxstats = Channel.empty()
     ch_mark_duplicates_picard_rep_metrics  = Channel.empty()
-    ch_custompeaks_frip_multiqc_rep       = Channel.empty()
-    ch_custompeaks_count_multiqc_rep      = Channel.empty()
-    ch_plothomerannotatepeaks_multiqc_rep = Channel.empty()
-    ch_subreadfeaturecounts_multiqc_rep   = Channel.empty()
+    ch_custompeaks_frip_multiqc_rep        = Channel.empty()
+    ch_custompeaks_count_multiqc_rep       = Channel.empty()
+    ch_plothomerannotatepeaks_multiqc_rep  = Channel.empty()
+    ch_subreadfeaturecounts_multiqc_rep    = Channel.empty()
     if (!params.skip_merge_replicates) {
         //
         // MERGE REPLICATE BAM
@@ -558,149 +577,178 @@ workflow ATACSEQ {
         //
         // MERGE REPLICATE PEAK ANALYSIS
         //
-        if (params.macs_gsize) {
-            // Create channel: [ val(meta), bam, empty_list ]
-            MARK_DUPLICATES_PICARD_REP.out.bam
-                .map { meta, bam -> [ meta , bam, [] ] }
-                .set { ch_bam_rep }
-            MACS2_CALLPEAK_REP (
-                ch_bam_rep,
-                params.macs_gsize
-            )
-            ch_versions = ch_versions.mix(MACS2_CALLPEAK_REP.out.versions.first())
+        // Create channel: [ val(meta), bam, empty_list ]
+        MARK_DUPLICATES_PICARD_REP.out.bam
+            .map { meta, bam -> [ meta , bam, [] ] }
+            .set { ch_bam_rep }
 
-            //
-            // Filter for MACS2 files without peaks
-            //
-            MACS2_CALLPEAK_REP
-                .out
-                .peak
-                .filter { meta, peaks -> peaks.size() > 0 }
-                .set { ch_macs2_peaks_rep }
+        //
+        // MODULE: Call peaks with MACS2
+        //
+        MACS2_CALLPEAK_REP (
+            ch_bam_rep,
+            params.macs_gsize
+        )
+        ch_versions = ch_versions.mix(MACS2_CALLPEAK_REP.out.versions.first())
 
-            ch_bam_rep
-                .join(ch_macs2_peaks_rep, by: [0])
-                .map { it -> [ it[0], it[1], it[3] ] }
-                .set { ch_peak_rep }
+        //
+        // Filter out samples with 0 MACS2 peaks called
+        //
+        MACS2_CALLPEAK_REP
+            .out
+            .peak
+            .filter { meta, peaks -> peaks.size() > 0 }
+            .set { ch_macs2_peaks_rep }
 
-            FRIP_SCORE_REP (
-                ch_peak_rep
-            )
-            ch_versions = ch_versions.mix(FRIP_SCORE_REP.out.versions.first())
+        ch_bam_rep
+            .join(ch_macs2_peaks_rep, by: [0])
+            .map { it -> [ it[0], it[1], it[3] ] }
+            .set { ch_peak_rep }
 
+        //
+        // MODULE: Calculate FRiP score
+        //
+        FRIP_SCORE_REP (
             ch_peak_rep
-                .join(FRIP_SCORE_REP.out.txt, by: [0])
-                .map { it -> [ it[0], it[2], it[3] ] }
-                .set { ch_peak_frip_rep }
+        )
+        ch_versions = ch_versions.mix(FRIP_SCORE_REP.out.versions.first())
 
-            MULTIQC_CUSTOM_PEAKS_REP (
-                ch_peak_frip_rep,
-                ch_mrep_peak_count_header,
-                ch_mrep_frip_score_header
+        ch_peak_rep
+            .join(FRIP_SCORE_REP.out.txt, by: [0])
+            .map { it -> [ it[0], it[2], it[3] ] }
+            .set { ch_peak_frip_rep }
+
+        //
+        // MODULE: FRiP score custom content for MultiQC
+        //
+        MULTIQC_CUSTOM_PEAKS_REP (
+            ch_peak_frip_rep,
+            ch_mrep_peak_count_header,
+            ch_mrep_frip_score_header
+        )
+        ch_custompeaks_frip_multiqc_rep  = MULTIQC_CUSTOM_PEAKS_REP.out.frip
+        ch_custompeaks_count_multiqc_rep = MULTIQC_CUSTOM_PEAKS_REP.out.count
+
+        if (!params.skip_peak_annotation) {
+            //
+            // MODULE: Annotate peaks with MACS2
+            //
+            HOMER_ANNOTATEPEAKS_MACS2_REP (
+                ch_macs2_peaks_rep,
+                PREPARE_GENOME.out.fasta,
+                PREPARE_GENOME.out.gtf
             )
-            ch_custompeaks_frip_multiqc_rep  = MULTIQC_CUSTOM_PEAKS_REP.out.frip
-            ch_custompeaks_count_multiqc_rep = MULTIQC_CUSTOM_PEAKS_REP.out.count
+            ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2_REP.out.versions.first())
+
+            if (!params.skip_peak_qc){
+                //
+                // MODULE: MACS2 QC plots with R
+                //
+                PLOT_MACS2_QC_REP (
+                    ch_macs2_peaks_rep.collect{it[1]}
+                )
+                ch_versions = ch_versions.mix(PLOT_MACS2_QC_REP.out.versions)
+
+                //
+                // MODULE: Peak annotation QC plots with R
+                //
+                PLOT_HOMER_ANNOTATEPEAKS_REP (
+                    HOMER_ANNOTATEPEAKS_MACS2_REP.out.txt.collect{it[1]},
+                    ch_mrep_peak_annotation_header,
+                    "_peaks.annotatePeaks.txt"
+                )
+                ch_plothomerannotatepeaks_multiqc_rep = PLOT_HOMER_ANNOTATEPEAKS_REP.out.tsv
+                ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS_REP.out.versions)
+            }
+        }
+
+        //
+        //  Consensus peaks analysis
+        //
+        if (!params.skip_consensus_peaks) {
+            // Create channel: [ meta , [ peaks ] ]
+            // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
+            // TODO: simplify groupTuple
+            ch_macs2_peaks_rep
+                .map { meta, peak -> [ '', meta.id.split('_')[0..-2].join('_'), peak ] }
+                .groupTuple()
+                .map {
+                    key, groups, peaks ->
+                        [
+                            groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
+                            peaks
+                        ] }
+                .map {
+                    groups, peaks ->
+                        def meta = [:]
+                        meta.id = 'consensus_peaks'
+                        meta.multiple_groups = groups.size() > 1
+                        meta.replicates_exist = groups.max { groups.value }.value > 1
+                        [ meta, peaks ] }
+                .set { ch_consensus_peaks_rep }
+
+            //
+            // MODULE: Generate consensus peaks across samples
+            //
+            MACS2_CONSENSUS_REP (
+                ch_consensus_peaks_rep
+            )
+            ch_macs2_consensus_bed_rep = MACS2_CONSENSUS_REP.out.bed
+            ch_versions                = ch_versions.mix(MACS2_CONSENSUS_REP.out.versions)
 
             if (!params.skip_peak_annotation) {
-                HOMER_ANNOTATEPEAKS_MACS2_REP (
-                    ch_macs2_peaks_rep,
+                //
+                // MODULE: Annotate consensus peaks
+                //
+                HOMER_ANNOTATEPEAKS_CONSENSUS_REP (
+                    MACS2_CONSENSUS_REP.out.bed,
                     PREPARE_GENOME.out.fasta,
                     PREPARE_GENOME.out.gtf
                 )
-                ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2_REP.out.versions.first())
-
-                if (!params.skip_peak_qc){
-                    PLOT_MACS2_QC_REP (
-                        ch_macs2_peaks_rep.collect{it[1]}
-                    )
-                    ch_versions = ch_versions.mix(PLOT_MACS2_QC_REP.out.versions)
-
-                    PLOT_HOMER_ANNOTATEPEAKS_REP (
-                        HOMER_ANNOTATEPEAKS_MACS2_REP.out.txt.collect{it[1]},
-                        ch_mrep_peak_annotation_header,
-                        "_peaks.annotatePeaks.txt"
-                    )
-                    ch_plothomerannotatepeaks_multiqc_rep = PLOT_HOMER_ANNOTATEPEAKS_REP.out.tsv
-                    ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS_REP.out.versions)
-                }
+                ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS_REP.out.versions)
+                // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
+                // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
             }
 
+            // Create channel: [ val(meta), bam ]
+            MACS2_CONSENSUS_REP
+                .out
+                .saf
+                .map { meta, saf -> [ meta.id, meta, saf ] }
+                .set { ch_saf_rep }
+
+            ch_bam_rep
+                .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
+                .groupTuple()
+                .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
+                .join(ch_saf_rep)
+                .map {
+                    it ->
+                        def fmeta = it[1]
+                        fmeta['id'] = it[3]['id']
+                        fmeta['replicates_exist'] = it[3]['replicates_exist']
+                        fmeta['multiple_groups']  = it[3]['multiple_groups']
+                        [ fmeta, it[2], it[4] ] }
+                .set { ch_bam_saf_rep }
+
             //
-            //  Consensus peaks analysis
+            // MODULE: Quantify peaks across samples with featureCounts
             //
-            if (!params.skip_consensus_peaks) {
-                // Create channel: [ meta , [ peaks ] ]
-                // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
-                // TODO: simplify groupTuple
-                ch_macs2_peaks_rep
-                    .map { meta, peak -> [ '', meta.id.split('_')[0..-2].join('_'), peak ] }
-                    .groupTuple()
-                    .map {
-                        key, groups, peaks ->
-                            [
-                                groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
-                                peaks
-                            ] }
-                    .map {
-                        groups, peaks ->
-                            def meta = [:]
-                            meta.id = 'consensus_peaks'
-                            meta.multiple_groups = groups.size() > 1
-                            meta.replicates_exist = groups.max { groups.value }.value > 1
-                            [ meta, peaks ] }
-                    .set { ch_consensus_peaks_rep }
+            SUBREAD_FEATURECOUNTS_REP (
+                ch_bam_saf_rep
+            )
+            ch_subreadfeaturecounts_multiqc_rep = SUBREAD_FEATURECOUNTS_REP.out.summary
+            ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_REP.out.versions.first())
 
-                MACS2_CONSENSUS_REP (
-                    ch_consensus_peaks_rep
+            if (!params.skip_deseq2_qc) {
+                //
+                // MODULE: Generate QC plots with DESeq2
+                //
+                DESEQ2_QC_REP (
+                    SUBREAD_FEATURECOUNTS_REP.out.counts,
+                    ch_mrep_deseq2_pca_header,
+                    ch_mrep_deseq2_clustering_header
                 )
-                ch_macs2_consensus_bed_rep = MACS2_CONSENSUS_REP.out.bed
-                ch_versions                = ch_versions.mix(MACS2_CONSENSUS_REP.out.versions)
-
-                if (!params.skip_peak_annotation) {
-                    HOMER_ANNOTATEPEAKS_CONSENSUS_REP (
-                        MACS2_CONSENSUS_REP.out.bed,
-                        PREPARE_GENOME.out.fasta,
-                        PREPARE_GENOME.out.gtf
-                    )
-                    ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS_REP.out.versions)
-                    // cut -f2- ${prefix}.annotatePeaks.txt | awk 'NR==1; NR > 1 {print \$0 | "sort -T '.' -k1,1 -k2,2n"}' | cut -f6- > tmp.txt
-                    // paste $bool tmp.txt > ${prefix}.boolean.annotatePeaks.txt
-                }
-
-                // Create channel: [ val(meta), bam ]
-                MACS2_CONSENSUS_REP
-                    .out
-                    .saf
-                    .map { meta, saf -> [ meta.id, meta, saf ] }
-                    .set { ch_saf_rep }
-
-                ch_bam_rep
-                    .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
-                    .groupTuple()
-                    .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
-                    .join(ch_saf_rep)
-                    .map {
-                        it ->
-                            def fmeta = it[1]
-                            fmeta['id'] = it[3]['id']
-                            fmeta['replicates_exist'] = it[3]['replicates_exist']
-                            fmeta['multiple_groups']  = it[3]['multiple_groups']
-                            [ fmeta, it[2], it[4] ] }
-                    .set { ch_bam_saf_rep }
-
-                SUBREAD_FEATURECOUNTS_REP (
-                    ch_bam_saf_rep
-                )
-                ch_subreadfeaturecounts_multiqc_rep = SUBREAD_FEATURECOUNTS_REP.out.summary
-                ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_REP.out.versions.first())
-
-                if (!params.skip_deseq2_qc) {
-                    DESEQ2_QC_REP (
-                        SUBREAD_FEATURECOUNTS_REP.out.counts,
-                        ch_mrep_deseq2_pca_header,
-                        ch_mrep_deseq2_clustering_header
-                    )
-                }
             }
         }
     }
