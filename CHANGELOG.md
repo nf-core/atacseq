@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated pipeline template to [nf-core/tools 2.5.1](https://github.com/nf-core/tools/releases/tag/2.5.1)
 - Port pipeline to the updated Nextflow DSL2 syntax adopted on nf-core/modules
 - Bump minimum Nextflow version from `19.10.0` -> `21.10.3`
+- [[201](https://github.com/nf-core/atacseq/issues/201)] - Update blacklist bed files.
+- [[182](https://github.com/nf-core/atacseq/issues/182)] - Update `macs_gsize` in `igenomes.config`, create a new `--read_length` parameter and implement the logic to calculate `--macs_gsize` when the parameter is missing.
 
 ### Parameters
 
@@ -22,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 |                        | `--aligner`        |
 | `--skip_diff_analysis` | `--skip_deseq2_qc` |
 | `--single_end`         |                    |
+|                        | `--read_length`    |
 
 > **NB:** Parameter has been **updated** if both old and new parameter information is present.
 > **NB:** Parameter has been **added** if just the new parameter information is present.
