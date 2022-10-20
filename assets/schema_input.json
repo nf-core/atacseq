@@ -34,7 +34,7 @@
                 "type": "string",
                 "pattern": "^\\S+$",
                 "errorMessage": "Condition entry cannot contain spaces"
-            },
+            }
         },
         "required": ["sample", "fastq_1"]
     }
