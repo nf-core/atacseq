@@ -33,6 +33,7 @@ process MULTIQC {
     path ('alignment/mergedLibrary/filtered/picard_metrics/*')
 
     path ('preseq/*')
+
     path ('deeptools/*')
     path ('deeptools/*')
     // path ('phantompeakqualtools/*')
