@@ -13,11 +13,27 @@
                         "branch": "master",
                         "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905"
                     },
+                    "bowtie2/align": {
+                        "branch": "master",
+                        "git_sha": "e797efb47b0d3b2124753beb55dc83ab9512bceb"
+                    },
+                    "bowtie2/build": {
+                        "branch": "master",
+                        "git_sha": "e797efb47b0d3b2124753beb55dc83ab9512bceb"
+                    },
                     "bwa/index": {
                         "branch": "master",
                         "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905"
                     },
                     "bwa/mem": {
+                        "branch": "master",
+                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905"
+                    },
+                    "chromap/chromap": {
+                        "branch": "master",
+                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905"
+                    },
+                    "chromap/index": {
                         "branch": "master",
                         "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905"
                     },
