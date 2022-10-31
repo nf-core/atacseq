@@ -97,7 +97,6 @@ def check_samplesheet(file_in, file_out):
                             line,
                         )
 
-
             ## Auto-detect paired-end/single-end
             sample_info = []  ## [single_end, fastq_1, fastq_2]
             if sample and fastq_1 and fastq_2:  ## Paired-end short reads
