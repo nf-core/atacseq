@@ -212,7 +212,7 @@ The [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) tool is used to co
     `readRDS` to give user control of the eventual object name.
   - `*pca.vals.txt`: Matrix of values for the first 2 principal components.
   - `R_sessionInfo.log`: File containing information about R, the OS and attached or loaded packages.
-  `bwa/mergedLibrary/macs2/<PEAK_TYPE>/consensus/sizeFactors/`
+- `bwa/mergedLibrary/macs2/<PEAK_TYPE>/consensus/sizeFactors/`
   - `*.txt`, `*.RData`: Files containing DESeq2 sizeFactors per sample.
 
 </details>
