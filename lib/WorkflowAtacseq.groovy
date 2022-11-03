@@ -9,7 +9,7 @@ class WorkflowAtacseq {
     //
     // Check and validate parameters
     //
-    public static void initialise(params, log) {
+    public static void initialise(params, log, valid_params) {
         genomeExistsError(params, log)
 
 
