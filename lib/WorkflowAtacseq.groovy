@@ -35,8 +35,12 @@ class WorkflowAtacseq {
             log.error "Both '--read_length' and '--macs_gsize' not specified! Please specify either to infer MACS2 genome size for peak calling."
             System.exit(1)
         }
-
-
+        if (params.aligner) {
+            if (!valid_params['aligners'].contains(params.aligner)) {
+                    log.error "Invalid option: '${params.aligner}'. Valid options for '--aligner': ${valid_params['aligners'].join(', ')}."
+                    System.exit(1)
+            }
+        }
     }
 
     //
