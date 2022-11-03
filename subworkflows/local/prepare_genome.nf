@@ -29,8 +29,10 @@ include { GET_AUTOSOMES            } from '../../modules/local/get_autosomes'
 include { TSS_EXTRACT              } from '../../modules/local/tss_extract'
 
 workflow PREPARE_GENOME {
-    main:
+    take:
+    prepare_tool_index // string  : tool to prepare index for
 
+    main:
     ch_versions = Channel.empty()
 
     //
