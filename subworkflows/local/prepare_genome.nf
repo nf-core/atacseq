@@ -154,7 +154,7 @@ workflow PREPARE_GENOME {
     // Uncompress BWA index or generate from scratch if required
     //
     ch_bwa_index = Channel.empty()
-    if (params.bwa_index) {
+    if (prepare_tool_index == 'bwa') {
         if (params.bwa_index.endsWith('.tar.gz')) {
             ch_bwa_index = UNTAR ( [ [:], params.bwa_index ] ).untar.map{ it[1] }
             ch_versions  = ch_versions.mix(UNTAR.out.versions)
