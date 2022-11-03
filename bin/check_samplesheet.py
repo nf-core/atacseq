@@ -51,7 +51,7 @@ def check_samplesheet(file_in, file_out):
 
         ## Check header
         MIN_COLS = 2
-        HEADER = ["sample", "fastq_1", "fastq_2", "condition"]
+        HEADER = ["sample", "fastq_1", "fastq_2"]
         # HEADER = ["sample", "fastq_1", "fastq_2", "condition", "control"] // bovreg suggestion
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
@@ -78,7 +78,7 @@ def check_samplesheet(file_in, file_out):
                 )
 
             ## Check sample name entries
-            sample, fastq_1, fastq_2, condition = lspl[: len(HEADER)]
+            sample, fastq_1, fastq_2 = lspl[: len(HEADER)]
             if sample.find(" ") != -1:
                 print(f"WARNING: Spaces have been replaced by underscores for sample: {sample}")
                 sample = sample.replace(" ", "_")
@@ -97,22 +97,16 @@ def check_samplesheet(file_in, file_out):
                             line,
                         )
 
-            ## Check condition column has valid values
-            if condition:
-                if condition.find(" ") != -1:
-                    print(f"WARNING: Spaces have been replaced by underscores for condition: {condition}")
-                    condition = condition.replace(" ", "_")
-
             ## Auto-detect paired-end/single-end
-            sample_info = []  ## [single_end, fastq_1, fastq_2, condition]
+            sample_info = []  ## [single_end, fastq_1, fastq_2]
             if sample and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = ["0", fastq_1, fastq_2, condition]
+                sample_info = ["0", fastq_1, fastq_2]
             elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
-                sample_info = ["1", fastq_1, fastq_2, condition]
+                sample_info = ["1", fastq_1, fastq_2]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
 
-            ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2, condition ]]}
+            ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2 ]]}
             if sample not in sample_mapping_dict:
                 sample_mapping_dict[sample] = [sample_info]
             else:
@@ -133,7 +127,6 @@ def check_samplesheet(file_in, file_out):
                         "single_end",
                         "fastq_1",
                         "fastq_2",
-                        "condition",
                     ]
                 )
                 + "\n"

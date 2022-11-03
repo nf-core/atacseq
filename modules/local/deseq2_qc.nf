@@ -17,6 +17,7 @@ process DESEQ2_QC {
     output:
     path "*.pdf"                , optional:true, emit: pdf
     path "*.RData"              , optional:true, emit: rdata
+    path "*.rds"                , optional:true, emit: rds
     path "*pca.vals.txt"        , optional:true, emit: pca_txt
     path "*pca.vals_mqc.tsv"    , optional:true, emit: pca_multiqc
     path "*sample.dists.txt"    , optional:true, emit: dists_txt
@@ -42,8 +43,6 @@ process DESEQ2_QC {
 
     cat $deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
     cat $deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
-
-    find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${peak_type}/consensus/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
