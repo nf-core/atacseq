@@ -22,7 +22,11 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 1. Raw read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
 2. Adapter trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
-3. Alignment ([`BWA`](https://sourceforge.net/projects/bio-bwa/files/))
+3. Choice of multiple aligners
+   1.([`BWA`](https://sourceforge.net/projects/bio-bwa/files/))
+   2.([`Chromap`](https://github.com/haowenz/chromap)). **For paired-end reads only working until mapping steps, see [here](https://github.com/nf-core/chipseq/issues/291)**
+   3.([`Bowtie2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
+   4.([`STAR`](https://github.com/alexdobin/STAR))
 4. Mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
 5. Merge alignments from multiple libraries of the same sample ([`picard`](https://broadinstitute.github.io/picard/))
    1. Re-mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
