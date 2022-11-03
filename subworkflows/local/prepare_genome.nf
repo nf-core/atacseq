@@ -14,13 +14,13 @@ include {
     UNTAR as UNTAR_BWA_INDEX
     UNTAR as UNTAR_BOWTIE2_INDEX
     UNTAR as UNTAR_CHROMAP_INDEX
-    UNTAR as UNTAR_STAR_INDEX    } from '../../modules/nf-core/modules/untar/main'
+    UNTAR as UNTAR_STAR_INDEX    } from '../../modules/nf-core/untar/main'
 
 include { GFFREAD              } from '../../modules/nf-core/gffread/main'
 include { CUSTOM_GETCHROMSIZES } from '../../modules/nf-core/custom/getchromsizes/main'
 include { BWA_INDEX            } from '../../modules/nf-core/bwa/index/main'
-include { BOWTIE2_BUILD        } from '../../modules/nf-core/modules/bowtie2/build/main'
-include { CHROMAP_INDEX        } from '../../modules/nf-core/modules/chromap/index/main'
+include { BOWTIE2_BUILD        } from '../../modules/nf-core/bowtie2/build/main'
+include { CHROMAP_INDEX        } from '../../modules/nf-core/chromap/index/main'
 include { STAR_GENOMEGENERATE  } from '../../modules/local/star_genomegenerate'
 
 include { GTF2BED                  } from '../../modules/local/gtf2bed'
