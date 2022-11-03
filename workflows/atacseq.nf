@@ -131,8 +131,11 @@ include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS_REP } from '../mo
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
 //
 
-include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'
-include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'
+include { FASTQC_TRIMGALORE } from '../subworkflows/nf-core/fastqc_trimgalore'
+include { ALIGN_BWA_MEM     } from '../subworkflows/nf-core/align_bwa_mem'
+include { ALIGN_BOWTIE2     } from '../subworkflows/nf-core/align_bowtie2'
+include { ALIGN_CHROMAP     } from '../subworkflows/nf-core/align_chromap'
+include { ALIGN_STAR        } from '../subworkflows/nf-core/align_star'
 include { MARK_DUPLICATES_PICARD as MARK_DUPLICATES_PICARD_LIB } from '../subworkflows/nf-core/mark_duplicates_picard'
 include { MARK_DUPLICATES_PICARD as MARK_DUPLICATES_PICARD_REP } from '../subworkflows/nf-core/mark_duplicates_picard'
 
