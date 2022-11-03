@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[201](https://github.com/nf-core/atacseq/issues/201)] - Update blacklist bed files.
 - [[182](https://github.com/nf-core/atacseq/issues/182)] - Update `macs_gsize` in `igenomes.config`, create a new `--read_length` parameter and implement the logic to calculate `--macs_gsize` when the parameter is missing.
 - Turn `--deseq2_vst` on by default
+- [[#233](https://github.com/nf-core/chipseq/issues/233)] - Add `chromap` to the available aligners
+- [[#160](https://github.com/nf-core/chipseq/issues/160)] - Add `bowtie2` and `star` as available aligners, via the `--aligner` parameter
 
 ### Parameters
 
