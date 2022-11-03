@@ -12,6 +12,9 @@ jobs:
     name: Run AWS full tests
     if: github.repository == 'nf-core/atacseq'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        aligner: ["bwa", "bowtie2", "chromap", "star"]
     steps:
       - name: Launch workflow via tower
         uses: nf-core/tower-action@v3
@@ -23,6 +26,7 @@ jobs:
           parameters: |
             {
               "outdir": "s3://${{ secrets.AWS_S3_BUCKET }}/atacseq/results-${{ github.sha }}"
+              "aligner": "${{ matrix.aligner }}"
             }
           profiles: test_full,aws_tower
       - uses: actions/upload-artifact@v3
