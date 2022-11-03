@@ -408,7 +408,9 @@ workflow ATACSEQ {
     //
     //  Consensus peaks analysis
     //
-    ch_macs2_consensus_bed_lib = Channel.empty()
+    ch_macs2_consensus_bed_lib       = Channel.empty()
+    ch_deseq2_lib_pca_multiqc        = Channel.empty()
+    ch_deseq2_lib_clustering_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
         // Create channel: [ meta , [ peaks ] ]
         // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
@@ -481,6 +483,8 @@ workflow ATACSEQ {
                 ch_mlib_deseq2_pca_header,
                 ch_mlib_deseq2_clustering_header
             )
+            ch_deseq2_lib_pca_multiqc        = DESEQ2_QC_LIB.out.pca_multiqc
+            ch_deseq2_lib_clustering_multiqc = DESEQ2_QC_LIB.out.dists_multiqc
         }
     }
 
@@ -519,6 +523,8 @@ workflow ATACSEQ {
     ch_custompeaks_count_multiqc_rep       = Channel.empty()
     ch_plothomerannotatepeaks_multiqc_rep  = Channel.empty()
     ch_subreadfeaturecounts_multiqc_rep    = Channel.empty()
+    ch_deseq2_rep_pca_multiqc              = Channel.empty()
+    ch_deseq2_rep_clustering_multiqc       = Channel.empty()
     if (!params.skip_merge_replicates) {
         //
         // MERGE REPLICATE BAM
@@ -749,6 +755,8 @@ workflow ATACSEQ {
                     ch_mrep_deseq2_pca_header,
                     ch_mrep_deseq2_clustering_header
                 )
+                ch_deseq2_rep_pca_multiqc        = DESEQ2_QC_REP.out.pca_multiqc
+                ch_deseq2_rep_clustering_multiqc = DESEQ2_QC_REP.out.dists_multiqc
             }
         }
     }
@@ -844,7 +852,12 @@ workflow ATACSEQ {
             ch_custompeaks_frip_multiqc_rep.collect{it[1]}.ifEmpty([]),
             ch_custompeaks_count_multiqc_rep.collect{it[1]}.ifEmpty([]),
             ch_plothomerannotatepeaks_multiqc_rep.collect{it[1]}.ifEmpty([]),
-            ch_subreadfeaturecounts_multiqc_rep.collect{it[1]}.ifEmpty([])
+            ch_subreadfeaturecounts_multiqc_rep.collect{it[1]}.ifEmpty([]),
+
+            ch_deseq2_lib_pca_multiqc.collect().ifEmpty([]),
+            ch_deseq2_lib_clustering_multiqc.collect().ifEmpty([]),
+            ch_deseq2_rep_pca_multiqc.collect().ifEmpty([]),
+            ch_deseq2_rep_clustering_multiqc.collect().ifEmpty([])
         )
         multiqc_report       = MULTIQC.out.report.toList()
     }
