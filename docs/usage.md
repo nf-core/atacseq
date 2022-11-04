@@ -23,6 +23,23 @@ CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
 CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
 ```
 
+### Multiple runs of the same library
+
+The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example where the samples called `WT_BCATENIN_IP_REP2` and `WT_INPUT_REP2` have been re-sequenced multiple times:
+
+```console
+sample,fastq_1,fastq_2,antibody,control
+WT_BCATENIN_IP_REP1,BLA203A1_S27_L006_R1_001.fastq.gz,
+WT_BCATENIN_IP_REP2,BLA203A25_S16_L001_R1_001.fastq.gz,
+WT_BCATENIN_IP_REP2,BLA203A25_S16_L002_R1_001.fastq.gz,
+WT_BCATENIN_IP_REP2,BLA203A25_S16_L003_R1_001.fastq.gz,
+WT_BCATENIN_IP_REP3,BLA203A49_S40_L001_R1_001.fastq.gz,
+WT_INPUT_REP1,BLA203A6_S32_L006_R1_001.fastq.gz,
+WT_INPUT_REP2,BLA203A30_S21_L001_R1_001.fastq.gz,
+WT_INPUT_REP2,BLA203A30_S21_L002_R1_001.fastq.gz,
+WT_INPUT_REP3,BLA203A31_S21_L003_R1_001.fastq.gz,
+```
+
 ### Full samplesheet
 
 The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
@@ -47,6 +64,15 @@ TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
 | `fastq_2` | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+
+## Reference genome files
+
+The minimum reference genome requirements are a FASTA and GTF file, all other files required to run the pipeline can be generated from these files. However, it is more storage and compute friendly if you are able to re-use reference genome files as efficiently as possible. It is recommended to use the `--save_reference` parameter if you are using the pipeline to build new indices (e.g. those unavailable on [AWS iGenomes](https://nf-co.re/usage/reference_genomes)) so that you can save them somewhere locally. The index building step can be quite a time-consuming process and it permits their reuse for future runs of the pipeline to save disk space. You can then either provide the appropriate reference genome files on the command-line via the appropriate parameters (e.g. `--bwa_index '/path/to/bwa/index/'`) or via a custom config file.
+
+- If `--genome` is provided then the FASTA and GTF files (and existing indices) will be automatically obtained from AWS-iGenomes unless these have already been downloaded locally in the path specified by `--igenomes_base`.
+- If `--gene_bed` is not provided then it will be generated from the GTF file.
+
+> **NB:** Compressed reference files are also supported by the pipeline i.e. standard files with the `.gz` extension and indices folders with the `tar.gz` extension.
 
 ## Blacklist bed files
 

@@ -62,7 +62,7 @@ The pipeline has been written in a way where all the files generated downstream 
 - `<ALIGNER>/library/samtools_stats/`
   - SAMtools `*.flagstat`, `*.idxstats` and `*.stats` files generated from the alignment files.
 
-> **NB:** File names in the resulting directory (i.e. `bwa/library/`) will have the '`.Lb.`' suffix.
+> **NB:** File names in the resulting directory (i.e. `<ALIGNER>/library/`) will have the '`.Lb.`' suffix.
 
 </details>
 
