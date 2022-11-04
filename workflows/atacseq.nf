@@ -4,17 +4,21 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+def valid_params = [
+    aligners       : [ 'bwa', 'bowtie2', 'chromap', 'star' ]
+]
+
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 
 // Validate input parameters
-WorkflowAtacseq.initialise(params, log)
+WorkflowAtacseq.initialise(params, log, valid_params)
 
 // Check input path parameters to see if they exist
 def checkPathParamList = [
     params.input, params.multiqc_config,
     params.fasta,
     params.gtf, params.gff, params.gene_bed,
-    params.bwa_index,
+    params.bwa_index, params.bowtie2_index, params.chromap_index, params.star_index,
     params.blacklist,
     params.bamtools_filter_pe_config, params.bamtools_filter_se_config
 ]
@@ -127,8 +131,11 @@ include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS_REP } from '../mo
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
 //
 
-include { FASTQC_TRIMGALORE      } from '../subworkflows/nf-core/fastqc_trimgalore'
-include { ALIGN_BWA_MEM          } from '../subworkflows/nf-core/align_bwa_mem'
+include { FASTQC_TRIMGALORE } from '../subworkflows/nf-core/fastqc_trimgalore'
+include { ALIGN_BWA_MEM     } from '../subworkflows/nf-core/align_bwa_mem'
+include { ALIGN_BOWTIE2     } from '../subworkflows/nf-core/align_bowtie2'
+include { ALIGN_CHROMAP     } from '../subworkflows/nf-core/align_chromap'
+include { ALIGN_STAR        } from '../subworkflows/nf-core/align_star'
 include { MARK_DUPLICATES_PICARD as MARK_DUPLICATES_PICARD_LIB } from '../subworkflows/nf-core/mark_duplicates_picard'
 include { MARK_DUPLICATES_PICARD as MARK_DUPLICATES_PICARD_REP } from '../subworkflows/nf-core/mark_duplicates_picard'
 
@@ -148,7 +155,9 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Uncompress and prepare reference genome files
     //
-    PREPARE_GENOME ()
+    PREPARE_GENOME (
+        params.aligner
+    )
     ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     //
@@ -173,16 +182,107 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
     //
-    ALIGN_BWA_MEM (
-        FASTQC_TRIMGALORE.out.reads,
-        PREPARE_GENOME.out.bwa_index
-    )
-    ch_genome_bam        = ALIGN_BWA_MEM.out.bam
-    ch_genome_bam_index  = ALIGN_BWA_MEM.out.bai
-    ch_samtools_stats    = ALIGN_BWA_MEM.out.stats
-    ch_samtools_flagstat = ALIGN_BWA_MEM.out.flagstat
-    ch_samtools_idxstats = ALIGN_BWA_MEM.out.idxstats
-    ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
+    ch_genome_bam        = Channel.empty()
+    ch_genome_bam_index  = Channel.empty()
+    ch_samtools_stats    = Channel.empty()
+    ch_samtools_flagstat = Channel.empty()
+    ch_samtools_idxstats = Channel.empty()
+    if (params.aligner == 'bwa') {
+        ALIGN_BWA_MEM (
+            FASTQC_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.bwa_index
+        )
+        ch_genome_bam        = ALIGN_BWA_MEM.out.bam
+        ch_genome_bam_index  = ALIGN_BWA_MEM.out.bai
+        ch_samtools_stats    = ALIGN_BWA_MEM.out.stats
+        ch_samtools_flagstat = ALIGN_BWA_MEM.out.flagstat
+        ch_samtools_idxstats = ALIGN_BWA_MEM.out.idxstats
+        ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
+    }
+
+    //
+    // SUBWORKFLOW: Alignment with Bowtie2 & BAM QC
+    //
+    if (params.aligner == 'bowtie2') {
+        ALIGN_BOWTIE2 (
+            FASTQC_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.bowtie2_index,
+            params.save_unaligned
+        )
+        ch_genome_bam        = ALIGN_BOWTIE2.out.bam
+        ch_genome_bam_index  = ALIGN_BOWTIE2.out.bai
+        ch_samtools_stats    = ALIGN_BOWTIE2.out.stats
+        ch_samtools_flagstat = ALIGN_BOWTIE2.out.flagstat
+        ch_samtools_idxstats = ALIGN_BOWTIE2.out.idxstats
+        ch_versions = ch_versions.mix(ALIGN_BOWTIE2.out.versions.first())
+    }
+
+    //
+    // SUBWORKFLOW: Alignment with Chromap & BAM QC
+    //
+    if (params.aligner == 'chromap') {
+        ALIGN_CHROMAP (
+            FASTQC_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.chromap_index,
+            PREPARE_GENOME.out.fasta
+        )
+
+        // Filter out paired-end reads until the issue below is fixed
+        // https://github.com/nf-core/chipseq/issues/291
+        // ch_genome_bam = ALIGN_CHROMAP.out.bam
+        ALIGN_CHROMAP
+            .out
+            .bam
+            .branch {
+                meta, bam ->
+                    single_end: meta.single_end
+                        return [ meta, bam ]
+                    paired_end: !meta.single_end
+                        return [ meta, bam ]
+            }
+            .set { ch_genome_bam_chromap }
+
+        ch_genome_bam_chromap
+            .paired_end
+            .collect()
+            .map {
+                it ->
+                    def count = it.size()
+                    if (count > 0) {
+                        log.warn "=============================================================================\n" +
+                        "  Paired-end files produced by chromap cannot be used by some downstream tools due to the issue below:\n" +
+                        "  https://github.com/nf-core/chipseq/issues/291\n" +
+                        "  They will be excluded from the analysis. Consider using a different aligner\n" +
+                        "==================================================================================="
+                    }
+            }
+
+        ch_genome_bam        = ch_genome_bam_chromap.single_end
+        ch_genome_bam_index  = ALIGN_CHROMAP.out.bai
+        ch_samtools_stats    = ALIGN_CHROMAP.out.stats
+        ch_samtools_flagstat = ALIGN_CHROMAP.out.flagstat
+        ch_samtools_idxstats = ALIGN_CHROMAP.out.idxstats
+        ch_versions = ch_versions.mix(ALIGN_CHROMAP.out.versions.first())
+    }
+
+    //
+    // SUBWORKFLOW: Alignment with STAR & BAM QC
+    //
+    if (params.aligner == 'star') {
+        ALIGN_STAR (
+            FASTQC_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.star_index
+        )
+        ch_genome_bam        = ALIGN_STAR.out.bam
+        ch_genome_bam_index  = ALIGN_STAR.out.bai
+        ch_transcriptome_bam = ALIGN_STAR.out.bam_transcript
+        ch_samtools_stats    = ALIGN_STAR.out.stats
+        ch_samtools_flagstat = ALIGN_STAR.out.flagstat
+        ch_samtools_idxstats = ALIGN_STAR.out.idxstats
+        ch_star_multiqc      = ALIGN_STAR.out.log_final
+
+        ch_versions = ch_versions.mix(ALIGN_STAR.out.versions)
+    }
 
     //
     // MERGE LIBRARY BAM
@@ -773,18 +873,18 @@ workflow ATACSEQ {
             ch_ucsc_bedgraphtobigwig_rep_bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks_rep.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_rep.collect{it[1]}.ifEmpty([]),
-            "bwa/mergedLibrary/bigwig",
-            { ["bwa/mergedLibrary/macs2",
+            "${params.aligner}/mergedLibrary/bigwig",
+            { ["${params.aligner}/mergedLibrary/macs2",
                 params.narrow_peak? '/narrowPeak' : '/broadPeak'
                 ].join('') },
-            { ["bwa/mergedLibrary/macs2",
+            { ["${params.aligner}/mergedLibrary/macs2",
                 params.narrow_peak? '/narrowPeak' : '/broadPeak'
                 ].join('') },
-            "bwa/mergedReplicate/bigwig",
-            { ["bwa/mergedReplicate/macs2",
+            "${params.aligner}/mergedReplicate/bigwig",
+            { ["${params.aligner}/mergedReplicate/macs2",
                 params.narrow_peak? '/narrowPeak' : '/broadPeak'
                 ].join('') },
-            { ["bwa/mergedReplicate/macs2",
+            { ["${params.aligner}/mergedReplicate/macs2",
                 params.narrow_peak? '/narrowPeak' : '/broadPeak'
                 ].join('') },
         )
@@ -835,6 +935,7 @@ workflow ATACSEQ {
             ch_picardcollectmultiplemetrics_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
+
             ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
             ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
 

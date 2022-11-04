@@ -12,8 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Port pipeline to the updated Nextflow DSL2 syntax adopted on nf-core/modules
 - Bump minimum Nextflow version from `19.10.0` -> `21.10.3`
 - [[201](https://github.com/nf-core/atacseq/issues/201)] - Update blacklist bed files.
-- [[182](https://github.com/nf-core/atacseq/issues/182)] - Update `macs_gsize` in `igenomes.config`, create a new `--read_length` parameter and implement the logic to calculate `--macs_gsize` when the parameter is missing.
+- [[182](https://github.com/nf-core/atacseq/issues/182)] - Update `macs_gsize` in `igenomes.config`, create a new `--read_length` parameter and implement the logic to calculate `--macs_gsize` when the parameter is missing
 - Turn `--deseq2_vst` on by default
+- [[#233](https://github.com/nf-core/chipseq/issues/233)] - Add `chromap` to the available aligners
+- [[#160](https://github.com/nf-core/chipseq/issues/160)] - Add `bowtie2` and `star` as available aligners, via the `--aligner` parameter
+- Add `--save_unaligned` parameter (only available for `bowtie2` and `star`)
 
 ### Parameters
 
@@ -23,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | `--conda`              | `--enable_conda`   |
 |                        | `--skip_qc`        |
 |                        | `--aligner`        |
+|                        | `--save_unaligned` |
+|                        | `--bowtie2_index`  |
+|                        | `--chromap_index`  |
+|                        | `--star_index`     |
 | `--skip_diff_analysis` | `--skip_deseq2_qc` |
 | `--single_end`         |                    |
 |                        | `--read_length`    |

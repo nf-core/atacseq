@@ -47,5 +47,3 @@ process IGV {
     END_VERSIONS
     """
 }
-// find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedLibrary/macs/${PEAK_TYPE}/consensus/${antibody}/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
-// find * -type f -name "*.FDR0.05.results.bed" -exec echo -e "bwa/mergedReplicate/macs/${PEAK_TYPE}/consensus/deseq2/"{}"\\t255,0,0" \\; > ${prefix}.igv.txt
