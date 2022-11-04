@@ -236,7 +236,7 @@
                 "aligner": {
                     "type": "string",
                     "default": "bwa",
-                    "description": "Specifies the alignment algorithm to use - available options is 'bwa'.",
+                    "description": "Specifies the alignment algorithm to use - available options are 'bwa', 'bowtie2' and 'star'.",
                     "fa_icon": "fas fa-map-signs",
                     "enum": ["bwa", "bowtie2", "chromap", "star"]
                 },
