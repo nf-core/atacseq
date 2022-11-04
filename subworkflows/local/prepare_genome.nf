@@ -155,16 +155,19 @@ workflow PREPARE_GENOME {
     //
     ch_bwa_index = Channel.empty()
     if (prepare_tool_index == 'bwa') {
-        if (params.bwa_index.endsWith('.tar.gz')) {
-            ch_bwa_index = UNTAR ( [ [:], params.bwa_index ] ).untar.map{ it[1] }
-            ch_versions  = ch_versions.mix(UNTAR.out.versions)
+        if (params.bwa_index) {
+            if (params.bwa_index.endsWith('.tar.gz')) {
+                ch_bwa_index = UNTAR_BWA_INDEX ( [ [:], params.bwa_index ] ).untar.map{ it[1] }
+                ch_versions  = ch_versions.mix(UNTAR_BWA_INDEX.out.versions)
+            } else {
+                ch_bwa_index = file(params.bwa_index)
+            }
         } else {
-            ch_bwa_index = file(params.bwa_index)
+            ch_bwa_index = BWA_INDEX ( ch_fasta ).index
+            ch_versions  = ch_versions.mix(BWA_INDEX.out.versions)
         }
-    } else {
-        ch_bwa_index = BWA_INDEX ( ch_fasta ).index
-        ch_versions  = ch_versions.mix(BWA_INDEX.out.versions)
     }
+
     //
     // Uncompress Bowtie2 index or generate from scratch if required
     //
