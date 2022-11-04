@@ -56,6 +56,11 @@ process MULTIQC {
     path ('mergedReplicate_macs2/annotation/*')
     path ('mergedReplicate_featurecounts/*')
 
+    path ('deseq2_lib/*')
+    path ('deseq2_lib/*')
+    path ('deseq2_rep/*')
+    path ('deseq2_rep/*')
+
     output:
     path "*multiqc_report.html", emit: report
     path "*_data"              , emit: data
