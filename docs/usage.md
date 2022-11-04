@@ -23,23 +23,6 @@ CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
 CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
 ```
 
-### Multiple runs of the same library
-
-The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example where the samples called `WT_BCATENIN_IP_REP2` and `WT_INPUT_REP2` have been re-sequenced multiple times:
-
-```console
-sample,fastq_1,fastq_2,antibody,control
-WT_BCATENIN_IP_REP1,BLA203A1_S27_L006_R1_001.fastq.gz,
-WT_BCATENIN_IP_REP2,BLA203A25_S16_L001_R1_001.fastq.gz,
-WT_BCATENIN_IP_REP2,BLA203A25_S16_L002_R1_001.fastq.gz,
-WT_BCATENIN_IP_REP2,BLA203A25_S16_L003_R1_001.fastq.gz,
-WT_BCATENIN_IP_REP3,BLA203A49_S40_L001_R1_001.fastq.gz,
-WT_INPUT_REP1,BLA203A6_S32_L006_R1_001.fastq.gz,
-WT_INPUT_REP2,BLA203A30_S21_L001_R1_001.fastq.gz,
-WT_INPUT_REP2,BLA203A30_S21_L002_R1_001.fastq.gz,
-WT_INPUT_REP3,BLA203A31_S21_L003_R1_001.fastq.gz,
-```
-
 ### Full samplesheet
 
 The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
