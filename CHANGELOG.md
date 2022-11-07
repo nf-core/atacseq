@@ -75,7 +75,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 ### `Dependencies`
 
 - Update r-base `3.6.2` -> `3.6.3`
-- Update r-xfun `0.15`   -> `0.22`
+- Update r-xfun `0.15` -> `0.22`
 
 ## [1.2.1] - 2020-07-29
 
