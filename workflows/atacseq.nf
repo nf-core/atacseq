@@ -878,14 +878,16 @@ workflow ATACSEQ {
                 params.narrow_peak? '/narrowPeak' : '/broadPeak'
                 ].join('') },
             { ["${params.aligner}/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
+                params.narrow_peak? '/narrowPeak' : '/broadPeak',
+                "/consensus"
                 ].join('') },
             "${params.aligner}/mergedReplicate/bigwig",
             { ["${params.aligner}/mergedReplicate/macs2",
                 params.narrow_peak? '/narrowPeak' : '/broadPeak'
                 ].join('') },
             { ["${params.aligner}/mergedReplicate/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
+                params.narrow_peak? '/narrowPeak' : '/broadPeak',
+                "/consensus"
                 ].join('') },
         )
         ch_versions = ch_versions.mix(IGV.out.versions)

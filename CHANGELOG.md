@@ -68,6 +68,15 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 > **NB:** Dependency has been **added** if just the new version information is present.
 > **NB:** Dependency has been **removed** if version information isn't present.
 
+## [1.2.2] - 2022-05-12
+
+- Minor patch release to fix Conda environment and enable DSL1 by default in the `nextflow.config`.
+
+### `Dependencies`
+
+- Update r-base `3.6.2` -> `3.6.3`
+- Update r-xfun `0.15` -> `0.22`
+
 ## [1.2.1] - 2020-07-29
 
 - [#118](https://github.com/nf-core/atacseq/issues/118) - Minor patch release to update pipeline schema
