@@ -943,7 +943,7 @@ workflow ATACSEQ {
 
             ch_custompeaks_frip_multiqc.collect{it[1]}.ifEmpty([]),
             ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_plothomerannotatepeaks_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_plothomerannotatepeaks_multiqc.collect().ifEmpty([]),
             ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([]),
             // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
@@ -954,7 +954,7 @@ workflow ATACSEQ {
 
             ch_custompeaks_frip_multiqc_rep.collect{it[1]}.ifEmpty([]),
             ch_custompeaks_count_multiqc_rep.collect{it[1]}.ifEmpty([]),
-            ch_plothomerannotatepeaks_multiqc_rep.collect{it[1]}.ifEmpty([]),
+            ch_plothomerannotatepeaks_multiqc_rep.collect().ifEmpty([]),
             ch_subreadfeaturecounts_multiqc_rep.collect{it[1]}.ifEmpty([]),
 
             ch_deseq2_lib_pca_multiqc.collect().ifEmpty([]),
