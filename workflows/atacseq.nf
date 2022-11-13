@@ -446,13 +446,13 @@ workflow ATACSEQ {
     // Create channels: [ meta, bam, empty_list ]
     ch_bam_bai
         .map { meta, bam, bai -> [ meta , bam, [] ] }
-        .set { ch_bam }
+        .set { ch_bam_lib }
 
     //
     // MODULE: Call peaks with MACS2
     //
     MACS2_CALLPEAK_LIB (
-        ch_bam,
+        ch_bam_lib,
         ch_macs_gsize
     )
     ch_versions = ch_versions.mix(MACS2_CALLPEAK_LIB.out.versions.first())
@@ -467,7 +467,7 @@ workflow ATACSEQ {
         .set { ch_macs2_peaks_lib }
 
     // Create channels: [ meta, bam, peaks ]
-    ch_bam
+    ch_bam_lib
         .join(ch_macs2_peaks_lib, by: [0])
         .map {
             it ->
@@ -608,7 +608,8 @@ workflow ATACSEQ {
                     [ meta.id, meta, saf ]
             }
             .join(ch_consensus_bams_lib)
-            key, meta, saf, bams ->
+            .map {
+                key, meta, saf, bams ->
                     [ meta, bams.flatten().sort(), saf ]
             }
             .set { ch_saf_bams_lib }
@@ -688,13 +689,15 @@ workflow ATACSEQ {
                 meta, bam ->
                     def fmeta = meta.findAll { it.key != 'read_group' }
                     fmeta.id = fmeta.id.split('_')[0..-2].join('_')
-                    [ fmeta, fmeta.id, bam ] }
+                    [ fmeta, fmeta.id, bam ]
+            }
             .groupTuple(by: [0])
             .map {
                 meta, ids, bams ->
                     meta.replicates_exist = ids.size() > 1
                     meta.multiple_bams    = bams.size() > 1
-                    [ meta, bams.flatten() ] }
+                    [ meta, bams.flatten() ]
+            }
             .set { ch_mlib_rm_orphan_bam_mrep }
 
         PICARD_MERGESAMFILES_REP (
@@ -761,7 +764,7 @@ workflow ATACSEQ {
             .filter { meta, peaks -> peaks.size() > 0 }
             .set { ch_macs2_peaks_rep }
 
-       // Create channels: [ meta, bam, peaks ]
+        // Create channels: [ meta, bam, peaks ]
         ch_bam_rep
             .join(ch_macs2_peaks_rep, by: [0])
             .map {
@@ -791,7 +794,7 @@ workflow ATACSEQ {
         // MODULE: FRiP score custom content for MultiQC
         //
         MULTIQC_CUSTOM_PEAKS_REP (
-            ch_peak_frip_rep,
+            ch_bam_peak_frip_rep,
             ch_mrep_peak_count_header,
             ch_mrep_frip_score_header
         )
@@ -809,7 +812,7 @@ workflow ATACSEQ {
             )
             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2_REP.out.versions.first())
 
-            if (!params.skip_peak_qc){
+            if (!params.skip_peak_qc) {
                 //
                 // MODULE: MACS2 QC plots with R
                 //
@@ -882,12 +885,14 @@ workflow ATACSEQ {
                 ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS_REP.out.versions)
             }
 
-            // Create channel: [ val(meta), bam ]
-            MACS2_CONSENSUS_REP
-                .out
-                .saf
-                .map { meta, saf -> [ meta.id, meta, saf ] }
-                .set { ch_saf_rep }
+            // Create channels: [ antibody, [ ip_bams ] ]
+            ch_bam_rep
+                .map {
+                    meta, bam, emptylist ->
+                        [ 'consensus_peaks',  meta, bam ]
+                }
+                .groupTuple()
+                .set { ch_consensus_bams_rep }
 
             // Create channels: [ meta, [ bams ], saf ]
             MACS2_CONSENSUS_REP
@@ -898,7 +903,8 @@ workflow ATACSEQ {
                         [ meta.id, meta, saf ]
                 }
                 .join(ch_consensus_bams_rep)
-                key, meta, saf, bams ->
+                .map {
+                    key, meta, saf, bams ->
                         [ meta, bams.flatten().sort(), saf ]
                 }
                 .set { ch_saf_bams_rep }
@@ -907,7 +913,7 @@ workflow ATACSEQ {
             // MODULE: Quantify peaks across samples with featureCounts
             //
             SUBREAD_FEATURECOUNTS_REP (
-                ch_bam_saf_rep
+                ch_saf_bams_rep
             )
             ch_subreadfeaturecounts_multiqc_rep = SUBREAD_FEATURECOUNTS_REP.out.summary
             ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_REP.out.versions.first())
@@ -924,6 +930,7 @@ workflow ATACSEQ {
                 ch_deseq2_rep_pca_multiqc        = DESEQ2_QC_REP.out.pca_multiqc
                 ch_deseq2_rep_clustering_multiqc = DESEQ2_QC_REP.out.dists_multiqc
             }
+
         }
     }
 
@@ -934,7 +941,7 @@ workflow ATACSEQ {
         IGV (
             PREPARE_GENOME.out.fasta,
             UCSC_BEDGRAPHTOBIGWIG_LIB.out.bigwig.collect{it[1]}.ifEmpty([]),
-            ch_macs2_peaks.collect{it[1]}.ifEmpty([]),
+            ch_macs2_peaks_lib.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_lib.collect{it[1]}.ifEmpty([]),
             ch_ucsc_bedgraphtobigwig_rep_bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks_rep.collect{it[1]}.ifEmpty([]),
