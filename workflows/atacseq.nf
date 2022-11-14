@@ -554,19 +554,16 @@ workflow ATACSEQ {
             .map {
                 key, groups, peaks ->
                     [
-                        key,
                         groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
                         peaks
-                    ]
-            }
+                    ] }
             .map {
                 groups, peaks ->
-                    def meta_new = [:]
-                    meta_new.id = 'consensus_peaks'
-                    meta_new.multiple_groups = groups.size() > 1
-                    meta_new.replicates_exist = groups.max { groups.value }.value > 1
-                    [ meta_new, peaks ]
-            }
+                    def meta_lib = [:]
+                    meta_lib.id = 'consensus_peaks'
+                    meta_lib.multiple_groups = groups.size() > 1
+                    meta_lib.replicates_exist = groups.max { groups.value }.value > 1
+                    [ meta_lib, peaks ] }
             .set { ch_consensus_peaks_lib }
 
         //
@@ -842,26 +839,23 @@ workflow ATACSEQ {
             // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
             ch_macs2_peaks_rep
                 .map {
-                meta, peak ->
-                    [ '', meta.id.split('_')[0..-2].join('_'), peak ]
+                    meta, peak ->
+                        [ '', meta.id.split('_')[0..-2].join('_'), peak ]
                 }
                 .groupTuple()
                 .map {
                     key, groups, peaks ->
                         [
-                            key,
                             groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
                             peaks
-                        ]
-                }
+                        ] }
                 .map {
                     groups, peaks ->
-                        def meta_new = [:]
-                        meta_new.id = 'consensus_peaks'
-                        meta_new.multiple_groups = groups.size() > 1
-                        meta_new.replicates_exist = groups.max { groups.value }.value > 1
-                        [ meta_new, peaks ]
-                }
+                        def meta_rep = [:]
+                        meta_rep.id = 'consensus_peaks'
+                        meta_rep.multiple_groups = groups.size() > 1
+                        meta_rep.replicates_exist = groups.max { groups.value }.value > 1
+                        [ meta_rep, peaks ] }
                 .set { ch_consensus_peaks_rep }
 
             //
