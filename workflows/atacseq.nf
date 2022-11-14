@@ -600,13 +600,19 @@ workflow ATACSEQ {
         MACS2_CONSENSUS_LIB
             .out
             .saf
-            .map { meta, saf -> [ meta.id, meta, saf ] }
+            .map {
+                meta, saf ->
+                    [ meta.id, meta, saf ]
+            }
             .set { ch_saf_lib }
 
         ch_bam_lib
             .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
             .groupTuple()
-            .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
+            .map {
+                it ->
+                    [ it[0], it[1][0], it[2].flatten().sort() ]
+            }
             .join(ch_saf_lib)
             .map {
                 it ->
@@ -898,13 +904,22 @@ workflow ATACSEQ {
             MACS2_CONSENSUS_REP
                 .out
                 .saf
-                .map { meta, saf -> [ meta.id, meta, saf ] }
+                .map {
+                    meta, saf ->
+                        [ meta.id, meta, saf ]
+                }
                 .set { ch_saf_rep }
 
             ch_bam_rep
-                .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
+                .map {
+                    meta, bam, emptylist ->
+                        [ 'consensus_peaks',  meta, bam ]
+                }
                 .groupTuple()
-                .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
+                .map {
+                    it ->
+                        [ it[0], it[1][0], it[2].flatten().sort() ]
+                }
                 .join(ch_saf_rep)
                 .map {
                     it ->
