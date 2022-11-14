@@ -5,12 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unpublished Version / DEV]
 
-- Fix handling of Homer outputs staged for MultiQC
-
 ### Major enhancements
 
 - Pipeline has been re-implemented in [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html)
-- Updated pipeline template to [nf-core/tools 2.5.1](https://github.com/nf-core/tools/releases/tag/2.5.1)
+- Updated pipeline template to [nf-core/tools 2.6](https://github.com/nf-core/tools/releases/tag/2.6)
 - Port pipeline to the updated Nextflow DSL2 syntax adopted on nf-core/modules
 - Bump minimum Nextflow version from `19.10.0` -> `21.10.3`
 - [[201](https://github.com/nf-core/atacseq/issues/201)] - Update blacklist bed files.
@@ -19,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#233](https://github.com/nf-core/chipseq/issues/233)] - Add `chromap` to the available aligners
 - [[#160](https://github.com/nf-core/chipseq/issues/160)] - Add `bowtie2` and `star` as available aligners, via the `--aligner` parameter
 - Add `--save_unaligned` parameter (only available for `bowtie2` and `star`)
+- Fix handling of Homer outputs staged for MultiQC
 
 ### Parameters
 
