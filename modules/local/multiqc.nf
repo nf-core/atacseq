@@ -41,20 +41,20 @@ process MULTIQC {
     // path ('phantompeakqualtools/*')
     // path ('phantompeakqualtools/*')
 
-    path ('mergedLibrary_macs2/peaks/*')
-    path ('mergedLibrary_macs2/peaks/*')
-    path ('mergedLibrary_macs2/annotation/*')
-    path ('mergedLibrary_featurecounts/*')
+    path ('macs2/mergedLibrary/peaks/*')
+    path ('macs2/mergedLibrary/peaks/*')
+    path ('macs2/mergedLibrary/annotation/*')
+    path ('macs2/mergedLibrary/featurecounts/*')
 
     path ('alignment/mergedReplicate/*')
     path ('alignment/mergedReplicate/*')
     path ('alignment/mergedReplicate/*')
     path ('alignment/mergedReplicate/picard_metrics/*')
 
-    path ('mergedReplicate_macs2/peaks/*')
-    path ('mergedReplicate_macs2/peaks/*')
-    path ('mergedReplicate_macs2/annotation/*')
-    path ('mergedReplicate_featurecounts/*')
+    path ('macs2/mergedReplicate/peaks/*')
+    path ('macs2/mergedReplicate/peaks/*')
+    path ('macs2/mergedReplicate/annotation/*')
+    path ('macs2/mergedReplicate/featurecounts/*')
 
     path ('deseq2_lib/*')
     path ('deseq2_lib/*')
