@@ -600,15 +600,21 @@ workflow ATACSEQ {
         MACS2_CONSENSUS_LIB
             .out
             .saf
+            .map { meta, saf -> [ meta.id, meta, saf ] }
+            .set { ch_saf_lib }
+
+        ch_bam_lib
+            .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
+            .groupTuple()
+            .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
+            .join(ch_saf_lib)
             .map {
-                meta, saf ->
-                    [ meta.id, meta, saf ]
-            }
-            .join(ch_consensus_bams_lib)
-            .map {
-                key, meta, saf, bams ->
-                    [ meta, bams.flatten().sort(), saf ]
-            }
+                it ->
+                    def fmeta_lib = it[1]
+                    fmeta_lib['id'] = it[3]['id']
+                    fmeta_lib['replicates_exist'] = it[3]['replicates_exist']
+                    fmeta_lib['multiple_groups']  = it[3]['multiple_groups']
+                    [ fmeta_lib, it[2], it[4] ] }
             .set { ch_saf_bams_lib }
 
         SUBREAD_FEATURECOUNTS_LIB (
@@ -892,15 +898,21 @@ workflow ATACSEQ {
             MACS2_CONSENSUS_REP
                 .out
                 .saf
+                .map { meta, saf -> [ meta.id, meta, saf ] }
+                .set { ch_saf_rep }
+
+            ch_bam_rep
+                .map { meta, bam, emptylist -> [ 'consensus_peaks',  meta, bam ] }
+                .groupTuple()
+                .map { it -> [ it[0], it[1][0], it[2].flatten().sort() ] }
+                .join(ch_saf_rep)
                 .map {
-                    meta, saf ->
-                        [ meta.id, meta, saf ]
-                }
-                .join(ch_consensus_bams_rep)
-                .map {
-                    key, meta, saf, bams ->
-                        [ meta, bams.flatten().sort(), saf ]
-                }
+                    it ->
+                        def fmeta_rep = it[1]
+                        fmeta_rep['id'] = it[3]['id']
+                        fmeta_rep['replicates_exist'] = it[3]['replicates_exist']
+                        fmeta_rep['multiple_groups']  = it[3]['multiple_groups']
+                        [ fmeta_rep, it[2], it[4] ] }
                 .set { ch_saf_bams_rep }
 
             //
