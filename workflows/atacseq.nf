@@ -600,6 +600,7 @@ workflow ATACSEQ {
         ATAQV_ATAQV (
             ch_bam_peak,
             'NA',
+            params.mito_name,
             PREPARE_GENOME.out.tss_bed,
             [],
             PREPARE_GENOME.out.autosomes
