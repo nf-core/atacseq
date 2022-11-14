@@ -27,13 +27,6 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 
-// Save AWS IGenomes file containing annotation version
-def anno_readme = params.genomes[ params.genome ]?.readme
-if (anno_readme && file(anno_readme).exists()) {
-    file("${params.outdir}/genome/").mkdirs()
-    file(anno_readme).copyTo("${params.outdir}/genome/")
-}
-
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     CONFIG FILES
@@ -599,6 +592,7 @@ workflow ATACSEQ {
         ATAQV_ATAQV (
             ch_bam_peak,
             'NA',
+            params.mito_name,
             PREPARE_GENOME.out.tss_bed,
             [],
             PREPARE_GENOME.out.autosomes
@@ -942,7 +936,7 @@ workflow ATACSEQ {
 
             ch_custompeaks_frip_multiqc.collect{it[1]}.ifEmpty([]),
             ch_custompeaks_count_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_plothomerannotatepeaks_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_plothomerannotatepeaks_multiqc.collect().ifEmpty([]),
             ch_subreadfeaturecounts_multiqc.collect{it[1]}.ifEmpty([]),
             // path ('macs/consensus/*') from ch_macs_consensus_deseq_mqc.collect().ifEmpty([])
 
@@ -953,7 +947,7 @@ workflow ATACSEQ {
 
             ch_custompeaks_frip_multiqc_rep.collect{it[1]}.ifEmpty([]),
             ch_custompeaks_count_multiqc_rep.collect{it[1]}.ifEmpty([]),
-            ch_plothomerannotatepeaks_multiqc_rep.collect{it[1]}.ifEmpty([]),
+            ch_plothomerannotatepeaks_multiqc_rep.collect().ifEmpty([]),
             ch_subreadfeaturecounts_multiqc_rep.collect{it[1]}.ifEmpty([]),
 
             ch_deseq2_lib_pca_multiqc.collect().ifEmpty([]),
