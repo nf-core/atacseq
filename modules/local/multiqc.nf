@@ -11,8 +11,6 @@ process MULTIQC {
     path mqc_custom_config
     path software_versions
     path workflow_summary
-    path methods_description
-    path logo
 
     path ('fastqc/*')
     path ('trimgalore/fastqc/*')
@@ -36,10 +34,6 @@ process MULTIQC {
 
     path ('deeptools/*')
     path ('deeptools/*')
-    // path ('phantompeakqualtools/*')
-    // path ('phantompeakqualtools/*')
-    // path ('phantompeakqualtools/*')
-    // path ('phantompeakqualtools/*')
 
     path ('mergedLibrary_macs2/peaks/*')
     path ('mergedLibrary_macs2/peaks/*')

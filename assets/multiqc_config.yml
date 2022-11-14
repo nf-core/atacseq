@@ -83,7 +83,7 @@ module_order:
       anchor: "mrep_featurecounts"
       info: "This section of the report shows featureCounts results for the number of reads assigned to merged replicate consensus peaks."
       path_filters:
-        - "./macs/mergedReplicate/consensus/*.summary"
+        - "./macs2/featurecounts/*.summary"
 
 report_section_order:
   mlib_peak_count:
