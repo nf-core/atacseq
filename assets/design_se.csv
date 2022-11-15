@@ -1,8 +1,8 @@
-group,replicate,fastq_1,fastq_2
-control,1,/path/to/fastq/files/AEG588A1_S1_L002_R1_001.fastq.gz,
-control,2,/path/to/fastq/files/AEG588A2_S2_L002_R1_001.fastq.gz,
-control,3,/path/to/fastq/files/AEG588A3_S3_L002_R1_001.fastq.gz,
-treatment,1,/path/to/fastq/files/AEG588A4_S4_L003_R1_001.fastq.gz,
-treatment,2,/path/to/fastq/files/AEG588A5_S5_L003_R1_001.fastq.gz,
-treatment,3,/path/to/fastq/files/AEG588A6_S6_L003_R1_001.fastq.gz,
-treatment,3,/path/to/fastq/files/AEG588A6_S6_L004_R1_001.fastq.gz,
+group,fastq_1,fastq_2
+control_REP_1,/path/to/fastq/files/AEG588A1_S1_L002_R1_001.fastq.gz,
+control_REP_2,/path/to/fastq/files/AEG588A2_S2_L002_R1_001.fastq.gz,
+control_REP_3,/path/to/fastq/files/AEG588A3_S3_L002_R1_001.fastq.gz,
+treatment_REP_1,/path/to/fastq/files/AEG588A4_S4_L003_R1_001.fastq.gz,
+treatment_REP_2,/path/to/fastq/files/AEG588A5_S5_L003_R1_001.fastq.gz,
+treatment_REP_3,/path/to/fastq/files/AEG588A6_S6_L003_R1_001.fastq.gz,
+treatment_REP_3,/path/to/fastq/files/AEG588A6_S6_L004_R1_001.fastq.gz,
