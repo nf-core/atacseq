@@ -30,9 +30,9 @@ process DESEQ2_QC {
     task.ext.when == null || task.ext.when
 
     script:
-    def args      = task.ext.args ?: ''
-    def peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
-    def prefix    = "consensus_peaks"
+    def args       = task.ext.args ?: ''
+    def peak_type  = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
+    def prefix     = task.ext.prefix ?: "${meta.id}"
     """
     deseq2_qc.r \\
         --count_file $counts \\
@@ -41,8 +41,13 @@ process DESEQ2_QC {
         --cores $task.cpus \\
         $args
 
-    cat $deseq2_pca_header ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
-    cat $deseq2_clustering_header ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
+    sed 's/deseq2_pca/deseq2_pca_${task.index}/g' <$deseq2_pca_header >tmp.txt
+    sed -i -e 's/DESeq2 /${meta.id} DESeq2 /g' tmp.txt
+    cat tmp.txt ${prefix}.pca.vals.txt > ${prefix}.pca.vals_mqc.tsv
+
+    sed 's/deseq2_clustering/deseq2_clustering_${task.index}/g' <$deseq2_clustering_header >tmp.txt
+    sed -i -e 's/DESeq2 /${meta.id} DESeq2 /g' tmp.txt
+    cat tmp.txt ${prefix}.sample.dists.txt > ${prefix}.sample.dists_mqc.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

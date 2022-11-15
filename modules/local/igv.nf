@@ -27,6 +27,7 @@ process IGV {
     output:
     path "*files.txt"  , emit: txt
     path "*.xml"       , emit: xml
+    path fasta         , emit: fasta // Publish fasta file while copyTo fails when the source and destination buckets are in different regions
     path "versions.yml", emit: versions
 
     script: // scripts are bundled with the pipeline in nf-core/atacseq/bin/
