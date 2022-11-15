@@ -534,6 +534,7 @@ workflow ATACSEQ {
     ch_macs2_consensus_bed_lib       = Channel.empty()
     ch_deseq2_lib_pca_multiqc        = Channel.empty()
     ch_deseq2_lib_clustering_multiqc = Channel.empty()
+
     if (!params.skip_consensus_peaks) {
         // Create channels: [ meta , [ peaks ] ]
         // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
@@ -845,22 +846,17 @@ workflow ATACSEQ {
             ch_macs2_peaks_rep
                 .map {
                     meta, peak ->
-                        [ '', meta.id.split('_')[0..-2].join('_'), peak ]
+                        [ '', meta.id, meta, peak ]
                 }
                 .groupTuple()
                 .map {
-                    key, groups, peaks ->
-                        [
-                            groups.groupBy().collectEntries { [(it.key) : it.value.size()] },
-                            peaks
-                        ] }
-                .map {
-                    groups, peaks ->
+                    key, groups, metas, peaks ->
                         def meta_rep = [:]
                         meta_rep.id = 'consensus_peaks'
-                        meta_rep.multiple_groups = groups.size() > 1
-                        meta_rep.replicates_exist = groups.max { groups.value }.value > 1
-                        [ meta_rep, peaks ] }
+                        meta_rep.replicates_exist = metas[0].replicates_exist
+                        meta_rep.multiple_groups = groups.groupBy().collectEntries { [(it.key) : it.value.size()] }.size() > 1
+                        [ meta_rep, peaks ]
+                }
                 .set { ch_consensus_peaks_rep }
 
             //
