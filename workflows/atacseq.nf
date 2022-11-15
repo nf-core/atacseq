@@ -410,21 +410,20 @@ workflow ATACSEQ {
         DEEPTOOLS_PLOTFINGERPRINT (
             ch_bam_bai
         )
-        ch_deeptools_plotfingerprintmultiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
+        ch_deeptoolsplotfingerprint_multiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
         ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
     }
 
     //
     // MERGED LIBRARY PEAK ANALYSIS
     //
-    ch_macs_gsize                         = Channel.empty()
+    ch_macs_gsize                         = params.macs_gsize
     ch_macs2_peaks_lib                    = Channel.empty()
     ch_custompeaks_frip_multiqc_lib       = Channel.empty()
     ch_custompeaks_count_multiqc_lib      = Channel.empty()
     ch_plothomerannotatepeaks_multiqc_lib = Channel.empty()
     ch_macs2_consensus_bed_lib            = Channel.empty()
     ch_subreadfeaturecounts_multiqc_lib   = Channel.empty()
-    ch_macs_gsize                         = params.macs_gsize
     if (!params.macs_gsize) {
         //
         // MODULE: Estimate macs genome size
