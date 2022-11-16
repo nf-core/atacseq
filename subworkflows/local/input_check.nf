@@ -19,6 +19,7 @@ workflow INPUT_CHECK {
     emit:
     reads                                     // channel: [ val(meta), [ reads ] ]
     versions = SAMPLESHEET_CHECK.out.versions // channel: [ versions.yml ]
+    csv = SAMPLESHEET_CHECK.out.csv           // channel: [ file('*.csv')]
 }
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
@@ -26,6 +27,13 @@ def create_fastq_channel(LinkedHashMap row, String seq_center) {
     def meta = [:]
     meta.id         = row.sample
     meta.single_end = row.single_end.toBoolean()
+    // remove redundant keys from row, then add it to meta to include any optional custom columns from sample sheet
+    row.remove("sample")
+    row.remove("single_end")
+    meta = meta + row
+    // remove fastq_1 and fastq_2 as they are added as files below
+    meta.remove("fastq_1")
+    meta.remove("fastq_2")
 
     def read_group = "\'@RG\\tID:${meta.id}\\tSM:${meta.id.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${meta.id}\\tPU:1\'"
     if (seq_center) {

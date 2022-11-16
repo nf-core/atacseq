@@ -105,6 +105,17 @@ def check_samplesheet(file_in, file_out):
                 sample_info = ["1", fastq_1, fastq_2]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
+                
+            ## Add additional sample_info columns if optional columns exist
+            if len(lspl) > len(lspl[: len(HEADER)]):
+                add_cols = []
+                for col in header[len(HEADER):]: # collect additional column names
+                    if col in add_cols:
+                        print_error("Duplicate columns were specified!", "Line", line)
+                    else:
+                        add_cols.append(col)
+                for col in lspl[len(HEADER):]: # add additional column values to sample_info
+                    sample_info.append(col)
 
             ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2 ]]}
             if sample not in sample_mapping_dict:
@@ -128,6 +139,7 @@ def check_samplesheet(file_in, file_out):
                         "fastq_1",
                         "fastq_2",
                     ]
+                    + add_cols
                 )
                 + "\n"
             )
