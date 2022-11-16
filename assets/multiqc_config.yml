@@ -99,10 +99,10 @@ report_section_order:
     before: mlib_frip_score
   mlib_featurecounts:
     before: mlib_peak_annotation
-  mlib_deseq2_pca:
+  mlib_deseq2_pca_1:
     before: mlib_featurecounts
-  mlib_deseq2_clustering:
-    before: mlib_deseq2_pca
+  mlib_deseq2_clustering_1:
+    before: mlib_deseq2_pca_1
   mrep_peak_count:
     before: mrep_picard
   mrep_frip_score:
@@ -111,10 +111,10 @@ report_section_order:
     before: mrep_frip_score
   mrep_featurecounts:
     before: mrep_peak_annotation
-  mrep_deseq2_pca:
+  mrep_deseq2_pca_1:
     before: mrep_featurecounts
-  mrep_deseq2_clustering:
-    before: mrep_deseq2_pca
+  mrep_deseq2_clustering_1:
+    before: mrep_deseq2_pca_1
   "nf-core-atacseq-methods-description":
     order: -1000
   software_versions:
@@ -142,6 +142,9 @@ extra_fn_clean_exts:
   - "mLb"
   - "mRp"
   - "_peaks"
+  - ".FRiP"
+  - ".peak"
+  - "lc_extrap"
 
 # # Customise the module search patterns to speed up execution time
 # #  - Skip module sub-tools that we are not interested in
