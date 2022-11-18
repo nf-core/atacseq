@@ -109,12 +109,14 @@ def check_samplesheet(file_in, file_out):
             ## Add additional sample_info columns if optional columns exist
             add_cols = []
             if len(lspl) > len(lspl[: len(HEADER)]):
-                for col in header[len(HEADER):]: # collect additional column names
+                for col in header[len(HEADER) :]: # collect additional column names
                     if col in add_cols:
                         print_error("Duplicate columns were specified!", "Line", line)
                     else:
                         add_cols.append(col)
-                for col in lspl[len(HEADER):]: # add additional column values to sample_info
+                for col in lspl[
+                    len(HEADER) :
+                ]:  # add additional column values to sample_info
                     sample_info.append(col)
 
             ## Create sample mapping dictionary = {sample: [[ single_end, fastq_1, fastq_2 ]]}
