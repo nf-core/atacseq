@@ -107,8 +107,8 @@ def check_samplesheet(file_in, file_out):
                 print_error("Invalid combination of columns provided!", "Line", line)
                 
             ## Add additional sample_info columns if optional columns exist
+            add_cols = []
             if len(lspl) > len(lspl[: len(HEADER)]):
-                add_cols = []
                 for col in header[len(HEADER):]: # collect additional column names
                     if col in add_cols:
                         print_error("Duplicate columns were specified!", "Line", line)
