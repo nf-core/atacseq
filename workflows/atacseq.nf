@@ -958,20 +958,20 @@ workflow ATACSEQ {
             ch_ucsc_bedgraphtobigwig_replicate_bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_peaks_replicate.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_bed_replicate.collect{it[1]}.ifEmpty([]),
-            "${params.aligner}/mergedLibrary/bigwig",
-            { ["${params.aligner}/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
+            "${params.aligner}/merged_library/bigwig",
+            { ["${params.aligner}/merged_library/macs2",
+                params.narrow_peak? '/narrow_peak' : '/broad_peak'
                 ].join('') },
-            { ["${params.aligner}/mergedLibrary/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak',
+            { ["${params.aligner}/merged_library/macs2",
+                params.narrow_peak? '/narrow_peak' : '/broad_peak',
                 "/consensus"
                 ].join('') },
-            "${params.aligner}/mergedReplicate/bigwig",
-            { ["${params.aligner}/mergedReplicate/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak'
+            "${params.aligner}/merged_replicate/bigwig",
+            { ["${params.aligner}/merged_replicate/macs2",
+                params.narrow_peak? '/narrow_peak' : '/broad_peak'
                 ].join('') },
-            { ["${params.aligner}/mergedReplicate/macs2",
-                params.narrow_peak? '/narrowPeak' : '/broadPeak',
+            { ["${params.aligner}/merged_replicate/macs2",
+                params.narrow_peak? '/narrow_peak' : '/broad_peak',
                 "/consensus"
                 ].join('') },
         )
