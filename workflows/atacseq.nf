@@ -44,16 +44,16 @@ ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExi
 ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
 
 // Header files for MultiQC
-ch_merged_library_peak_count_header = file("$projectDir/assets/multiqc/merged_library_peak_count_header.txt", checkIfExists: true)
-ch_merged_library_frip_score_header = file("$projectDir/assets/multiqc/merged_library_frip_score_header.txt", checkIfExists: true)
-ch_merged_library_peak_annotation_header = file("$projectDir/assets/multiqc/merged_library_peak_annotation_header.txt", checkIfExists: true)
-ch_merged_library_deseq2_pca_header = file("$projectDir/assets/multiqc/merged_library_deseq2_pca_header.txt", checkIfExists: true)
+ch_merged_library_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_peak_count_header.txt", checkIfExists: true)
+ch_merged_library_frip_score_header        = file("$projectDir/assets/multiqc/merged_library_frip_score_header.txt", checkIfExists: true)
+ch_merged_library_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_library_peak_annotation_header.txt", checkIfExists: true)
+ch_merged_library_deseq2_pca_header        = file("$projectDir/assets/multiqc/merged_library_deseq2_pca_header.txt", checkIfExists: true)
 ch_merged_library_deseq2_clustering_header = file("$projectDir/assets/multiqc/merged_library_deseq2_clustering_header.txt", checkIfExists: true)
 
-ch_merged_replicate_peak_count_header = file("$projectDir/assets/multiqc/merged_replicate_peak_count_header.txt", checkIfExists: true)
-ch_merged_replicate_frip_score_header = file("$projectDir/assets/multiqc/merged_replicate_frip_score_header.txt", checkIfExists: true)
-ch_merged_replicate_peak_annotation_header = file("$projectDir/assets/multiqc/merged_replicate_peak_annotation_header.txt", checkIfExists: true)
-ch_merged_replicate_deseq2_pca_header = file("$projectDir/assets/multiqc/merged_replicate_deseq2_pca_header.txt", checkIfExists: true)
+ch_merged_replicate_peak_count_header        = file("$projectDir/assets/multiqc/merged_replicate_peak_count_header.txt", checkIfExists: true)
+ch_merged_replicate_frip_score_header        = file("$projectDir/assets/multiqc/merged_replicate_frip_score_header.txt", checkIfExists: true)
+ch_merged_replicate_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_replicate_peak_annotation_header.txt", checkIfExists: true)
+ch_merged_replicate_deseq2_pca_header        = file("$projectDir/assets/multiqc/merged_replicate_deseq2_pca_header.txt", checkIfExists: true)
 ch_merged_replicate_deseq2_clustering_header = file("$projectDir/assets/multiqc/merged_replicate_deseq2_clustering_header.txt", checkIfExists: true)
 
 /*
@@ -159,7 +159,7 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
     INPUT_CHECK (
-        file(params.input),
+        ch_input,
         params.seq_center
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
@@ -419,7 +419,7 @@ workflow ATACSEQ {
     //
     // MERGED LIBRARY PEAK ANALYSIS
     //
-    ch_macs_gsize                         = params.macs_gsize
+    ch_macs_gsize                             = params.macs_gsize
     ch_macs2_peaks_library                    = Channel.empty()
     ch_custompeaks_frip_multiqc_library       = Channel.empty()
     ch_custompeaks_count_multiqc_library      = Channel.empty()
@@ -942,7 +942,6 @@ workflow ATACSEQ {
                 ch_deseq2_replicate_pca_multiqc        = DESEQ2_QC_REPLICATE.out.pca_multiqc
                 ch_deseq2_replicate_clustering_multiqc = DESEQ2_QC_REPLICATE.out.dists_multiqc
             }
-
         }
     }
 
