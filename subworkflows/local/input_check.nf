@@ -25,8 +25,9 @@ workflow INPUT_CHECK {
 def create_fastq_channel(LinkedHashMap row, String seq_center) {
     def meta = [:]
     meta.id         = row.sample
+    meta.replicate  = row.replicate.toInteger()
     meta.single_end = row.single_end.toBoolean()
-
+    
     def read_group = "\'@RG\\tID:${meta.id}\\tSM:${meta.id.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${meta.id}\\tPU:1\'"
     if (seq_center) {
         read_group = "\'@RG\\tID:${meta.id}\\tSM:${meta.id.split('_')[0..-2].join('_')}\\tPL:ILLUMINA\\tLB:${meta.id}\\tPU:1\\tCN:${seq_center}\'"
