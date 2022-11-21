@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#160](https://github.com/nf-core/chipseq/issues/160)] - Add `bowtie2` and `star` as available aligners, via the `--aligner` parameter
 - Add `--save_unaligned` parameter (only available for `bowtie2` and `star`)
 - Fix handling of Homer outputs staged for MultiQC
+- Preseq will be skipped by default (see [nf-core/rnaseq#897](https://github.com/nf-core/rnaseq/issues/897))
 
 ### Parameters
 
