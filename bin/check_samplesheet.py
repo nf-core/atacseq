@@ -142,6 +142,7 @@ def check_samplesheet(file_in, file_out):
                     )
 
                 for idx, val in enumerate(sample_mapping_dict[sample]):
+                    ## TODO: Why is this code commented out?
                     # control = val[-1]
                     # if control and control not in sample_mapping_dict.keys():
                     #     print_error(
