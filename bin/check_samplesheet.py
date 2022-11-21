@@ -69,7 +69,7 @@ def check_samplesheet(file_in, file_out):
                     "Line",
                     line,
                 )
-            num_cols = len([x for x in lspl[:len(HEADER)] if x])
+            num_cols = len([x for x in lspl[: len(HEADER)] if x])
             if num_cols < MIN_COLS:
                 print_error(
                     "Invalid number of populated columns (minimum = {})!".format(MIN_COLS),
@@ -78,7 +78,7 @@ def check_samplesheet(file_in, file_out):
                 )
 
             ## Check sample name entries
-            sample, fastq_1, fastq_2, replicate = lspl[:len(HEADER)]
+            sample, fastq_1, fastq_2, replicate = lspl[: len(HEADER)]
             if sample.find(" ") != -1:
                 print(f"WARNING: Spaces have been replaced by underscores for sample: {sample}")
                 sample = sample.replace(" ", "_")
@@ -115,7 +115,7 @@ def check_samplesheet(file_in, file_out):
 
             ## Create sample mapping dictionary = {sample: {replicate: [[ fastq_1, fastq_2, replicate, single_end ]]}}
             replicate = int(replicate)
-            sample_info = sample_info + lspl[len(HEADER):]
+            sample_info = sample_info + lspl[len(HEADER) :]
             if sample not in sample_mapping_dict:
                 sample_mapping_dict[sample] = {}
             if replicate not in sample_mapping_dict[sample]:
@@ -131,19 +131,26 @@ def check_samplesheet(file_in, file_out):
         out_dir = os.path.dirname(file_out)
         make_dir(out_dir)
         with open(file_out, "w") as fout:
-            fout.write(",".join(HEADER + ['single_end'] + header[len(HEADER):]) + "\n")
+            fout.write(",".join(HEADER + ["single_end"] + header[len(HEADER) :]) + "\n")
 
             for sample in sorted(sample_mapping_dict.keys()):
 
                 ## Check that replicate ids are in format 1..<num_replicates>
                 uniq_rep_ids = sorted(list(set(sample_mapping_dict[sample].keys())))
                 if len(uniq_rep_ids) != max(uniq_rep_ids):
-                    print_error("Replicate ids must start with 1..<num_replicates>!", "Sample", "{}, replicate ids: {}".format(sample, ','.join([str(x) for x in uniq_rep_ids])))
+                    print_error(
+                        "Replicate ids must start with 1..<num_replicates>!",
+                        "Sample",
+                        "{}, replicate ids: {}".format(sample, ",".join([str(x) for x in uniq_rep_ids])),
+                    )
                     sys.exit(1)
 
                 for replicate in sorted(sample_mapping_dict[sample].keys()):
                     ## Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
-                    if not all(x[3] == sample_mapping_dict[sample][replicate][0][3] for x in sample_mapping_dict[sample][replicate]):
+                    if not all(
+                        x[3] == sample_mapping_dict[sample][replicate][0][3]
+                        for x in sample_mapping_dict[sample][replicate]
+                    ):
                         print_error(
                             f"Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end!",
                             "Sample",
@@ -153,11 +160,11 @@ def check_samplesheet(file_in, file_out):
                     ## Write to file
                     for idx in range(len(sample_mapping_dict[sample][replicate])):
                         fastq_files = sample_mapping_dict[sample][replicate][idx]
-                        sample_id = "{}_REP{}_T{}".format(sample,replicate,idx+1)
+                        sample_id = "{}_REP{}_T{}".format(sample, replicate, idx + 1)
                         if len(fastq_files) == 1:
-                            fout.write(','.join([sample_id] + fastq_files) + ',\n')
+                            fout.write(",".join([sample_id] + fastq_files) + ",\n")
                         else:
-                            fout.write(','.join([sample_id] + fastq_files) + '\n')
+                            fout.write(",".join([sample_id] + fastq_files) + "\n")
     else:
         print_error(f"No entries to process!", "Samplesheet: {file_in}")
 
