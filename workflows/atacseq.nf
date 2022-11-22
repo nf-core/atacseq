@@ -593,15 +593,6 @@ workflow ATACSEQ {
             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS_LIBRARY.out.versions)
         }
 
-        // Create channels: [ antibody, [ ip_bams ] ]
-        ch_bam_library
-            .map {
-                meta, bam, emptylist ->
-                    [ 'consensus_peaks',  meta, bam ]
-            }
-            .groupTuple()
-            .set { ch_consensus_bams_library }
-
         // Create channels: [ meta, [ bams ], saf ]
         MACS2_CONSENSUS_LIBRARY
             .out

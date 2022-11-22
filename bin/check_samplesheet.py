@@ -98,7 +98,7 @@ def check_samplesheet(file_in, file_out):
                         )
 
             ## Check replicate column is integer
-            if not replicate.isdigit():
+            if not replicate.isdecimal():
                 print_error("Replicate id not an integer!", "Line", line)
                 sys.exit(1)
 
@@ -137,7 +137,7 @@ def check_samplesheet(file_in, file_out):
 
                 ## Check that replicate ids are in format 1..<num_replicates>
                 uniq_rep_ids = sorted(list(set(sample_mapping_dict[sample].keys())))
-                if len(uniq_rep_ids) != max(uniq_rep_ids):
+                if len(uniq_rep_ids) != max(uniq_rep_ids) or 1 != min(uniq_rep_ids) :
                     print_error(
                         "Replicate ids must start with 1..<num_replicates>!",
                         "Sample",
