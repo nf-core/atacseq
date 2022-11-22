@@ -12,7 +12,7 @@ You will need to create a samplesheet with information about the samples you wou
 --input '[path to samplesheet file]'
 ```
 
-#### Multiple replicates
+### Multiple replicates
 
 The `sample` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1. Below is an example for a single experimental group in triplicate:
 
