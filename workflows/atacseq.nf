@@ -99,7 +99,6 @@ include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
 
 include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics/main'
 include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/preseq/lcextrap/main'
-include { DEEPTOOLS_COMPUTEMATRIX       } from '../modules/nf-core/deeptools/computematrix/main'
 include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile/main'
 include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap/main'
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint/main'
@@ -108,18 +107,21 @@ include { ATAQV_ATAQV                   } from '../modules/nf-core/ataqv/ataqv/m
 include { ATAQV_MKARV                   } from '../modules/nf-core/ataqv/mkarv/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 
-include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_LIBRARY           } from '../modules/nf-core/picard/mergesamfiles/main'
-include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_REPLICATE         } from '../modules/nf-core/picard/mergesamfiles/main'
-include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_LIBRARY         } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
-include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_REPLICATE       } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
-include { MACS2_CALLPEAK as MACS2_CALLPEAK_LIBRARY                       } from '../modules/nf-core/macs2/callpeak/main'
-include { MACS2_CALLPEAK as MACS2_CALLPEAK_REPLICATE                     } from '../modules/nf-core/macs2/callpeak/main'
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2_LIBRARY       } from '../modules/nf-core/homer/annotatepeaks/main'
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2_REPLICATE     } from '../modules/nf-core/homer/annotatepeaks/main'
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS_LIBRARY   } from '../modules/nf-core/homer/annotatepeaks/main'
-include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS_REPLICATE } from '../modules/nf-core/homer/annotatepeaks/main'
-include { SUBREAD_FEATURECOUNTS as SUBREAD_FEATURECOUNTS_LIBRARY         } from '../modules/nf-core/subread/featurecounts/main'
-include { SUBREAD_FEATURECOUNTS as SUBREAD_FEATURECOUNTS_REPLICATE       } from '../modules/nf-core/subread/featurecounts/main'
+
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS   } from '../modules/nf-core/deeptools/computematrix/main'
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT } from '../modules/nf-core/deeptools/computematrix/main'
+include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_LIBRARY               } from '../modules/nf-core/picard/mergesamfiles/main'
+include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_REPLICATE             } from '../modules/nf-core/picard/mergesamfiles/main'
+include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_LIBRARY             } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
+include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_REPLICATE           } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_LIBRARY                           } from '../modules/nf-core/macs2/callpeak/main'
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_REPLICATE                         } from '../modules/nf-core/macs2/callpeak/main'
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2_LIBRARY           } from '../modules/nf-core/homer/annotatepeaks/main'
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_MACS2_REPLICATE         } from '../modules/nf-core/homer/annotatepeaks/main'
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS_LIBRARY       } from '../modules/nf-core/homer/annotatepeaks/main'
+include { HOMER_ANNOTATEPEAKS as HOMER_ANNOTATEPEAKS_CONSENSUS_REPLICATE     } from '../modules/nf-core/homer/annotatepeaks/main'
+include { SUBREAD_FEATURECOUNTS as SUBREAD_FEATURECOUNTS_LIBRARY             } from '../modules/nf-core/subread/featurecounts/main'
+include { SUBREAD_FEATURECOUNTS as SUBREAD_FEATURECOUNTS_REPLICATE           } from '../modules/nf-core/subread/featurecounts/main'
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -366,19 +368,28 @@ workflow ATACSEQ {
     ch_deeptoolsplotprofile_multiqc = Channel.empty()
     if (!params.skip_plot_profile) {
         //
-        // MODULE: deepTools matrix generation for plotting
+        // MODULE: deepTools matrix generation for plotting over full transcript length
         //
-        DEEPTOOLS_COMPUTEMATRIX (
+        DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS (
             UCSC_BEDGRAPHTOBIGWIG_LIBRARY.out.bigwig,
             PREPARE_GENOME.out.gene_bed
         )
-        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX.out.versions.first())
+        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS.out.versions.first())
+
+        //
+        // MODULE: deepTools matrix generation for plotting at TSS point
+        //
+        DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT (
+            UCSC_BEDGRAPHTOBIGWIG_LIBRARY.out.bigwig,
+            PREPARE_GENOME.out.tss_bed
+        )
+        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT.out.versions.first())
 
         //
         // MODULE: deepTools profile plots
         //
         DEEPTOOLS_PLOTPROFILE (
-            DEEPTOOLS_COMPUTEMATRIX.out.matrix
+            DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS.out.matrix
         )
         ch_deeptoolsplotprofile_multiqc = DEEPTOOLS_PLOTPROFILE.out.table
         ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions.first())
@@ -387,7 +398,7 @@ workflow ATACSEQ {
         // MODULE: deepTools heatmaps
         //
         DEEPTOOLS_PLOTHEATMAP (
-            DEEPTOOLS_COMPUTEMATRIX.out.matrix
+            DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT.out.matrix
         )
         ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP.out.versions.first())
     }
