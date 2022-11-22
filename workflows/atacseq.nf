@@ -666,55 +666,48 @@ workflow ATACSEQ {
             .bam
             .map {
                 meta, bam ->
-                    def fmeta = meta.findAll { it.key != 'read_group' }
-                    fmeta.id = fmeta.id.split('_')[0..-2].join('_')
-                    [ fmeta, fmeta.id, bam ]
+                    def meta_clone = meta.clone()
+                    meta_clone.id = meta_clone.id.split('_')[0..-2].join('_')
+                    [ meta_clone, bam ] 
             }
             .groupTuple(by: [0])
-            .map {
-                meta, ids, bams ->
-                    meta.replicates_exist = ids.size() > 1
-                    meta.multiple_bams    = bams.size() > 1
-                    [ meta, bams.flatten() ]
-            }
-            .set { ch_merged_library_rm_orphan_bam_merged_replicate }
+            .set { ch_merged_library_bam_replicate }
+            ch_merged_library_bam_replicate.view()
 
-            ch_merged_library_rm_orphan_bam_merged_replicate.view()
-    }        
-    // //     PICARD_MERGESAMFILES_REPLICATE (
-    // //         ch_merged_library_rm_orphan_bam_merged_replicate
-    // //     )
-    // //     ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_REPLICATE.out.versions.first().ifEmpty(null))
+        PICARD_MERGESAMFILES_REPLICATE (
+            ch_merged_library_bam_replicate
+        )
+        ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_REPLICATE.out.versions.first().ifEmpty(null))
 
-    // //     //
-    // //     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
-    // //     //
-    // //     MARK_DUPLICATES_PICARD_REPLICATE (
-    // //         PICARD_MERGESAMFILES_REPLICATE.out.bam
-    // //     )
-    // //     ch_mark_duplicates_picard_replicate_stats    = MARK_DUPLICATES_PICARD_REPLICATE.out.stats
-    // //     ch_mark_duplicates_picard_replicate_flagstat = MARK_DUPLICATES_PICARD_REPLICATE.out.flagstat
-    // //     ch_mark_duplicates_picard_replicate_idxstats = MARK_DUPLICATES_PICARD_REPLICATE.out.idxstats
-    // //     ch_mark_duplicates_picard_replicate_metrics  = MARK_DUPLICATES_PICARD_REPLICATE.out.metrics
+        //
+        // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
+        //
+        MARK_DUPLICATES_PICARD_REPLICATE (
+            PICARD_MERGESAMFILES_REPLICATE.out.bam
+        )
+        ch_mark_duplicates_picard_replicate_stats    = MARK_DUPLICATES_PICARD_REPLICATE.out.stats
+        ch_mark_duplicates_picard_replicate_flagstat = MARK_DUPLICATES_PICARD_REPLICATE.out.flagstat
+        ch_mark_duplicates_picard_replicate_idxstats = MARK_DUPLICATES_PICARD_REPLICATE.out.idxstats
+        ch_mark_duplicates_picard_replicate_metrics  = MARK_DUPLICATES_PICARD_REPLICATE.out.metrics
 
-    // //     //
-    // //     // MODULE: BigWig coverage tracks
-    // //     //
-    // //     BEDTOOLS_GENOMECOV_REPLICATE (
-    // //         MARK_DUPLICATES_PICARD_REPLICATE.out.bam.join(MARK_DUPLICATES_PICARD_REPLICATE.out.flagstat, by: [0])
-    // //     )
-    // //     ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV_REPLICATE.out.versions.first())
+        //
+        // MODULE: BigWig coverage tracks
+        //
+        BEDTOOLS_GENOMECOV_REPLICATE (
+            MARK_DUPLICATES_PICARD_REPLICATE.out.bam.join(MARK_DUPLICATES_PICARD_REPLICATE.out.flagstat, by: [0])
+        )
+        ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV_REPLICATE.out.versions.first())
 
-    // //     //
-    // //     // MODULE: BigWig coverage tracks
-    // //     //
-    // //     UCSC_BEDGRAPHTOBIGWIG_REPLICATE (
-    // //         BEDTOOLS_GENOMECOV_REPLICATE.out.bedgraph,
-    // //         PREPARE_GENOME.out.chrom_sizes
-    // //     )
-    // //     ch_ucsc_bedgraphtobigwig_replicate_bigwig = UCSC_BEDGRAPHTOBIGWIG_REPLICATE.out.bigwig
-    // //     ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG_REPLICATE.out.versions.first())
-
+        //
+        // MODULE: BigWig coverage tracks
+        //
+        UCSC_BEDGRAPHTOBIGWIG_REPLICATE (
+            BEDTOOLS_GENOMECOV_REPLICATE.out.bedgraph,
+            PREPARE_GENOME.out.chrom_sizes
+        )
+        ch_ucsc_bedgraphtobigwig_replicate_bigwig = UCSC_BEDGRAPHTOBIGWIG_REPLICATE.out.bigwig
+        ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG_REPLICATE.out.versions.first())
+    }
     // //     //
     // //     // MERGE REPLICATES PEAK ANALYSIS
     // //     // Create channel: [ val(meta), bam, bai, peak_file ]
