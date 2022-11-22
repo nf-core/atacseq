@@ -445,7 +445,10 @@ workflow ATACSEQ {
 
     // Create channels: [ meta, bam, ([] for control_bam) ]
     ch_bam_bai
-        .map { meta, bam, bai -> [ meta , bam, [] ] }
+        .map { 
+            meta, bam, bai -> 
+                [ meta , bam, [] ] 
+        }
         .set { ch_bam_library }
 
     //
@@ -463,7 +466,10 @@ workflow ATACSEQ {
     MACS2_CALLPEAK_LIBRARY
         .out
         .peak
-        .filter { meta, peaks -> peaks.size() > 0 }
+        .filter { 
+            meta, peaks -> 
+                peaks.size() > 0 
+        }
         .set { ch_macs2_peaks_library }
 
     // Create channels: [ meta, bam, peaks ]
@@ -672,7 +678,6 @@ workflow ATACSEQ {
             }
             .groupTuple(by: [0])
             .set { ch_merged_library_bam_replicate }
-            ch_merged_library_bam_replicate.view()
 
         PICARD_MERGESAMFILES_REPLICATE (
             ch_merged_library_bam_replicate
@@ -707,313 +712,281 @@ workflow ATACSEQ {
         )
         ch_ucsc_bedgraphtobigwig_replicate_bigwig = UCSC_BEDGRAPHTOBIGWIG_REPLICATE.out.bigwig
         ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG_REPLICATE.out.versions.first())
+
+        // Create channels: [ meta, bam, ([] for control_bam) ]
+        MARK_DUPLICATES_PICARD_REPLICATE
+            .out
+            .bam
+            .map {
+                meta, bam ->
+                    [ meta , bam, [] ]
+            }
+            .set { ch_bam_replicate }
+
+        //
+        // MODULE: Call peaks with MACS2
+        //
+        MACS2_CALLPEAK_REPLICATE (
+            ch_bam_replicate,
+            ch_macs_gsize
+        )
+        ch_versions = ch_versions.mix(MACS2_CALLPEAK_REPLICATE.out.versions.first())
+
+        //
+        // Filter out samples with 0 MACS2 peaks called
+        //
+        MACS2_CALLPEAK_REPLICATE
+            .out
+            .peak
+            .filter { 
+                meta, peaks -> 
+                    peaks.size() > 0 
+            }
+            .set { ch_macs2_peaks_replicate }
+
+        // Create channels: [ meta, bam, peaks ]
+        ch_bam_replicate
+            .join(ch_macs2_peaks_replicate, by: [0])
+            .map {
+                meta, bam, dummy_list, peaks ->
+                    [ meta, bam, peaks ]
+            }
+            .set { ch_bam_peaks_replicate }
+
+        //
+        // MODULE: Calculate FRiP score
+        //
+        FRIP_SCORE_REPLICATE (
+            ch_bam_peaks_replicate
+        )
+        ch_versions = ch_versions.mix(FRIP_SCORE_REPLICATE.out.versions.first())
+
+        // Create channels: [ meta, peaks, frip ]
+        ch_bam_peaks_replicate
+            .join(FRIP_SCORE_REPLICATE.out.txt, by: [0])
+            .map {
+                meta, bam, peaks, frip ->
+                    [ meta, peaks, frip ]
+            }
+            .set { ch_bam_peak_frip_replicate }
+
+        //
+        // MODULE: FRiP score custom content for MultiQC
+        //
+        MULTIQC_CUSTOM_PEAKS_REPLICATE (
+            ch_bam_peak_frip_replicate,
+            ch_merged_replicate_peak_count_header,
+            ch_merged_replicate_frip_score_header
+        )
+        ch_custompeaks_frip_multiqc_replicate  = MULTIQC_CUSTOM_PEAKS_REPLICATE.out.frip
+        ch_custompeaks_count_multiqc_replicate = MULTIQC_CUSTOM_PEAKS_REPLICATE.out.count
+
+        if (!params.skip_peak_annotation) {
+            //
+            // MODULE: Annotate peaks with MACS2
+            //
+            HOMER_ANNOTATEPEAKS_MACS2_REPLICATE (
+                ch_macs2_peaks_replicate,
+                PREPARE_GENOME.out.fasta,
+                PREPARE_GENOME.out.gtf
+            )
+            ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2_REPLICATE.out.versions.first())
+
+            if (!params.skip_peak_qc) {
+                //
+                // MODULE: MACS2 QC plots with R
+                //
+                PLOT_MACS2_QC_REPLICATE (
+                    ch_macs2_peaks_replicate.collect{it[1]}
+                )
+                ch_versions = ch_versions.mix(PLOT_MACS2_QC_REPLICATE.out.versions)
+
+                //
+                // MODULE: Peak annotation QC plots with R
+                //
+                PLOT_HOMER_ANNOTATEPEAKS_REPLICATE (
+                    HOMER_ANNOTATEPEAKS_MACS2_REPLICATE.out.txt.collect{it[1]},
+                    ch_merged_replicate_peak_annotation_header,
+                    "_peaks.annotatePeaks.txt"
+                )
+                ch_plothomerannotatepeaks_multiqc_replicate = PLOT_HOMER_ANNOTATEPEAKS_REPLICATE.out.tsv
+                ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS_REPLICATE.out.versions)
+            }
+        }
+
+        //
+        //  Consensus peaks analysis
+        //
+        if (!params.skip_consensus_peaks) {
+            // Create channels: [ meta , [ peaks ] ]
+            // where meta = [ id : consensus_peaks ]
+            ch_macs2_peaks_replicate
+                .collect { it[1] }
+                .filter { it.size() > 1 }
+                .map { 
+                    peaks ->
+                        [ [ id: 'consensus_peaks' ], peaks ]
+                }
+                .set { ch_consensus_peaks_replicate }
+
+            //
+            // MODULE: Generate consensus peaks across samples
+            //
+            MACS2_CONSENSUS_REPLICATE (
+                ch_consensus_peaks_replicate
+            )
+            ch_macs2_consensus_bed_replicate = MACS2_CONSENSUS_REPLICATE.out.bed
+            ch_versions = ch_versions.mix(MACS2_CONSENSUS_REPLICATE.out.versions)
+
+            if (!params.skip_peak_annotation) {
+                //
+                // MODULE: Annotate consensus peaks
+                //
+                HOMER_ANNOTATEPEAKS_CONSENSUS_REPLICATE (
+                    MACS2_CONSENSUS_REPLICATE.out.bed,
+                    PREPARE_GENOME.out.fasta,
+                    PREPARE_GENOME.out.gtf
+                )
+                ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS_REPLICATE.out.versions)
+            }
+
+            // Create channels: [ meta, [ bams ], saf ]
+            ch_bam_replicate
+                .collect { it[1] }
+                .filter { it.size() > 1 }
+                .map { [ it ] }
+                .concat(MACS2_CONSENSUS_REPLICATE.out.saf)
+                .collect()
+                .map {
+                    bam, meta, saf -> 
+                        [ meta, bam , saf ]
+                }
+                .set { ch_bam_saf_replicate }
+
+            //
+            // MODULE: Quantify peaks across samples with featureCounts
+            //
+            SUBREAD_FEATURECOUNTS_REPLICATE (
+                ch_bam_saf_replicate
+            )
+            ch_subreadfeaturecounts_multiqc_replicate = SUBREAD_FEATURECOUNTS_REPLICATE.out.summary
+            ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_REPLICATE.out.versions)
+
+            if (!params.skip_deseq2_qc) {
+                //
+                // MODULE: Generate QC plots with DESeq2
+                //
+                DESEQ2_QC_REPLICATE (
+                    SUBREAD_FEATURECOUNTS_REPLICATE.out.counts,
+                    ch_merged_replicate_deseq2_pca_header,
+                    ch_merged_replicate_deseq2_clustering_header
+                )
+                ch_deseq2_replicate_pca_multiqc        = DESEQ2_QC_REPLICATE.out.pca_multiqc
+                ch_deseq2_replicate_clustering_multiqc = DESEQ2_QC_REPLICATE.out.dists_multiqc
+            }
+        }
     }
-    // //     //
-    // //     // MERGE REPLICATES PEAK ANALYSIS
-    // //     // Create channel: [ val(meta), bam, bai, peak_file ]
-    // //     MARK_DUPLICATES_PICARD_REPLICATE
-    // //         .out
-    // //         .bam
-    // //         .map {
-    // //             meta, bam ->
-    // //                 [ meta , bam, [] ]
-    // //         }
-    // //         .set { ch_bam_replicate }
 
-    // //     //
-    // //     // MODULE: Call peaks with MACS2
-    // //     //
-    // //     MACS2_CALLPEAK_REPLICATE (
-    // //         ch_bam_replicate,
-    // //         ch_macs_gsize
-    // //     )
-    // //     ch_versions = ch_versions.mix(MACS2_CALLPEAK_REPLICATE.out.versions.first())
+    //
+    // MODULE: Create IGV session
+    //
+    if (!params.skip_igv) {
+        IGV (
+            PREPARE_GENOME.out.fasta,
+            UCSC_BEDGRAPHTOBIGWIG_LIBRARY.out.bigwig.collect{it[1]}.ifEmpty([]),
+            ch_macs2_peaks_library.collect{it[1]}.ifEmpty([]),
+            ch_macs2_consensus_bed_library.collect{it[1]}.ifEmpty([]),
+            ch_ucsc_bedgraphtobigwig_replicate_bigwig.collect{it[1]}.ifEmpty([]),
+            ch_macs2_peaks_replicate.collect{it[1]}.ifEmpty([]),
+            ch_macs2_consensus_bed_replicate.collect{it[1]}.ifEmpty([]),
+            "${params.aligner}/merged_library/bigwig",
+            { ["${params.aligner}/merged_library/macs2",
+                params.narrow_peak? '/narrow_peak' : '/broad_peak'
+                ].join('') },
+            { ["${params.aligner}/merged_library/macs2",
+                params.narrow_peak? '/narrow_peak' : '/broad_peak',
+                "/consensus"
+                ].join('') },
+            "${params.aligner}/merged_replicate/bigwig",
+            { ["${params.aligner}/merged_replicate/macs2",
+                params.narrow_peak? '/narrow_peak' : '/broad_peak'
+                ].join('') },
+            { ["${params.aligner}/merged_replicate/macs2",
+                params.narrow_peak? '/narrow_peak' : '/broad_peak',
+                "/consensus"
+                ].join('') },
+        )
+        ch_versions = ch_versions.mix(IGV.out.versions)
+    }
 
-    // //     //
-    // //     // Filter out samples with 0 MACS2 peaks called
-    // //     //
-    // //     MACS2_CALLPEAK_REPLICATE
-    // //         .out
-    // //         .peak
-    // //         .filter { meta, peaks -> peaks.size() > 0 }
-    // //         .set { ch_macs2_peaks_replicate }
+    //
+    // MODULE: Pipeline reporting
+    //
+    CUSTOM_DUMPSOFTWAREVERSIONS (
+        ch_versions.unique().collectFile(name: 'collated_versions.yml')
+    )
 
-    // //     // Create channels: [ meta, bam, peaks ]
-    // //     ch_bam_replicate
-    // //         .join(ch_macs2_peaks_replicate, by: [0])
-    // //         .map {
-    // //             it ->
-    // //                 [ it[0], it[1], it[3] ]
-    // //         }
-    // //         .set { ch_bam_peaks_replicate }
+    //
+    // MODULE: MultiQC
+    //
+    if (!params.skip_multiqc) {
+        workflow_summary    = WorkflowAtacseq.paramsSummaryMultiqc(workflow, summary_params)
+        ch_workflow_summary = Channel.value(workflow_summary)
 
-    // //     //
-    // //     // MODULE: Calculate FRiP score
-    // //     //
-    // //     FRIP_SCORE_REPLICATE (
-    // //         ch_bam_peaks_replicate
-    // //     )
-    // //     ch_versions = ch_versions.mix(FRIP_SCORE_REPLICATE.out.versions.first())
+        methods_description    = WorkflowAtacseq.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
+        ch_methods_description = Channel.value(methods_description)
 
-    // //     // Create channels: [ meta, peaks, frip ]
-    // //     ch_bam_peaks_replicate
-    // //         .join(FRIP_SCORE_REPLICATE.out.txt, by: [0])
-    // //         .map {
-    // //             it ->
-    // //                 [ it[0], it[2], it[3] ]
-    // //         }
-    // //         .set { ch_bam_peak_frip_replicate }
+        MULTIQC (
+            ch_multiqc_config,
+            ch_multiqc_custom_config.collect().ifEmpty([]),
+            CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
+            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
 
-    // //     //
-    // //     // MODULE: FRiP score custom content for MultiQC
-    // //     //
-    // //     MULTIQC_CUSTOM_PEAKS_REPLICATE (
-    // //         ch_bam_peak_frip_replicate,
-    // //         ch_merged_replicate_peak_count_header,
-    // //         ch_merged_replicate_frip_score_header
-    // //     )
-    // //     ch_custompeaks_frip_multiqc_replicate  = MULTIQC_CUSTOM_PEAKS_REPLICATE.out.frip
-    // //     ch_custompeaks_count_multiqc_replicate = MULTIQC_CUSTOM_PEAKS_REPLICATE.out.count
+            FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
 
-    // //     if (!params.skip_peak_annotation) {
-    // //         //
-    // //         // MODULE: Annotate peaks with MACS2
-    // //         //
-    // //         HOMER_ANNOTATEPEAKS_MACS2_REPLICATE (
-    // //             ch_macs2_peaks_replicate,
-    // //             PREPARE_GENOME.out.fasta,
-    // //             PREPARE_GENOME.out.gtf
-    // //         )
-    // //         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_MACS2_REPLICATE.out.versions.first())
+            ch_samtools_stats.collect{it[1]}.ifEmpty([]),
+            ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
+            ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
 
-    // //         if (!params.skip_peak_qc) {
-    // //             //
-    // //             // MODULE: MACS2 QC plots with R
-    // //             //
-    // //             PLOT_MACS2_QC_REPLICATE (
-    // //                 ch_macs2_peaks_replicate.collect{it[1]}
-    // //             )
-    // //             ch_versions = ch_versions.mix(PLOT_MACS2_QC_REPLICATE.out.versions)
+            MARK_DUPLICATES_PICARD_LIBRARY.out.stats.collect{it[1]}.ifEmpty([]),
+            MARK_DUPLICATES_PICARD_LIBRARY.out.flagstat.collect{it[1]}.ifEmpty([]),
+            MARK_DUPLICATES_PICARD_LIBRARY.out.idxstats.collect{it[1]}.ifEmpty([]),
+            MARK_DUPLICATES_PICARD_LIBRARY.out.metrics.collect{it[1]}.ifEmpty([]),
 
-    // //             //
-    // //             // MODULE: Peak annotation QC plots with R
-    // //             //
-    // //             PLOT_HOMER_ANNOTATEPEAKS_REPLICATE (
-    // //                 HOMER_ANNOTATEPEAKS_MACS2_REPLICATE.out.txt.collect{it[1]},
-    // //                 ch_merged_replicate_peak_annotation_header,
-    // //                 "_peaks.annotatePeaks.txt"
-    // //             )
-    // //             ch_plothomerannotatepeaks_multiqc_replicate = PLOT_HOMER_ANNOTATEPEAKS_REPLICATE.out.tsv
-    // //             ch_versions = ch_versions.mix(PLOT_HOMER_ANNOTATEPEAKS_REPLICATE.out.versions)
-    // //         }
-    // //     }
+            FILTER_BAM_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
+            FILTER_BAM_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
+            FILTER_BAM_BAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]),
+            ch_picardcollectmultiplemetrics_multiqc.collect{it[1]}.ifEmpty([]),
 
-    // //     //
-    // //     //  Consensus peaks analysis
-    // //     //
-    // //     if (!params.skip_consensus_peaks) {
-    // //         // Create channel: [ meta , [ peaks ] ]
-    // //         // Where meta = [ id:consensus_peaks, multiple_groups:true/false, replicates_exist:true/false ]
-    // //         ch_macs2_peaks_replicate
-    // //             .map {
-    // //                 meta, peak ->
-    // //                     [ '', meta.id, meta, peak ]
-    // //             }
-    // //             .groupTuple()
-    // //             .map {
-    // //                 key, groups, metas, peaks ->
-    // //                     def meta_replicate = [:]
-    // //                     meta_replicate.id = 'consensus_peaks'
-    // //                     meta_replicate.replicates_exist = metas[0].replicates_exist
-    // //                     meta_replicate.multiple_groups = groups.groupBy().collectEntries { [(it.key) : it.value.size()] }.size() > 1
-    // //                     [ meta_replicate, peaks ]
-    // //             }
-    // //             .set { ch_consensus_peaks_replicate }
+            ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
 
-    // //         //
-    // //         // MODULE: Generate consensus peaks across samples
-    // //         //
-    // //         MACS2_CONSENSUS_REPLICATE (
-    // //             ch_consensus_peaks_replicate
-    // //         )
-    // //         ch_macs2_consensus_bed_replicate = MACS2_CONSENSUS_REPLICATE.out.bed
-    // //         ch_versions = ch_versions.mix(MACS2_CONSENSUS_REPLICATE.out.versions)
+            ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
 
-    // //         if (!params.skip_peak_annotation) {
-    // //             //
-    // //             // MODULE: Annotate consensus peaks
-    // //             //
-    // //             HOMER_ANNOTATEPEAKS_CONSENSUS_REPLICATE (
-    // //                 MACS2_CONSENSUS_REPLICATE.out.bed,
-    // //                 PREPARE_GENOME.out.fasta,
-    // //                 PREPARE_GENOME.out.gtf
-    // //             )
-    // //             ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS_CONSENSUS_REPLICATE.out.versions)
-    // //         }
+            ch_custompeaks_frip_multiqc_library.collect{it[1]}.ifEmpty([]),
+            ch_custompeaks_count_multiqc_library.collect{it[1]}.ifEmpty([]),
+            ch_plothomerannotatepeaks_multiqc_library.collect().ifEmpty([]),
+            ch_subreadfeaturecounts_multiqc_library.collect{it[1]}.ifEmpty([]),
 
-    // //         // Create channels: [ antibody, [ ip_bams ] ]
-    // //         ch_bam_replicate
-    // //             .map {
-    // //                 meta, bam, emptylist ->
-    // //                     [ 'consensus_peaks',  meta, bam ]
-    // //             }
-    // //             .groupTuple()
-    // //             .set { ch_consensus_bams_replicate }
+            ch_mark_duplicates_picard_replicate_stats.collect{it[1]}.ifEmpty([]),
+            ch_mark_duplicates_picard_replicate_flagstat.collect{it[1]}.ifEmpty([]),
+            ch_mark_duplicates_picard_replicate_idxstats.collect{it[1]}.ifEmpty([]),
+            ch_mark_duplicates_picard_replicate_metrics.collect{it[1]}.ifEmpty([]),
 
-    // //         // Create channels: [ meta, [ bams ], saf ]
-    // //         MACS2_CONSENSUS_REPLICATE
-    // //             .out
-    // //             .saf
-    // //             .map {
-    // //                 meta, saf ->
-    // //                     [ meta.id, meta, saf ]
-    // //             }
-    // //             .set { ch_saf_replicate }
+            ch_custompeaks_frip_multiqc_replicate.collect{it[1]}.ifEmpty([]),
+            ch_custompeaks_count_multiqc_replicate.collect{it[1]}.ifEmpty([]),
+            ch_plothomerannotatepeaks_multiqc_replicate.collect().ifEmpty([]),
+            ch_subreadfeaturecounts_multiqc_replicate.collect{it[1]}.ifEmpty([]),
 
-    // //         ch_bam_replicate
-    // //             .map {
-    // //                 meta, bam, emptylist ->
-    // //                     [ 'consensus_peaks',  meta, bam ]
-    // //             }
-    // //             .groupTuple()
-    // //             .map {
-    // //                 it ->
-    // //                     [ it[0], it[1][0], it[2].flatten().sort() ]
-    // //             }
-    // //             .join(ch_saf_replicate)
-    // //             .map {
-    // //                 it ->
-    // //                     def fmeta_replicate = it[1]
-    // //                     fmeta_replicate['id'] = it[3]['id']
-    // //                     fmeta_replicate['replicates_exist'] = it[3]['replicates_exist']
-    // //                     fmeta_replicate['multiple_groups']  = it[3]['multiple_groups']
-    // //                     [ fmeta_replicate, it[2], it[4] ] }
-    // //             .set { ch_saf_bams_replicate }
-
-    // //         //
-    // //         // MODULE: Quantify peaks across samples with featureCounts
-    // //         //
-    // //         SUBREAD_FEATURECOUNTS_REPLICATE (
-    // //             ch_saf_bams_replicate
-    // //         )
-    // //         ch_subreadfeaturecounts_multiqc_replicate = SUBREAD_FEATURECOUNTS_REPLICATE.out.summary
-    // //         ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_REPLICATE.out.versions.first())
-
-    // //         if (!params.skip_deseq2_qc) {
-    // //             //
-    // //             // MODULE: Generate QC plots with DESeq2
-    // //             //
-    // //             DESEQ2_QC_REPLICATE (
-    // //                 SUBREAD_FEATURECOUNTS_REPLICATE.out.counts,
-    // //                 ch_merged_replicate_deseq2_pca_header,
-    // //                 ch_merged_replicate_deseq2_clustering_header
-    // //             )
-    // //             ch_deseq2_replicate_pca_multiqc        = DESEQ2_QC_REPLICATE.out.pca_multiqc
-    // //             ch_deseq2_replicate_clustering_multiqc = DESEQ2_QC_REPLICATE.out.dists_multiqc
-    // //         }
-    // //     }
-    // // }
-
-    // // //
-    // // // MODULE: Create IGV session
-    // // //
-    // // if (!params.skip_igv) {
-    // //     IGV (
-    // //         PREPARE_GENOME.out.fasta,
-    // //         UCSC_BEDGRAPHTOBIGWIG_LIBRARY.out.bigwig.collect{it[1]}.ifEmpty([]),
-    // //         ch_macs2_peaks_library.collect{it[1]}.ifEmpty([]),
-    // //         ch_macs2_consensus_bed_library.collect{it[1]}.ifEmpty([]),
-    // //         ch_ucsc_bedgraphtobigwig_replicate_bigwig.collect{it[1]}.ifEmpty([]),
-    // //         ch_macs2_peaks_replicate.collect{it[1]}.ifEmpty([]),
-    // //         ch_macs2_consensus_bed_replicate.collect{it[1]}.ifEmpty([]),
-    // //         "${params.aligner}/merged_library/bigwig",
-    // //         { ["${params.aligner}/merged_library/macs2",
-    // //             params.narrow_peak? '/narrow_peak' : '/broad_peak'
-    // //             ].join('') },
-    // //         { ["${params.aligner}/merged_library/macs2",
-    // //             params.narrow_peak? '/narrow_peak' : '/broad_peak',
-    // //             "/consensus"
-    // //             ].join('') },
-    // //         "${params.aligner}/merged_replicate/bigwig",
-    // //         { ["${params.aligner}/merged_replicate/macs2",
-    // //             params.narrow_peak? '/narrow_peak' : '/broad_peak'
-    // //             ].join('') },
-    // //         { ["${params.aligner}/merged_replicate/macs2",
-    // //             params.narrow_peak? '/narrow_peak' : '/broad_peak',
-    // //             "/consensus"
-    // //             ].join('') },
-    // //     )
-    // //     ch_versions = ch_versions.mix(IGV.out.versions)
-    // // }
-
-    // // //
-    // // // MODULE: Pipeline reporting
-    // // //
-    // // CUSTOM_DUMPSOFTWAREVERSIONS (
-    // //     ch_versions.unique().collectFile(name: 'collated_versions.yml')
-    // // )
-
-    // // //
-    // // // MODULE: MultiQC
-    // // //
-    // // if (!params.skip_multiqc) {
-    // //     workflow_summary    = WorkflowAtacseq.paramsSummaryMultiqc(workflow, summary_params)
-    // //     ch_workflow_summary = Channel.value(workflow_summary)
-
-    // //     methods_description    = WorkflowAtacseq.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
-    // //     ch_methods_description = Channel.value(methods_description)
-
-    // //     MULTIQC (
-    // //         ch_multiqc_config,
-    // //         ch_multiqc_custom_config.collect().ifEmpty([]),
-    // //         CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
-    // //         ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
-
-    // //         FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
-    // //         FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
-    // //         FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
-
-    // //         ch_samtools_stats.collect{it[1]}.ifEmpty([]),
-    // //         ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
-    // //         ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
-
-    // //         MARK_DUPLICATES_PICARD_LIBRARY.out.stats.collect{it[1]}.ifEmpty([]),
-    // //         MARK_DUPLICATES_PICARD_LIBRARY.out.flagstat.collect{it[1]}.ifEmpty([]),
-    // //         MARK_DUPLICATES_PICARD_LIBRARY.out.idxstats.collect{it[1]}.ifEmpty([]),
-    // //         MARK_DUPLICATES_PICARD_LIBRARY.out.metrics.collect{it[1]}.ifEmpty([]),
-
-    // //         FILTER_BAM_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
-    // //         FILTER_BAM_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
-    // //         FILTER_BAM_BAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]),
-    // //         ch_picardcollectmultiplemetrics_multiqc.collect{it[1]}.ifEmpty([]),
-
-    // //         ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
-
-    // //         ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
-    // //         ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
-
-    // //         ch_custompeaks_frip_multiqc_library.collect{it[1]}.ifEmpty([]),
-    // //         ch_custompeaks_count_multiqc_library.collect{it[1]}.ifEmpty([]),
-    // //         ch_plothomerannotatepeaks_multiqc_library.collect().ifEmpty([]),
-    // //         ch_subreadfeaturecounts_multiqc_library.collect{it[1]}.ifEmpty([]),
-
-    // //         ch_mark_duplicates_picard_replicate_stats.collect{it[1]}.ifEmpty([]),
-    // //         ch_mark_duplicates_picard_replicate_flagstat.collect{it[1]}.ifEmpty([]),
-    // //         ch_mark_duplicates_picard_replicate_idxstats.collect{it[1]}.ifEmpty([]),
-    // //         ch_mark_duplicates_picard_replicate_metrics.collect{it[1]}.ifEmpty([]),
-
-    // //         ch_custompeaks_frip_multiqc_replicate.collect{it[1]}.ifEmpty([]),
-    // //         ch_custompeaks_count_multiqc_replicate.collect{it[1]}.ifEmpty([]),
-    // //         ch_plothomerannotatepeaks_multiqc_replicate.collect().ifEmpty([]),
-    // //         ch_subreadfeaturecounts_multiqc_replicate.collect{it[1]}.ifEmpty([]),
-
-    // //         ch_deseq2_library_pca_multiqc.collect().ifEmpty([]),
-    // //         ch_deseq2_library_clustering_multiqc.collect().ifEmpty([]),
-    // //         ch_deseq2_replicate_pca_multiqc.collect().ifEmpty([]),
-    // //         ch_deseq2_replicate_clustering_multiqc.collect().ifEmpty([])
-    // //     )
-    // //     multiqc_report = MULTIQC.out.report.toList()
-    // // }
+            ch_deseq2_library_pca_multiqc.collect().ifEmpty([]),
+            ch_deseq2_library_clustering_multiqc.collect().ifEmpty([]),
+            ch_deseq2_replicate_pca_multiqc.collect().ifEmpty([]),
+            ch_deseq2_replicate_clustering_multiqc.collect().ifEmpty([])
+        )
+        multiqc_report = MULTIQC.out.report.toList()
+    }
 }
 
 /*
