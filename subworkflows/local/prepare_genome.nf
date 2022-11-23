@@ -21,8 +21,9 @@ include { CUSTOM_GETCHROMSIZES } from '../../modules/nf-core/custom/getchromsize
 include { BWA_INDEX            } from '../../modules/nf-core/bwa/index/main'
 include { BOWTIE2_BUILD        } from '../../modules/nf-core/bowtie2/build/main'
 include { CHROMAP_INDEX        } from '../../modules/nf-core/chromap/index/main'
-include { STAR_GENOMEGENERATE  } from '../../modules/local/star_genomegenerate'
+include { KHMER_UNIQUEKMERS    } from '../../modules/nf-core/khmer/uniquekmers/main'
 
+include { STAR_GENOMEGENERATE      } from '../../modules/local/star_genomegenerate'
 include { GTF2BED                  } from '../../modules/local/gtf2bed'
 include { GENOME_BLACKLIST_REGIONS } from '../../modules/local/genome_blacklist_regions'
 include { GET_AUTOSOMES            } from '../../modules/local/get_autosomes'
@@ -222,6 +223,19 @@ workflow PREPARE_GENOME {
         }
     }
 
+    //
+    // Estimate MACS2 genome size
+    //
+    ch_macs_gsize = params.macs_gsize
+    if (!params.macs_gsize) {
+        KHMER_UNIQUEKMERS (
+            ch_fasta,
+            params.read_length
+        )
+        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { it.text.trim() }
+        ch_versions   = ch_versions.mix(KHMER_UNIQUEKMERS.out.versions)
+    }
+
     emit:
     fasta         = ch_fasta                      //    path: genome.fasta
     fai           = ch_fai                        //    path: genome.fai
@@ -235,6 +249,7 @@ workflow PREPARE_GENOME {
     chromap_index = ch_chromap_index              //    path: genome.index
     star_index    = ch_star_index                 //    path: star/index/
     autosomes     = ch_genome_autosomes           //    path: *.autosomes.txt
+    macs_gsize    = ch_macs_gsize                 // integer: MACS2 genome size
 
     versions    = ch_versions.ifEmpty(null)       // channel: [ versions.yml ]
 }

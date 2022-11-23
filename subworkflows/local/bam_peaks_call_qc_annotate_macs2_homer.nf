@@ -42,8 +42,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
         .out
         .peak
         .filter { 
-            meta, peaks -> 
-                peaks.size() > 0 
+            meta, peaks ->
+                peaks.size() > 0
         }
         .set { ch_macs2_peaks }
 
@@ -140,11 +140,13 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
     peak_count_multiqc           = MULTIQC_CUSTOM_PEAKS.out.count   // channel: [ val(meta), [ counts ] ]
 
     homer_annotatepeaks          = ch_homer_annotatepeaks           // channel: [ val(meta), [ txt ] ]
-    plot_macs2_qc_txt            = ch_plot_macs2_qc_txt             // channel: [ val(meta), [ txt ] ]
-    plot_macs2_qc_pdf            = ch_plot_macs2_qc_pdf             // channel: [ val(meta), [ pdf ] ]
-    plot_homer_annotatepeaks_txt = ch_plot_homer_annotatepeaks_txt  // channel: [ val(meta), [ txt ] ]
-    plot_homer_annotatepeaks_pdf = ch_plot_homer_annotatepeaks_pdf  // channel: [ val(meta), [ pdf ] ]
-    plot_homer_annotatepeaks_tsv = ch_plot_homer_annotatepeaks_tsv  // channel: [ val(meta), [ tsv ] ]
+
+    plot_macs2_qc_txt            = ch_plot_macs2_qc_txt             // channel: [ txt ]
+    plot_macs2_qc_pdf            = ch_plot_macs2_qc_pdf             // channel: [ pdf ]
+
+    plot_homer_annotatepeaks_txt = ch_plot_homer_annotatepeaks_txt  // channel: [ txt ]
+    plot_homer_annotatepeaks_pdf = ch_plot_homer_annotatepeaks_pdf  // channel: [ pdf ]
+    plot_homer_annotatepeaks_tsv = ch_plot_homer_annotatepeaks_tsv  // channel: [ tsv ]
 
     versions                     = ch_versions                      // channel: [ versions.yml ]
 }
