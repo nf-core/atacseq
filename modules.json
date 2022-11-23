@@ -261,7 +261,7 @@
                 "nf-core": {
                     "bam_markduplicates_picard": {
                         "branch": "master",
-                        "git_sha": "c9083a16a9a6c5e5beea40a88939b6e1138926f7",
+                        "git_sha": "6daac2bc63f4847e0c7cc661f4f5b043ac13faaf",
                         "installed_by": [
                             "subworkflows"
                         ]
