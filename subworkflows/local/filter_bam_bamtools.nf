@@ -20,19 +20,19 @@ workflow FILTER_BAM_BAMTOOLS {
     //
     // Filter BAM file with BAMTools
     //
-    BAM_FILTER (
+    BAMTOOLS_FILTER (
         ch_bam_bai,
         ch_bed,
         bamtools_filter_se_config,
         bamtools_filter_pe_config
     )
-    ch_versions = ch_versions.mix(BAM_FILTER.out.versions.first())
+    ch_versions = ch_versions.mix(BAMTOOLS_FILTER.out.versions.first())
 
     //
     // Remove orphan reads from BAM file
     //
     BAM_REMOVE_ORPHANS (
-        BAM_FILTER.out.bam
+        BAMTOOLS_FILTER.out.bam
     )
     ch_versions = ch_versions.mix(BAM_REMOVE_ORPHANS.out.versions.first())
 

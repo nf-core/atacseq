@@ -18,7 +18,7 @@ workflow ALIGN_CHROMAP {
     //
     // Map reads with CHROMAP
     //
-    CHROMAP_CHROMAP(reads, fasta, index, [], [], [], [])
+    CHROMAP_CHROMAP(reads, [ [:], fasta], index, [], [], [], [])
     ch_versions = ch_versions.mix(CHROMAP_CHROMAP.out.versions.first())
 
     //

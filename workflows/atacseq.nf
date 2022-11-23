@@ -289,7 +289,9 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
     //
     MARK_DUPLICATES_PICARD_LIBRARY (
-        PICARD_MERGESAMFILES_LIBRARY.out.bam
+        PICARD_MERGESAMFILES_LIBRARY.out.bam,
+        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME.out.fai
     )
     ch_versions = ch_versions.mix(MARK_DUPLICATES_PICARD_LIBRARY.out.versions)
 
@@ -528,7 +530,9 @@ workflow ATACSEQ {
         // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
         //
         MARK_DUPLICATES_PICARD_REPLICATE (
-            PICARD_MERGESAMFILES_REPLICATE.out.bam
+            PICARD_MERGESAMFILES_REPLICATE.out.bam,
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fai
         )
         ch_markduplicates_replicate_stats    = MARK_DUPLICATES_PICARD_REPLICATE.out.stats
         ch_markduplicates_replicate_flagstat = MARK_DUPLICATES_PICARD_REPLICATE.out.flagstat

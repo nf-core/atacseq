@@ -8,8 +8,10 @@ include { BAM_STATS_SAMTOOLS    } from './bam_stats_samtools'
 
 workflow MARK_DUPLICATES_PICARD {
     take:
-    bam // channel: [ val(meta), [ bam ] ]
-
+    bam     // channel: [ val(meta), [ bam ] ]
+    fasta   // channel: [ fasta ]
+    fai     // channel: [ fai ]
+    
     main:
 
     ch_versions = Channel.empty()
@@ -17,7 +19,7 @@ workflow MARK_DUPLICATES_PICARD {
     //
     // Picard MarkDuplicates
     //
-    PICARD_MARKDUPLICATES(bam)
+    PICARD_MARKDUPLICATES(bam, fasta, fai)
     ch_versions = ch_versions.mix(PICARD_MARKDUPLICATES.out.versions.first())
 
     //

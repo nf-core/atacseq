@@ -123,17 +123,16 @@ workflow PREPARE_GENOME {
     //
     // Create chromosome sizes file
     //
-    ch_chrom_sizes = CUSTOM_GETCHROMSIZES ( ch_fasta ).sizes
-    ch_fai         = CUSTOM_GETCHROMSIZES.out.fai
+    ch_chrom_sizes = CUSTOM_GETCHROMSIZES ( [ [:], ch_fasta ] ).sizes.map{ it[1] }
+    ch_fai         = CUSTOM_GETCHROMSIZES.out.fai.map{ it[1] }
     ch_versions    = ch_versions.mix(CUSTOM_GETCHROMSIZES.out.versions)
 
     //
     // Create autosomal chromosome list for ataqv
     //
     ch_genome_autosomes = Channel.empty()
-
     GET_AUTOSOMES (
-        CUSTOM_GETCHROMSIZES.out.fai
+        ch_fai
     )
     ch_genome_autosomes = GET_AUTOSOMES.out.txt
     ch_versions = ch_versions.mix(GET_AUTOSOMES.out.versions)
@@ -143,9 +142,8 @@ workflow PREPARE_GENOME {
     // Prepare genome intervals for filtering by removing regions in blacklist file
     //
     ch_genome_filtered_bed = Channel.empty()
-
     GENOME_BLACKLIST_REGIONS (
-        CUSTOM_GETCHROMSIZES.out.sizes,
+        ch_chrom_sizes,
         ch_blacklist.ifEmpty([])
     )
     ch_genome_filtered_bed = GENOME_BLACKLIST_REGIONS.out.bed
@@ -164,7 +162,7 @@ workflow PREPARE_GENOME {
                 ch_bwa_index = file(params.bwa_index)
             }
         } else {
-            ch_bwa_index = BWA_INDEX ( ch_fasta ).index
+            ch_bwa_index = BWA_INDEX ( [ [:], ch_fasta ] ).index
             ch_versions  = ch_versions.mix(BWA_INDEX.out.versions)
         }
     }
@@ -200,7 +198,7 @@ workflow PREPARE_GENOME {
                 ch_chromap_index = file(params.chromap_index)
             }
         } else {
-            ch_chromap_index = CHROMAP_INDEX ( ch_fasta ).index
+            ch_chromap_index = CHROMAP_INDEX ( [ [:], ch_fasta ] ).index
             ch_versions  = ch_versions.mix(CHROMAP_INDEX.out.versions)
         }
     }
@@ -251,5 +249,5 @@ workflow PREPARE_GENOME {
     autosomes     = ch_genome_autosomes           //    path: *.autosomes.txt
     macs_gsize    = ch_macs_gsize                 // integer: MACS2 genome size
 
-    versions    = ch_versions.ifEmpty(null)       // channel: [ versions.yml ]
+    versions      = ch_versions.ifEmpty(null)     // channel: [ versions.yml ]
 }
