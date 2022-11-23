@@ -2,7 +2,7 @@
  * Filter BAM file
  */
 
-include { BAM_FILTER         } from '../../modules/local/bam_filter'
+include { BAMTOOLS_FILTER    } from '../../modules/local/bamtools_filter'
 include { BAM_REMOVE_ORPHANS } from '../../modules/local/bam_remove_orphans'
 include { BAM_SORT_SAMTOOLS  } from '../nf-core/bam_sort_samtools'
 
@@ -10,22 +10,43 @@ workflow FILTER_BAM_BAMTOOLS {
     take:
     ch_bam_bai                // channel: [ val(meta), [ bam ], [bai] ]
     ch_bed                    // channel: [ bed ]
-    bamtools_filter_se_config //    file: BAMtools filter JSON config file for SE data
-    bamtools_filter_pe_config //    file: BAMtools filter JSON config file for PE data
+    bamtools_filter_se_config // channel: [ config_file ]
+    bamtools_filter_pe_config // channel: [ config_file ]
 
     main:
+
     ch_versions = Channel.empty()
 
-    BAM_FILTER(ch_bam_bai, ch_bed, bamtools_filter_se_config, bamtools_filter_pe_config)
-    BAM_REMOVE_ORPHANS(BAM_FILTER.out.bam)
-    BAM_SORT_SAMTOOLS(BAM_REMOVE_ORPHANS.out.bam)
+    //
+    // Filter BAM file with BAMTools
+    //
+    BAM_FILTER (
+        ch_bam_bai,
+        ch_bed,
+        bamtools_filter_se_config,
+        bamtools_filter_pe_config
+    )
+    ch_versions = ch_versions.mix(BAM_FILTER.out.versions.first())
 
-    ch_versions = ch_versions.mix(BAM_FILTER.out.versions,
-                    BAM_REMOVE_ORPHANS.out.versions,
-                    BAM_SORT_SAMTOOLS.out.versions)
+    //
+    // Remove orphan reads from BAM file
+    //
+    BAM_REMOVE_ORPHANS (
+        BAM_FILTER.out.bam
+    )
+    ch_versions = ch_versions.mix(BAM_REMOVE_ORPHANS.out.versions.first())
+
+    //
+    // Sort, index BAM file and run samtools stats, flagstat and idxstats
+    //
+    BAM_SORT_SAMTOOLS (
+        BAM_REMOVE_ORPHANS.out.bam
+    )
+    ch_versions = ch_versions.mix(BAM_SORT_SAMTOOLS.out.versions.first())
 
     emit:
     name_bam = BAM_REMOVE_ORPHANS.out.bam     // channel: [ val(meta), [ bam ] ]
+
     bam      = BAM_SORT_SAMTOOLS.out.bam      // channel: [ val(meta), [ bam ] ]
     bai      = BAM_SORT_SAMTOOLS.out.bai      // channel: [ val(meta), [ bai ] ]
     stats    = BAM_SORT_SAMTOOLS.out.stats    // channel: [ val(meta), [ stats ] ]
