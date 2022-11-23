@@ -42,7 +42,6 @@ workflow BIGWIG_PLOT_DEEPTOOLS {
     DEEPTOOLS_PLOTPROFILE (
         DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS.out.matrix
     )
-    ch_deeptoolsplotprofile_multiqc = DEEPTOOLS_PLOTPROFILE.out.table
     ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions.first())
 
     //

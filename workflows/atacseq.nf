@@ -62,20 +62,19 @@ ch_merged_replicate_deseq2_clustering_header = file("$projectDir/assets/multiqc/
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { IGV      } from '../modules/local/igv'
-include { MULTIQC  } from '../modules/local/multiqc'
-
-include { BEDTOOLS_GENOMECOV as BEDTOOLS_GENOMECOV_LIBRARY   } from '../modules/local/bedtools_genomecov'
-include { BEDTOOLS_GENOMECOV as BEDTOOLS_GENOMECOV_REPLICATE } from '../modules/local/bedtools_genomecov'
+include { IGV     } from '../modules/local/igv'
+include { MULTIQC } from '../modules/local/multiqc'
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK           } from '../subworkflows/local/input_check'
-include { PREPARE_GENOME        } from '../subworkflows/local/prepare_genome'
-include { FILTER_BAM_BAMTOOLS   } from '../subworkflows/local/filter_bam_bamtools'
-include { ALIGN_STAR            } from '../subworkflows/local/align_star'
-include { BIGWIG_PLOT_DEEPTOOLS } from '../subworkflows/local/bigwig_plot_deeptools'
+include { INPUT_CHECK    } from '../subworkflows/local/input_check'
+include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome'
+include { ALIGN_STAR     } from '../subworkflows/local/align_star'
+include { BIGWIG_PLOT_DEEPTOOLS as MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS       } from '../subworkflows/local/bigwig_plot_deeptools'
+include { FILTER_BAM_BAMTOOLS as MERGED_LIBRARY_FILTER_BAM                    } from '../subworkflows/local/filter_bam_bamtools'
+include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_LIBRARY_BAM_TO_BIGWIG   } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
+include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_REPLICATE_BAM_TO_BIGWIG } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
 
 include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_LIBRARY_CALL_ANNOTATE_PEAKS   } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
 include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_REPLICATE_CALL_ANNOTATE_PEAKS } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
@@ -91,17 +90,15 @@ include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 as MERGED_REPL
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics/main'
-include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/preseq/lcextrap/main'
-include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint/main'
-include { ATAQV_ATAQV                   } from '../modules/nf-core/ataqv/ataqv/main'
-include { ATAQV_MKARV                   } from '../modules/nf-core/ataqv/mkarv/main'
-include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
+include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
+include { PICARD_COLLECTMULTIPLEMETRICS as MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics/main'
+include { PRESEQ_LCEXTRAP as MERGED_LIBRARY_PRESEQ_LCEXTRAP                             } from '../modules/nf-core/preseq/lcextrap/main'
+include { DEEPTOOLS_PLOTFINGERPRINT as MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT         } from '../modules/nf-core/deeptools/plotfingerprint/main'
+include { ATAQV_ATAQV as MERGED_LIBRARY_ATAQV_ATAQV                                     } from '../modules/nf-core/ataqv/ataqv/main'
+include { ATAQV_MKARV as MERGED_LIBRARY_ATAQV_MKARV                                     } from '../modules/nf-core/ataqv/mkarv/main'
 
-include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_LIBRARY     } from '../modules/nf-core/picard/mergesamfiles/main'
-include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_REPLICATE   } from '../modules/nf-core/picard/mergesamfiles/main'
-include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_LIBRARY   } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
-include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_REPLICATE } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
+include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_LIBRARY   } from '../modules/nf-core/picard/mergesamfiles/main'
+include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_REPLICATE } from '../modules/nf-core/picard/mergesamfiles/main'
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -111,8 +108,8 @@ include { FASTQ_ALIGN_BWA                  } from '../subworkflows/nf-core/fastq
 include { FASTQ_ALIGN_BOWTIE2              } from '../subworkflows/nf-core/fastq_align_bowtie2/main'
 include { FASTQ_ALIGN_CHROMAP              } from '../subworkflows/nf-core/fastq_align_chromap/main'
 
-include { BAM_MARKDUPLICATES_PICARD as BAM_MARKDUPLICATES_PICARD_LIBRARY   } from '../subworkflows/nf-core/bam_markduplicates_picard/main'
-include { BAM_MARKDUPLICATES_PICARD as BAM_MARKDUPLICATES_PICARD_REPLICATE } from '../subworkflows/nf-core/bam_markduplicates_picard/main'
+include { BAM_MARKDUPLICATES_PICARD as MERGED_LIBRARY_MARKDUPLICATES_PICARD   } from '../subworkflows/nf-core/bam_markduplicates_picard/main'
+include { BAM_MARKDUPLICATES_PICARD as MERGED_REPLICATE_MARKDUPLICATES_PICARD } from '../subworkflows/nf-core/bam_markduplicates_picard/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -270,9 +267,7 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(ALIGN_STAR.out.versions)
     }
 
-    //
-    // MODULE: Merge resequenced BAM files
-    //
+    // Create channels: [ meta, [bam] ]
     ch_genome_bam
         .map {
             meta, bam ->
@@ -288,43 +283,46 @@ workflow ATACSEQ {
         }
         .set { ch_sort_bam }
 
+    //
+    // MODULE: Merge resequenced BAM files
+    //
     PICARD_MERGESAMFILES_LIBRARY (
         ch_sort_bam
     )
     ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_LIBRARY.out.versions.first().ifEmpty(null))
 
     //
-    // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
+    // SUBWORKFLOW: Mark duplicates in BAM files
     //
-    BAM_MARKDUPLICATES_PICARD_LIBRARY (
+    MERGED_LIBRARY_MARKDUPLICATES_PICARD (
         PICARD_MERGESAMFILES_LIBRARY.out.bam,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.fai
     )
-    ch_versions = ch_versions.mix(BAM_MARKDUPLICATES_PICARD_LIBRARY.out.versions)
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.versions)
 
     //
-    // SUBWORKFLOW: Fix getting name sorted BAM here for PE/SE
+    // SUBWORKFLOW: Filter BAM file
     //
-    FILTER_BAM_BAMTOOLS (
-        BAM_MARKDUPLICATES_PICARD_LIBRARY.out.bam.join(BAM_MARKDUPLICATES_PICARD_LIBRARY.out.bai, by: [0]),
+    MERGED_LIBRARY_FILTER_BAM (
+        MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam.join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
         PREPARE_GENOME.out.fasta,
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
-    ch_versions = ch_versions.mix(FILTER_BAM_BAMTOOLS.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_FILTER_BAM.out.versions.first().ifEmpty(null))
 
     //
     // MODULE: Preseq coverage analysis
     //
     ch_preseq_multiqc = Channel.empty()
     if (!params.skip_preseq) {
-        PRESEQ_LCEXTRAP (
-            BAM_MARKDUPLICATES_PICARD_LIBRARY.out.bam
+        MERGED_LIBRARY_PRESEQ_LCEXTRAP (
+            MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam
         )
-        ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
-        ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
+        ch_preseq_multiqc = MERGED_LIBRARY_PRESEQ_LCEXTRAP.out.lc_extrap
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_PRESEQ_LCEXTRAP.out.versions.first())
     }
 
     //
@@ -332,68 +330,55 @@ workflow ATACSEQ {
     //
     ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
     if (!params.skip_picard_metrics) {
-        PICARD_COLLECTMULTIPLEMETRICS (
-            FILTER_BAM_BAMTOOLS.out.bam,
+        MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS (
+            MERGED_LIBRARY_FILTER_BAM.out.bam,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.fai,
         )
-        ch_picardcollectmultiplemetrics_multiqc = PICARD_COLLECTMULTIPLEMETRICS.out.metrics
-        ch_versions = ch_versions.mix(PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
+        ch_picardcollectmultiplemetrics_multiqc = MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS.out.metrics
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
     }
 
     //
-    // MODULE: BedGraph coverage tracks
+    // SUBWORKFLOW: Normalised bigWig coverage tracks
     //
-    BEDTOOLS_GENOMECOV_LIBRARY (
-        FILTER_BAM_BAMTOOLS.out.bam.join(FILTER_BAM_BAMTOOLS.out.flagstat, by: [0])
-    )
-    ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV_LIBRARY.out.versions.first())
-
-    //
-    // MODULE: BigWig coverage tracks
-    //
-    UCSC_BEDGRAPHTOBIGWIG_LIBRARY (
-        BEDTOOLS_GENOMECOV_LIBRARY.out.bedgraph,
+    MERGED_LIBRARY_BAM_TO_BIGWIG (
+        MERGED_LIBRARY_FILTER_BAM.out.bam.join(MERGED_LIBRARY_FILTER_BAM.out.flagstat, by: [0]),
         PREPARE_GENOME.out.chrom_sizes
     )
-    ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG_LIBRARY.out.versions.first())
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_BAM_TO_BIGWIG.out.versions.first())
 
     //
-    // SUBWORKFLOW: Plot coverage across annottion with deepTools
+    // SUBWORKFLOW: Plot coverage across annotation with deepTools
     //
     ch_deeptoolsplotprofile_multiqc = Channel.empty()
     if (!params.skip_plot_profile) {
-        BIGWIG_PLOT_DEEPTOOLS (
-            UCSC_BEDGRAPHTOBIGWIG_LIBRARY.out.bigwig,
+        MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS (
+            MERGED_LIBRARY_BAM_TO_BIGWIG.out.bigwig,
             PREPARE_GENOME.out.gene_bed,
             PREPARE_GENOME.out.tss_bed
         )
-        ch_deeptoolsplotprofile_multiqc = BIGWIG_PLOT_DEEPTOOLS.out.plotprofile_table
-        ch_versions = ch_versions.mix(BIGWIG_PLOT_DEEPTOOLS.out.versions.first())
+        ch_deeptoolsplotprofile_multiqc = MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS.out.plotprofile_table
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS.out.versions.first())
     }
 
-    //
-    //  Create channels: [ meta, [bam], [bai] ]
-    //
-    FILTER_BAM_BAMTOOLS
+    // Create channels: [ meta, [bam], [bai] ]
+    MERGED_LIBRARY_FILTER_BAM
         .out
         .bam
-        .join(FILTER_BAM_BAMTOOLS.out.bai, by: [0])
+        .join(MERGED_LIBRARY_FILTER_BAM.out.bai, by: [0])
         .set { ch_bam_bai }
 
     //
-    // plotFingerprint for IP and control together
+    // MODULE: deepTools plotFingerprint QC
     //
     ch_deeptoolsplotfingerprint_multiqc = Channel.empty()
     if (!params.skip_plot_fingerprint) {
-        //
-        // MODULE: deepTools plotFingerprint QC
-        //
-        DEEPTOOLS_PLOTFINGERPRINT (
+        MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT (
             ch_bam_bai
         )
-        ch_deeptoolsplotfingerprint_multiqc = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
+        ch_deeptoolsplotfingerprint_multiqc = MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT.out.matrix
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
     }
 
     // Create channels: [ meta, bam, ([] for control_bam) ]
@@ -421,7 +406,7 @@ workflow ATACSEQ {
     ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.versions)
 
     //
-    //  SUBWORKFLOW: Consensus peaks analysis
+    // SUBWORKFLOW: Consensus peaks analysis
     //
     ch_macs2_consensus_library_bed       = Channel.empty()
     ch_featurecounts_library_multiqc     = Channel.empty()
@@ -445,19 +430,19 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(MERGED_LIBRARY_CONSENSUS_PEAKS.out.versions)
     }
 
-    // Create channel: [ meta, bam, bai, peak_file ]
-    BAM_MARKDUPLICATES_PICARD_LIBRARY
+    // Create channels: [ meta, bam, bai, peak_file ]
+    MERGED_LIBRARY_MARKDUPLICATES_PICARD
         .out
         .bam
-        .join(BAM_MARKDUPLICATES_PICARD_LIBRARY.out.bai, by: [0])
+        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0])
         .join(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks, by: [0])
         .set { ch_bam_peaks }
 
+    //
+    // MODULE: ATAQV QC
+    //
     if (!params.skip_ataqv) {
-        //
-        // MODULE: ATAQV QC
-        //
-        ATAQV_ATAQV (
+        MERGED_LIBRARY_ATAQV_ATAQV (
             ch_bam_peaks,
             'NA',
             params.mito_name,
@@ -465,12 +450,12 @@ workflow ATACSEQ {
             [],
             PREPARE_GENOME.out.autosomes
         )
-        ch_versions = ch_versions.mix(ATAQV_ATAQV.out.versions)
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_ATAQV_ATAQV.out.versions)
 
-        ATAQV_MKARV (
-            ATAQV_ATAQV.out.json.collect{it[1]}
+        MERGED_LIBRARY_ATAQV_MKARV (
+            MERGED_LIBRARY_ATAQV_ATAQV.out.json.collect{it[1]}
         )
-        ch_versions = ch_versions.mix(ATAQV_MKARV.out.versions)
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_ATAQV_MKARV.out.versions)
     }
 
     //
@@ -490,10 +475,8 @@ workflow ATACSEQ {
     ch_deseq2_pca_replicate_multiqc                     = Channel.empty()
     ch_deseq2_clustering_replicate_multiqc              = Channel.empty()
     if (!params.skip_merge_replicates) {
-        //
-        // MODULE: Merge replicate BAM files
-        //
-        FILTER_BAM_BAMTOOLS
+
+        MERGED_LIBRARY_FILTER_BAM
             .out
             .bam
             .map {
@@ -505,6 +488,9 @@ workflow ATACSEQ {
             .groupTuple(by: [0])
             .set { ch_merged_library_replicate_bam }
 
+        //
+        // MODULE: Merge replicate BAM files
+        //
         PICARD_MERGESAMFILES_REPLICATE (
             ch_merged_library_replicate_bam
         )
@@ -513,36 +499,28 @@ workflow ATACSEQ {
         //
         // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
         //
-        BAM_MARKDUPLICATES_PICARD_REPLICATE (
+        MERGED_REPLICATE_MARKDUPLICATES_PICARD (
             PICARD_MERGESAMFILES_REPLICATE.out.bam,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.fai
         )
-        ch_markduplicates_replicate_stats    = BAM_MARKDUPLICATES_PICARD_REPLICATE.out.stats
-        ch_markduplicates_replicate_flagstat = BAM_MARKDUPLICATES_PICARD_REPLICATE.out.flagstat
-        ch_markduplicates_replicate_idxstats = BAM_MARKDUPLICATES_PICARD_REPLICATE.out.idxstats
-        ch_markduplicates_replicate_metrics  = BAM_MARKDUPLICATES_PICARD_REPLICATE.out.metrics
+        ch_markduplicates_replicate_stats    = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.stats
+        ch_markduplicates_replicate_flagstat = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat
+        ch_markduplicates_replicate_idxstats = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.idxstats
+        ch_markduplicates_replicate_metrics  = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.metrics
 
         //
-        // MODULE: BigWig coverage tracks
+        // SUBWORKFLOW: Normalised bigWig coverage tracks
         //
-        BEDTOOLS_GENOMECOV_REPLICATE (
-            BAM_MARKDUPLICATES_PICARD_REPLICATE.out.bam.join(BAM_MARKDUPLICATES_PICARD_REPLICATE.out.flagstat, by: [0])
-        )
-        ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV_REPLICATE.out.versions.first())
-
-        //
-        // MODULE: BigWig coverage tracks
-        //
-        UCSC_BEDGRAPHTOBIGWIG_REPLICATE (
-            BEDTOOLS_GENOMECOV_REPLICATE.out.bedgraph,
+        MERGED_REPLICATE_BAM_TO_BIGWIG (
+            MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bam.join(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat, by: [0]),
             PREPARE_GENOME.out.chrom_sizes
         )
-        ch_ucsc_bedgraphtobigwig_replicate_bigwig = UCSC_BEDGRAPHTOBIGWIG_REPLICATE.out.bigwig
-        ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG_REPLICATE.out.versions.first())
+        ch_ucsc_bedgraphtobigwig_replicate_bigwig = MERGED_REPLICATE_BAM_TO_BIGWIG.out.bigwig
+        ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_TO_BIGWIG.out.versions.first())
 
         // Create channels: [ meta, bam, ([] for control_bam) ]
-        BAM_MARKDUPLICATES_PICARD_REPLICATE
+        MERGED_REPLICATE_MARKDUPLICATES_PICARD
             .out
             .bam
             .map {
@@ -572,7 +550,7 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.versions)
 
         //
-        //  SUBWORKFLOW: Consensus peaks analysis
+        // SUBWORKFLOW: Consensus peaks analysis
         //
         if (!params.skip_consensus_peaks) {
             MERGED_REPLICATE_CONSENSUS_PEAKS (
@@ -599,7 +577,7 @@ workflow ATACSEQ {
     if (!params.skip_igv) {
         IGV (
             PREPARE_GENOME.out.fasta,
-            UCSC_BEDGRAPHTOBIGWIG_LIBRARY.out.bigwig.collect{it[1]}.ifEmpty([]),
+            MERGED_LIBRARY_BAM_TO_BIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
             MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_library_bed.collect{it[1]}.ifEmpty([]),
             ch_ucsc_bedgraphtobigwig_replicate_bigwig.collect{it[1]}.ifEmpty([]),
@@ -656,14 +634,14 @@ workflow ATACSEQ {
             ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
             ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
 
-            BAM_MARKDUPLICATES_PICARD_LIBRARY.out.stats.collect{it[1]}.ifEmpty([]),
-            BAM_MARKDUPLICATES_PICARD_LIBRARY.out.flagstat.collect{it[1]}.ifEmpty([]),
-            BAM_MARKDUPLICATES_PICARD_LIBRARY.out.idxstats.collect{it[1]}.ifEmpty([]),
-            BAM_MARKDUPLICATES_PICARD_LIBRARY.out.metrics.collect{it[1]}.ifEmpty([]),
+            MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.stats.collect{it[1]}.ifEmpty([]),
+            MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.flagstat.collect{it[1]}.ifEmpty([]),
+            MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.idxstats.collect{it[1]}.ifEmpty([]),
+            MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.metrics.collect{it[1]}.ifEmpty([]),
 
-            FILTER_BAM_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
-            FILTER_BAM_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
-            FILTER_BAM_BAMTOOLS.out.idxstats.collect{it[1]}.ifEmpty([]),
+            MERGED_LIBRARY_FILTER_BAM.out.stats.collect{it[1]}.ifEmpty([]),
+            MERGED_LIBRARY_FILTER_BAM.out.flagstat.collect{it[1]}.ifEmpty([]),
+            MERGED_LIBRARY_FILTER_BAM.out.idxstats.collect{it[1]}.ifEmpty([]),
             ch_picardcollectmultiplemetrics_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_preseq_multiqc.collect{it[1]}.ifEmpty([]),
