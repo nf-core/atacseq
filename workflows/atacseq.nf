@@ -74,6 +74,8 @@ include { BEDTOOLS_GENOMECOV as BEDTOOLS_GENOMECOV_REPLICATE } from '../modules/
 include { INPUT_CHECK         } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME      } from '../subworkflows/local/prepare_genome'
 include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
+include { ALIGN_STAR          } from '../subworkflows/local/align_star'
+
 include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_LIBRARY_CALL_ANNOTATE_PEAKS   } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
 include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_REPLICATE_CALL_ANNOTATE_PEAKS } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
 include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 as MERGED_LIBRARY_CONSENSUS_PEAKS   } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
@@ -88,7 +90,6 @@ include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 as MERGED_REPL
 //
 // MODULE: Installed directly from nf-core/modules
 //
-
 include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics/main'
 include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/preseq/lcextrap/main'
 include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile/main'
@@ -108,15 +109,13 @@ include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_REPLICATE           } f
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
 //
+include { FASTQ_FASTQC_UMITOOLS_TRIMGALORE } from '../subworkflows/nf-core/fastq_fastqc_umitools_trimgalore/main'
+include { FASTQ_ALIGN_BWA                  } from '../subworkflows/nf-core/fastq_align_bwa/main'
+include { FASTQ_ALIGN_BOWTIE2              } from '../subworkflows/nf-core/fastq_align_bowtie2/main'
+include { FASTQ_ALIGN_CHROMAP              } from '../subworkflows/nf-core/fastq_align_chromap/main'
 
-include { FASTQC_TRIMGALORE } from '../subworkflows/nf-core/fastqc_trimgalore'
-include { ALIGN_BWA_MEM     } from '../subworkflows/nf-core/align_bwa_mem'
-include { ALIGN_BOWTIE2     } from '../subworkflows/nf-core/align_bowtie2'
-include { ALIGN_CHROMAP     } from '../subworkflows/nf-core/align_chromap'
-include { ALIGN_STAR        } from '../subworkflows/nf-core/align_star'
-
-include { MARK_DUPLICATES_PICARD as MARK_DUPLICATES_PICARD_LIBRARY   } from '../subworkflows/nf-core/mark_duplicates_picard'
-include { MARK_DUPLICATES_PICARD as MARK_DUPLICATES_PICARD_REPLICATE } from '../subworkflows/nf-core/mark_duplicates_picard'
+include { BAM_MARKDUPLICATES_PICARD as BAM_MARKDUPLICATES_PICARD_LIBRARY   } from '../subworkflows/nf-core/bam_markduplicates_picard/main'
+include { BAM_MARKDUPLICATES_PICARD as BAM_MARKDUPLICATES_PICARD_REPLICATE } from '../subworkflows/nf-core/bam_markduplicates_picard/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -151,12 +150,15 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Read QC and trim adapters
     //
-    FASTQC_TRIMGALORE (
+    FASTQ_FASTQC_UMITOOLS_TRIMGALORE (
         INPUT_CHECK.out.reads,
         params.skip_fastqc || params.skip_qc,
-        params.skip_trimming
+        false,
+        false,
+        params.skip_trimming,
+        0
     )
-    ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
+    ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
 
     //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
@@ -167,49 +169,57 @@ workflow ATACSEQ {
     ch_samtools_flagstat = Channel.empty()
     ch_samtools_idxstats = Channel.empty()
     if (params.aligner == 'bwa') {
-        ALIGN_BWA_MEM (
-            FASTQC_TRIMGALORE.out.reads,
-            PREPARE_GENOME.out.bwa_index
+        FASTQ_ALIGN_BWA (
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.bwa_index,
+            false,
+            PREPARE_GENOME.out.fasta
         )
-        ch_genome_bam        = ALIGN_BWA_MEM.out.bam
-        ch_genome_bam_index  = ALIGN_BWA_MEM.out.bai
-        ch_samtools_stats    = ALIGN_BWA_MEM.out.stats
-        ch_samtools_flagstat = ALIGN_BWA_MEM.out.flagstat
-        ch_samtools_idxstats = ALIGN_BWA_MEM.out.idxstats
-        ch_versions = ch_versions.mix(ALIGN_BWA_MEM.out.versions.first())
+        ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
+        ch_genome_bam_index  = FASTQ_ALIGN_BWA.out.bai
+        ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
+        ch_samtools_flagstat = FASTQ_ALIGN_BWA.out.flagstat
+        ch_samtools_idxstats = FASTQ_ALIGN_BWA.out.idxstats
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_BWA.out.versions.first())
     }
 
     //
     // SUBWORKFLOW: Alignment with BOWTIE2 & BAM QC
     //
     if (params.aligner == 'bowtie2') {
-        ALIGN_BOWTIE2 (
-            FASTQC_TRIMGALORE.out.reads,
+        FASTQ_ALIGN_BOWTIE2 (
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.bowtie2_index,
-            params.save_unaligned
+            params.save_unaligned,
+            false,
+            PREPARE_GENOME.out.fasta
         )
-        ch_genome_bam        = ALIGN_BOWTIE2.out.bam
-        ch_genome_bam_index  = ALIGN_BOWTIE2.out.bai
-        ch_samtools_stats    = ALIGN_BOWTIE2.out.stats
-        ch_samtools_flagstat = ALIGN_BOWTIE2.out.flagstat
-        ch_samtools_idxstats = ALIGN_BOWTIE2.out.idxstats
-        ch_versions = ch_versions.mix(ALIGN_BOWTIE2.out.versions.first())
+        ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
+        ch_genome_bam_index  = FASTQ_ALIGN_BOWTIE2.out.bai
+        ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
+        ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
+        ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions.first())
     }
 
     //
     // SUBWORKFLOW: Alignment with CHROMAP & BAM QC
     //
     if (params.aligner == 'chromap') {
-        ALIGN_CHROMAP (
-            FASTQC_TRIMGALORE.out.reads,
+        FASTQ_ALIGN_CHROMAP (
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.chromap_index,
-            PREPARE_GENOME.out.fasta
+            PREPARE_GENOME.out.fasta,
+            [],
+            [],
+            [],
+            []
         )
 
         // Filter out paired-end reads until the issue below is fixed
         // https://github.com/nf-core/chipseq/issues/291
-        // ch_genome_bam = ALIGN_CHROMAP.out.bam
-        ALIGN_CHROMAP
+        // ch_genome_bam = FASTQ_ALIGN_CHROMAP.out.bam
+        FASTQ_ALIGN_CHROMAP
             .out
             .bam
             .branch {
@@ -237,11 +247,11 @@ workflow ATACSEQ {
             }
 
         ch_genome_bam        = ch_genome_bam_chromap.single_end
-        ch_genome_bam_index  = ALIGN_CHROMAP.out.bai
-        ch_samtools_stats    = ALIGN_CHROMAP.out.stats
-        ch_samtools_flagstat = ALIGN_CHROMAP.out.flagstat
-        ch_samtools_idxstats = ALIGN_CHROMAP.out.idxstats
-        ch_versions = ch_versions.mix(ALIGN_CHROMAP.out.versions.first())
+        ch_genome_bam_index  = FASTQ_ALIGN_CHROMAP.out.bai
+        ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
+        ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
+        ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions.first())
     }
 
     //
@@ -249,8 +259,9 @@ workflow ATACSEQ {
     //
     if (params.aligner == 'star') {
         ALIGN_STAR (
-            FASTQC_TRIMGALORE.out.reads,
-            PREPARE_GENOME.out.star_index
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
+            PREPARE_GENOME.out.star_index,
+            PREPARE_GENOME.out.fasta
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
         ch_genome_bam_index  = ALIGN_STAR.out.bai
@@ -288,20 +299,20 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
     //
-    MARK_DUPLICATES_PICARD_LIBRARY (
+    BAM_MARKDUPLICATES_PICARD_LIBRARY (
         PICARD_MERGESAMFILES_LIBRARY.out.bam,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.fai
     )
-    ch_versions = ch_versions.mix(MARK_DUPLICATES_PICARD_LIBRARY.out.versions)
+    ch_versions = ch_versions.mix(BAM_MARKDUPLICATES_PICARD_LIBRARY.out.versions)
 
     //
     // SUBWORKFLOW: Fix getting name sorted BAM here for PE/SE
     //
     FILTER_BAM_BAMTOOLS (
-        MARK_DUPLICATES_PICARD_LIBRARY.out.bam.join(MARK_DUPLICATES_PICARD_LIBRARY.out.bai, by: [0]),
+        BAM_MARKDUPLICATES_PICARD_LIBRARY.out.bam.join(BAM_MARKDUPLICATES_PICARD_LIBRARY.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
-
+        PREPARE_GENOME.out.fasta,
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
@@ -313,7 +324,7 @@ workflow ATACSEQ {
     ch_preseq_multiqc = Channel.empty()
     if (!params.skip_preseq) {
         PRESEQ_LCEXTRAP (
-            MARK_DUPLICATES_PICARD_LIBRARY.out.bam
+            BAM_MARKDUPLICATES_PICARD_LIBRARY.out.bam
         )
         ch_preseq_multiqc = PRESEQ_LCEXTRAP.out.lc_extrap
         ch_versions = ch_versions.mix(PRESEQ_LCEXTRAP.out.versions.first())
@@ -462,10 +473,10 @@ workflow ATACSEQ {
     }
 
     // Create channel: [ meta, bam, bai, peak_file ]
-    MARK_DUPLICATES_PICARD_LIBRARY
+    BAM_MARKDUPLICATES_PICARD_LIBRARY
         .out
         .bam
-        .join(MARK_DUPLICATES_PICARD_LIBRARY.out.bai, by: [0])
+        .join(BAM_MARKDUPLICATES_PICARD_LIBRARY.out.bai, by: [0])
         .join(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks, by: [0])
         .set { ch_bam_peaks }
 
@@ -529,21 +540,21 @@ workflow ATACSEQ {
         //
         // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
         //
-        MARK_DUPLICATES_PICARD_REPLICATE (
+        BAM_MARKDUPLICATES_PICARD_REPLICATE (
             PICARD_MERGESAMFILES_REPLICATE.out.bam,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.fai
         )
-        ch_markduplicates_replicate_stats    = MARK_DUPLICATES_PICARD_REPLICATE.out.stats
-        ch_markduplicates_replicate_flagstat = MARK_DUPLICATES_PICARD_REPLICATE.out.flagstat
-        ch_markduplicates_replicate_idxstats = MARK_DUPLICATES_PICARD_REPLICATE.out.idxstats
-        ch_markduplicates_replicate_metrics  = MARK_DUPLICATES_PICARD_REPLICATE.out.metrics
+        ch_markduplicates_replicate_stats    = BAM_MARKDUPLICATES_PICARD_REPLICATE.out.stats
+        ch_markduplicates_replicate_flagstat = BAM_MARKDUPLICATES_PICARD_REPLICATE.out.flagstat
+        ch_markduplicates_replicate_idxstats = BAM_MARKDUPLICATES_PICARD_REPLICATE.out.idxstats
+        ch_markduplicates_replicate_metrics  = BAM_MARKDUPLICATES_PICARD_REPLICATE.out.metrics
 
         //
         // MODULE: BigWig coverage tracks
         //
         BEDTOOLS_GENOMECOV_REPLICATE (
-            MARK_DUPLICATES_PICARD_REPLICATE.out.bam.join(MARK_DUPLICATES_PICARD_REPLICATE.out.flagstat, by: [0])
+            BAM_MARKDUPLICATES_PICARD_REPLICATE.out.bam.join(BAM_MARKDUPLICATES_PICARD_REPLICATE.out.flagstat, by: [0])
         )
         ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV_REPLICATE.out.versions.first())
 
@@ -558,7 +569,7 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG_REPLICATE.out.versions.first())
 
         // Create channels: [ meta, bam, ([] for control_bam) ]
-        MARK_DUPLICATES_PICARD_REPLICATE
+        BAM_MARKDUPLICATES_PICARD_REPLICATE
             .out
             .bam
             .map {
@@ -664,18 +675,18 @@ workflow ATACSEQ {
             CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
             ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
 
-            FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
-            FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
-            FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
 
             ch_samtools_stats.collect{it[1]}.ifEmpty([]),
             ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
             ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
 
-            MARK_DUPLICATES_PICARD_LIBRARY.out.stats.collect{it[1]}.ifEmpty([]),
-            MARK_DUPLICATES_PICARD_LIBRARY.out.flagstat.collect{it[1]}.ifEmpty([]),
-            MARK_DUPLICATES_PICARD_LIBRARY.out.idxstats.collect{it[1]}.ifEmpty([]),
-            MARK_DUPLICATES_PICARD_LIBRARY.out.metrics.collect{it[1]}.ifEmpty([]),
+            BAM_MARKDUPLICATES_PICARD_LIBRARY.out.stats.collect{it[1]}.ifEmpty([]),
+            BAM_MARKDUPLICATES_PICARD_LIBRARY.out.flagstat.collect{it[1]}.ifEmpty([]),
+            BAM_MARKDUPLICATES_PICARD_LIBRARY.out.idxstats.collect{it[1]}.ifEmpty([]),
+            BAM_MARKDUPLICATES_PICARD_LIBRARY.out.metrics.collect{it[1]}.ifEmpty([]),
 
             FILTER_BAM_BAMTOOLS.out.stats.collect{it[1]}.ifEmpty([]),
             FILTER_BAM_BAMTOOLS.out.flagstat.collect{it[1]}.ifEmpty([]),
