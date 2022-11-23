@@ -71,10 +71,11 @@ include { BEDTOOLS_GENOMECOV as BEDTOOLS_GENOMECOV_REPLICATE } from '../modules/
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK         } from '../subworkflows/local/input_check'
-include { PREPARE_GENOME      } from '../subworkflows/local/prepare_genome'
-include { FILTER_BAM_BAMTOOLS } from '../subworkflows/local/filter_bam_bamtools'
-include { ALIGN_STAR          } from '../subworkflows/local/align_star'
+include { INPUT_CHECK           } from '../subworkflows/local/input_check'
+include { PREPARE_GENOME        } from '../subworkflows/local/prepare_genome'
+include { FILTER_BAM_BAMTOOLS   } from '../subworkflows/local/filter_bam_bamtools'
+include { ALIGN_STAR            } from '../subworkflows/local/align_star'
+include { BIGWIG_PLOT_DEEPTOOLS } from '../subworkflows/local/bigwig_plot_deeptools'
 
 include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_LIBRARY_CALL_ANNOTATE_PEAKS   } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
 include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_REPLICATE_CALL_ANNOTATE_PEAKS } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
@@ -92,19 +93,15 @@ include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 as MERGED_REPL
 //
 include { PICARD_COLLECTMULTIPLEMETRICS } from '../modules/nf-core/picard/collectmultiplemetrics/main'
 include { PRESEQ_LCEXTRAP               } from '../modules/nf-core/preseq/lcextrap/main'
-include { DEEPTOOLS_PLOTPROFILE         } from '../modules/nf-core/deeptools/plotprofile/main'
-include { DEEPTOOLS_PLOTHEATMAP         } from '../modules/nf-core/deeptools/plotheatmap/main'
 include { DEEPTOOLS_PLOTFINGERPRINT     } from '../modules/nf-core/deeptools/plotfingerprint/main'
 include { ATAQV_ATAQV                   } from '../modules/nf-core/ataqv/ataqv/main'
 include { ATAQV_MKARV                   } from '../modules/nf-core/ataqv/mkarv/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS   } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS   } from '../modules/nf-core/deeptools/computematrix/main'
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT } from '../modules/nf-core/deeptools/computematrix/main'
-include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_LIBRARY               } from '../modules/nf-core/picard/mergesamfiles/main'
-include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_REPLICATE             } from '../modules/nf-core/picard/mergesamfiles/main'
-include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_LIBRARY             } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
-include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_REPLICATE           } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
+include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_LIBRARY     } from '../modules/nf-core/picard/mergesamfiles/main'
+include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_REPLICATE   } from '../modules/nf-core/picard/mergesamfiles/main'
+include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_LIBRARY   } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
+include { UCSC_BEDGRAPHTOBIGWIG as UCSC_BEDGRAPHTOBIGWIG_REPLICATE } from '../modules/nf-core/ucsc/bedgraphtobigwig/main'
 
 //
 // SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -361,42 +358,18 @@ workflow ATACSEQ {
     )
     ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG_LIBRARY.out.versions.first())
 
+    //
+    // SUBWORKFLOW: Plot coverage across annottion with deepTools
+    //
     ch_deeptoolsplotprofile_multiqc = Channel.empty()
     if (!params.skip_plot_profile) {
-        //
-        // MODULE: deepTools matrix generation for plotting over full transcript length
-        //
-        DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS (
+        BIGWIG_PLOT_DEEPTOOLS (
             UCSC_BEDGRAPHTOBIGWIG_LIBRARY.out.bigwig,
-            PREPARE_GENOME.out.gene_bed
-        )
-        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS.out.versions.first())
-
-        //
-        // MODULE: deepTools matrix generation for plotting at TSS point
-        //
-        DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT (
-            UCSC_BEDGRAPHTOBIGWIG_LIBRARY.out.bigwig,
+            PREPARE_GENOME.out.gene_bed,
             PREPARE_GENOME.out.tss_bed
         )
-        ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT.out.versions.first())
-
-        //
-        // MODULE: deepTools profile plots
-        //
-        DEEPTOOLS_PLOTPROFILE (
-            DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS.out.matrix
-        )
-        ch_deeptoolsplotprofile_multiqc = DEEPTOOLS_PLOTPROFILE.out.table
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions.first())
-
-        //
-        // MODULE: deepTools heatmaps
-        //
-        DEEPTOOLS_PLOTHEATMAP (
-            DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT.out.matrix
-        )
-        ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP.out.versions.first())
+        ch_deeptoolsplotprofile_multiqc = BIGWIG_PLOT_DEEPTOOLS.out.plotprofile_table
+        ch_versions = ch_versions.mix(BIGWIG_PLOT_DEEPTOOLS.out.versions.first())
     }
 
     //
