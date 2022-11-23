@@ -1,6 +1,3 @@
-/*
- * Prepare genome intervals for filtering by removing regions in blacklist file
- */
 process GENOME_BLACKLIST_REGIONS {
     tag "$sizes"
 
@@ -16,6 +13,9 @@ process GENOME_BLACKLIST_REGIONS {
     output:
     path '*.bed'       , emit: bed
     path "versions.yml", emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     def file_out = "${sizes.simpleName}.include_regions.bed"

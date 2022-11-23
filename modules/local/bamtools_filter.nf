@@ -1,7 +1,4 @@
-/*
- * Filter BAM file
- */
-process BAM_FILTER {
+process BAMTOOLS_FILTER {
     tag "$meta.id"
     label 'process_medium'
 
@@ -19,6 +16,9 @@ process BAM_FILTER {
     output:
     tuple val(meta), path("*.bam"), emit: bam
     path "versions.yml"           , emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     def prefix           = task.ext.prefix ?: "${meta.id}"

@@ -1,6 +1,3 @@
-/*
- * Create IGV session file
- */
 process IGV {
 
     conda (params.enable_conda ? "conda-forge::python=3.8.3" : null)
@@ -22,7 +19,6 @@ process IGV {
     val bigwig_replicate_publish_dir
     val peak_replicate_publish_dir
     val consensus_replicate_publish_dir
-    // TODO: path differential_peaks from ch_macs_consensus_deseq_comp_igv.collect().ifEmpty([])
 
     output:
     // Publish fasta file while copyTo fails when the source and destination buckets are in different regions
@@ -30,6 +26,9 @@ process IGV {
     path "*.xml"       , emit: xml
     path fasta         , emit: fasta
     path "versions.yml", emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script: // scripts are bundled with the pipeline in nf-core/atacseq/bin/
     """
