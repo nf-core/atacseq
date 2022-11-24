@@ -16,6 +16,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     ch_gtf                              // channel: [ gtf ]
     ch_deseq2_pca_header_multiqc        // channel: [ header_file ]
     ch_deseq2_clustering_header_multiqc // channel: [ header_file ]
+    is_narrow_peak                      // boolean: true/false
     skip_peak_annotation                // boolean: true/false
     skip_deseq2_qc                      // boolean: true/false
     
@@ -38,7 +39,8 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     // Generate consensus peaks across samples
     //
     MACS2_CONSENSUS (
-        ch_consensus_peaks
+        ch_consensus_peaks,
+        is_narrow_peak
     )
     ch_versions = ch_versions.mix(MACS2_CONSENSUS.out.versions)
 
