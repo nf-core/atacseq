@@ -1,6 +1,3 @@
-/*
- * Remove orphan reads from paired-end BAM file
- */
 process BAM_REMOVE_ORPHANS {
     tag "$meta.id"
     label 'process_medium'
@@ -16,6 +13,9 @@ process BAM_REMOVE_ORPHANS {
     output:
     tuple val(meta), path("${prefix}.bam"), emit: bam
     path "versions.yml"                   , emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
     def args = task.ext.args ?: ''

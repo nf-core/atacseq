@@ -20,46 +20,49 @@ process MULTIQC {
     path ('alignment/library/*')
     path ('alignment/library/*')
 
-    path ('alignment/mergedLibrary/unfiltered/*')
-    path ('alignment/mergedLibrary/unfiltered/*')
-    path ('alignment/mergedLibrary/unfiltered/*')
-    path ('alignment/mergedLibrary/unfiltered/picard_metrics/*')
+    path ('alignment/merged_library/unfiltered/*')
+    path ('alignment/merged_library/unfiltered/*')
+    path ('alignment/merged_library/unfiltered/*')
+    path ('alignment/merged_library/unfiltered/picard_metrics/*')
 
-    path ('alignment/mergedLibrary/filtered/*')
-    path ('alignment/mergedLibrary/filtered/*')
-    path ('alignment/mergedLibrary/filtered/*')
-    path ('alignment/mergedLibrary/filtered/picard_metrics/*')
+    path ('alignment/merged_library/filtered/*')
+    path ('alignment/merged_library/filtered/*')
+    path ('alignment/merged_library/filtered/*')
+    path ('alignment/merged_library/filtered/picard_metrics/*')
 
     path ('preseq/*')
 
     path ('deeptools/*')
     path ('deeptools/*')
 
-    path ('macs2/mergedLibrary/peaks/*')
-    path ('macs2/mergedLibrary/peaks/*')
-    path ('macs2/mergedLibrary/annotation/*')
-    path ('macs2/mergedLibrary/featurecounts/*')
+    path ('macs2/merged_library/peaks/*')
+    path ('macs2/merged_library/peaks/*')
+    path ('macs2/merged_library/annotation/*')
+    path ('macs2/merged_library/featurecounts/*')
 
-    path ('alignment/mergedReplicate/*')
-    path ('alignment/mergedReplicate/*')
-    path ('alignment/mergedReplicate/*')
-    path ('alignment/mergedReplicate/picard_metrics/*')
+    path ('alignment/merged_replicate/*')
+    path ('alignment/merged_replicate/*')
+    path ('alignment/merged_replicate/*')
+    path ('alignment/merged_replicate/picard_metrics/*')
 
-    path ('macs2/mergedReplicate/peaks/*')
-    path ('macs2/mergedReplicate/peaks/*')
-    path ('macs2/mergedReplicate/annotation/*')
-    path ('macs2/mergedReplicate/featurecounts/*')
+    path ('macs2/merged_replicate/peaks/*')
+    path ('macs2/merged_replicate/peaks/*')
+    path ('macs2/merged_replicate/annotation/*')
+    path ('macs2/merged_replicate/featurecounts/*')
 
-    path ('deseq2_lib/*')
-    path ('deseq2_lib/*')
-    path ('deseq2_rep/*')
-    path ('deseq2_rep/*')
+    path ('deseq2_library/*')
+    path ('deseq2_library/*')
+    path ('deseq2_replicate/*')
+    path ('deseq2_replicate/*')
 
     output:
     path "*multiqc_report.html", emit: report
     path "*_data"              , emit: data
     path "*_plots"             , optional:true, emit: plots
     path "versions.yml"        , emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     def args          = task.ext.args ?: ''
