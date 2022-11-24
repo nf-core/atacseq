@@ -251,6 +251,7 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Alignment with STAR & BAM QC
     //
+    ch_star_multiqc = Channel.empty()
     if (params.aligner == 'star') {
         ALIGN_STAR (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
@@ -259,7 +260,6 @@ workflow ATACSEQ {
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
         ch_genome_bam_index  = ALIGN_STAR.out.bai
-        ch_transcriptome_bam = ALIGN_STAR.out.bam_transcript
         ch_samtools_stats    = ALIGN_STAR.out.stats
         ch_samtools_flagstat = ALIGN_STAR.out.flagstat
         ch_samtools_idxstats = ALIGN_STAR.out.idxstats
