@@ -203,7 +203,10 @@ workflow ATACSEQ {
         FASTQ_ALIGN_CHROMAP (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.chromap_index,
-            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fasta
+                .map {
+                    [ [:], it ]
+                },
             [],
             [],
             [],
@@ -274,12 +277,12 @@ workflow ATACSEQ {
                 def meta_clone = meta.clone()
                 meta_clone.remove('read_group')
                 meta_clone.id = meta_clone.id.split('_')[0..-2].join('_')
-                [ meta_clone, bam ] 
+                [ meta_clone, bam ]
         }
         .groupTuple(by: [0])
         .map {
             meta, bam ->
-                [ meta, bam.flatten() ] 
+                [ meta, bam.flatten() ]
         }
         .set { ch_sort_bam }
 
@@ -383,12 +386,12 @@ workflow ATACSEQ {
 
     // Create channels: [ meta, bam, ([] for control_bam) ]
     ch_bam_bai
-        .map { 
-            meta, bam, bai -> 
-                [ meta , bam, [] ] 
+        .map {
+            meta, bam, bai ->
+                [ meta , bam, [] ]
         }
         .set { ch_bam_library }
-    
+
     //
     // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
     //
@@ -483,7 +486,7 @@ workflow ATACSEQ {
                 meta, bam ->
                     def meta_clone = meta.clone()
                     meta_clone.id = meta_clone.id.split('_')[0..-2].join('_')
-                    [ meta_clone, bam ] 
+                    [ meta_clone, bam ]
             }
             .groupTuple(by: [0])
             .set { ch_merged_library_replicate_bam }
