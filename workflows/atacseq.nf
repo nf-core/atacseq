@@ -174,7 +174,7 @@ workflow ATACSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BWA.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BWA.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_BWA.out.versions.first())
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_BWA.out.versions)
     }
 
     //
@@ -193,7 +193,7 @@ workflow ATACSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions.first())
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions)
     }
 
     //
@@ -245,7 +245,7 @@ workflow ATACSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions.first())
+        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions)
     }
 
     //
@@ -289,7 +289,7 @@ workflow ATACSEQ {
     PICARD_MERGESAMFILES_LIBRARY (
         ch_sort_bam
     )
-    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_LIBRARY.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_LIBRARY.out.versions.first())
 
     //
     // SUBWORKFLOW: Mark duplicates in BAM files
@@ -311,7 +311,7 @@ workflow ATACSEQ {
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
-    ch_versions = ch_versions.mix(MERGED_LIBRARY_FILTER_BAM.out.versions.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_FILTER_BAM.out.versions)
 
     //
     // MODULE: Preseq coverage analysis
@@ -346,7 +346,7 @@ workflow ATACSEQ {
         MERGED_LIBRARY_FILTER_BAM.out.bam.join(MERGED_LIBRARY_FILTER_BAM.out.flagstat, by: [0]),
         PREPARE_GENOME.out.chrom_sizes
     )
-    ch_versions = ch_versions.mix(MERGED_LIBRARY_BAM_TO_BIGWIG.out.versions.first())
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_BAM_TO_BIGWIG.out.versions)
 
     //
     // SUBWORKFLOW: Plot coverage across annotation with deepTools
@@ -359,7 +359,7 @@ workflow ATACSEQ {
             PREPARE_GENOME.out.tss_bed
         )
         ch_deeptoolsplotprofile_multiqc = MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS.out.plotprofile_table
-        ch_versions = ch_versions.mix(MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS.out.versions.first())
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS.out.versions)
     }
 
     // Create channels: [ meta, [bam], [bai] ]
@@ -450,7 +450,7 @@ workflow ATACSEQ {
             [],
             PREPARE_GENOME.out.autosomes
         )
-        ch_versions = ch_versions.mix(MERGED_LIBRARY_ATAQV_ATAQV.out.versions)
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_ATAQV_ATAQV.out.versions.first())
 
         MERGED_LIBRARY_ATAQV_MKARV (
             MERGED_LIBRARY_ATAQV_ATAQV.out.json.collect{it[1]}
@@ -494,7 +494,7 @@ workflow ATACSEQ {
         PICARD_MERGESAMFILES_REPLICATE (
             ch_merged_library_replicate_bam
         )
-        ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_REPLICATE.out.versions.first().ifEmpty(null))
+        ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_REPLICATE.out.versions.first())
 
         //
         // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
@@ -508,6 +508,7 @@ workflow ATACSEQ {
         ch_markduplicates_replicate_flagstat = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat
         ch_markduplicates_replicate_idxstats = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.idxstats
         ch_markduplicates_replicate_metrics  = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.metrics
+        ch_versions = ch_versions.mix(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.versions)
 
         //
         // SUBWORKFLOW: Normalised bigWig coverage tracks
@@ -517,7 +518,7 @@ workflow ATACSEQ {
             PREPARE_GENOME.out.chrom_sizes
         )
         ch_ucsc_bedgraphtobigwig_replicate_bigwig = MERGED_REPLICATE_BAM_TO_BIGWIG.out.bigwig
-        ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_TO_BIGWIG.out.versions.first())
+        ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_TO_BIGWIG.out.versions)
 
         // Create channels: [ meta, bam, ([] for control_bam) ]
         MERGED_REPLICATE_MARKDUPLICATES_PICARD
