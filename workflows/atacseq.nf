@@ -17,7 +17,7 @@ WorkflowAtacseq.initialise(params, log, valid_params)
 def checkPathParamList = [
     params.input, params.multiqc_config,
     params.fasta,
-    params.gtf, params.gff, params.gene_bed, params.tss_bed, 
+    params.gtf, params.gff, params.gene_bed, params.tss_bed,
     params.bwa_index, params.bowtie2_index, params.chromap_index, params.star_index,
     params.blacklist,
     params.bamtools_filter_pe_config, params.bamtools_filter_se_config
@@ -310,7 +310,7 @@ workflow ATACSEQ {
     //
     MERGED_LIBRARY_FILTER_BAM (
         MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam.join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0]),
-        PREPARE_GENOME.out.filtered_bed,
+        PREPARE_GENOME.out.filtered_bed.first(),
         PREPARE_GENOME.out.fasta,
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
