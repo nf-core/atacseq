@@ -13,6 +13,10 @@ process MULTIQC_CUSTOM_PEAKS {
     output:
     tuple val(meta), path("*.peak_count_mqc.tsv"), emit: count
     tuple val(meta), path("*.FRiP_mqc.tsv")      , emit: frip
+    path "versions.yml"                          , emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"

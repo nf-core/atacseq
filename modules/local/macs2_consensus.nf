@@ -1,6 +1,3 @@
-/*
- * Consensus peaks across samples, create boolean filtering file, SAF file for featureCounts
- */
 process MACS2_CONSENSUS {
     tag "$meta.id"
     label 'process_long'
@@ -56,5 +53,4 @@ process MACS2_CONSENSUS {
         r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
     END_VERSIONS
     """
-
 }

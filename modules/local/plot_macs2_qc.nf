@@ -14,6 +14,9 @@ process PLOT_MACS2_QC {
     path '*.pdf'       , emit: pdf
     path "versions.yml", emit: versions
 
+    when:
+    task.ext.when == null || task.ext.when
+
     script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
     def args      = task.ext.args ?: ''
     def peak_type = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
