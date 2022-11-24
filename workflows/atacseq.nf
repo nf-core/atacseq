@@ -17,7 +17,7 @@ WorkflowAtacseq.initialise(params, log, valid_params)
 def checkPathParamList = [
     params.input, params.multiqc_config,
     params.fasta,
-    params.gtf, params.gff, params.gene_bed,
+    params.gtf, params.gff, params.gene_bed, params.tss_bed, 
     params.bwa_index, params.bowtie2_index, params.chromap_index, params.star_index,
     params.blacklist,
     params.bamtools_filter_pe_config, params.bamtools_filter_se_config
