@@ -9,6 +9,7 @@ process MACS2_CONSENSUS {
 
     input:
     tuple val(meta), path(peaks)
+    val is_narrow_peak
 
     output:
     tuple val(meta), path("*.bed")          , emit: bed
@@ -22,13 +23,12 @@ process MACS2_CONSENSUS {
     task.ext.when == null || task.ext.when
 
     script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
-
     def args         = task.ext.args ?: ''
     def prefix       = task.ext.prefix    ?: "${meta.id}"
-    def peak_type    = params.narrow_peak ? 'narrowPeak' : 'broadPeak'
-    def mergecols    = params.narrow_peak ? (2..10).join(',') : (2..9).join(',')
-    def collapsecols = params.narrow_peak ? (['collapse']*9).join(',') : (['collapse']*8).join(',')
-    def expandparam  = params.narrow_peak ? '--is_narrow_peak' : ''
+    def peak_type    = is_narrow_peak ? 'narrowPeak' : 'broadPeak'
+    def mergecols    = is_narrow_peak ? (2..10).join(',') : (2..9).join(',')
+    def collapsecols = is_narrow_peak ? (['collapse']*9).join(',') : (['collapse']*8).join(',')
+    def expandparam  = is_narrow_peak ? '--is_narrow_peak' : ''
     """
     sort -T '.' -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt

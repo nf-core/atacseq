@@ -144,7 +144,9 @@ workflow PREPARE_GENOME {
     ch_genome_filtered_bed = Channel.empty()
     GENOME_BLACKLIST_REGIONS (
         ch_chrom_sizes,
-        ch_blacklist.ifEmpty([])
+        ch_blacklist.ifEmpty([]),
+        params.mito_name,
+        params.keep_mito
     )
     ch_genome_filtered_bed = GENOME_BLACKLIST_REGIONS.out.bed
     ch_versions = ch_versions.mix(GENOME_BLACKLIST_REGIONS.out.versions)

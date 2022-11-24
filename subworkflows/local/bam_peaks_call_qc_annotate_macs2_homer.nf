@@ -19,6 +19,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
     ch_peak_count_header_multiqc      // channel: [ header_file ]
     ch_frip_score_multiqc             // channel: [ header_file ]
     ch_peak_annotation_header_multiqc // channel: [ header_file ]
+    is_narrow_peak                    // boolean: true/false
     skip_peak_annotation              // boolean: true/false
     skip_peak_qc                      // boolean: true/false
     
@@ -106,7 +107,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
             // MACS2 QC plots with R
             //
             PLOT_MACS2_QC (
-                ch_macs2_peaks.collect{it[1]}
+                ch_macs2_peaks.collect{it[1]},
+                is_narrow_peak
             )
             ch_plot_macs2_qc_txt = PLOT_MACS2_QC.out.txt
             ch_plot_macs2_qc_pdf = PLOT_MACS2_QC.out.pdf

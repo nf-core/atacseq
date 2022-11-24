@@ -256,7 +256,8 @@ workflow ATACSEQ {
         ALIGN_STAR (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.star_index,
-            PREPARE_GENOME.out.fasta
+            PREPARE_GENOME.out.fasta,
+            params.seq_center
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
         ch_genome_bam_index  = ALIGN_STAR.out.bai
@@ -306,7 +307,7 @@ workflow ATACSEQ {
     //
     MERGED_LIBRARY_FILTER_BAM (
         MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam.join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0]),
-        PREPARE_GENOME.out.filtered_bed.first(),
+        PREPARE_GENOME.out.filtered_bed,
         PREPARE_GENOME.out.fasta,
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
@@ -400,6 +401,7 @@ workflow ATACSEQ {
         ch_multiqc_merged_library_peak_count_header,
         ch_multiqc_merged_library_frip_score_header,
         ch_multiqc_merged_library_peak_annotation_header,
+        params.narrow_peak,
         params.skip_peak_annotation,
         params.skip_peak_qc
     )
@@ -420,6 +422,7 @@ workflow ATACSEQ {
             PREPARE_GENOME.out.gtf,
             ch_multiqc_merged_library_deseq2_pca_header,
             ch_multiqc_merged_library_deseq2_clustering_header,
+            params.narrow_peak,
             params.skip_peak_annotation,
             params.skip_deseq2_qc
         )
@@ -541,6 +544,7 @@ workflow ATACSEQ {
             ch_multiqc_merged_replicate_peak_count_header,
             ch_multiqc_merged_replicate_frip_score_header,
             ch_multiqc_merged_replicate_peak_annotation_header,
+            params.narrow_peak,
             params.skip_peak_annotation,
             params.skip_peak_qc
         )
@@ -561,6 +565,7 @@ workflow ATACSEQ {
                 PREPARE_GENOME.out.gtf,
                 ch_multiqc_merged_replicate_deseq2_pca_header,
                 ch_multiqc_merged_replicate_deseq2_clustering_header,
+                params.narrow_peak,
                 params.skip_peak_annotation,
                 params.skip_deseq2_qc
             )
