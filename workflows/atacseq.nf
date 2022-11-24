@@ -44,17 +44,17 @@ ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExi
 ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
 
 // Header files for MultiQC
-ch_merged_library_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_peak_count_header.txt", checkIfExists: true)
-ch_merged_library_frip_score_header        = file("$projectDir/assets/multiqc/merged_library_frip_score_header.txt", checkIfExists: true)
-ch_merged_library_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_library_peak_annotation_header.txt", checkIfExists: true)
-ch_merged_library_deseq2_pca_header        = file("$projectDir/assets/multiqc/merged_library_deseq2_pca_header.txt", checkIfExists: true)
-ch_merged_library_deseq2_clustering_header = file("$projectDir/assets/multiqc/merged_library_deseq2_clustering_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_peak_count_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_frip_score_header        = file("$projectDir/assets/multiqc/merged_library_frip_score_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_library_peak_annotation_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_deseq2_pca_header        = file("$projectDir/assets/multiqc/merged_library_deseq2_pca_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_deseq2_clustering_header = file("$projectDir/assets/multiqc/merged_library_deseq2_clustering_header.txt", checkIfExists: true)
 
-ch_merged_replicate_peak_count_header        = file("$projectDir/assets/multiqc/merged_replicate_peak_count_header.txt", checkIfExists: true)
-ch_merged_replicate_frip_score_header        = file("$projectDir/assets/multiqc/merged_replicate_frip_score_header.txt", checkIfExists: true)
-ch_merged_replicate_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_replicate_peak_annotation_header.txt", checkIfExists: true)
-ch_merged_replicate_deseq2_pca_header        = file("$projectDir/assets/multiqc/merged_replicate_deseq2_pca_header.txt", checkIfExists: true)
-ch_merged_replicate_deseq2_clustering_header = file("$projectDir/assets/multiqc/merged_replicate_deseq2_clustering_header.txt", checkIfExists: true)
+ch_multiqc_merged_replicate_peak_count_header        = file("$projectDir/assets/multiqc/merged_replicate_peak_count_header.txt", checkIfExists: true)
+ch_multiqc_merged_replicate_frip_score_header        = file("$projectDir/assets/multiqc/merged_replicate_frip_score_header.txt", checkIfExists: true)
+ch_multiqc_merged_replicate_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_replicate_peak_annotation_header.txt", checkIfExists: true)
+ch_multiqc_merged_replicate_deseq2_pca_header        = file("$projectDir/assets/multiqc/merged_replicate_deseq2_pca_header.txt", checkIfExists: true)
+ch_multiqc_merged_replicate_deseq2_clustering_header = file("$projectDir/assets/multiqc/merged_replicate_deseq2_clustering_header.txt", checkIfExists: true)
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -397,9 +397,9 @@ workflow ATACSEQ {
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.macs_gsize,
-        ch_merged_library_peak_count_header,
-        ch_merged_library_frip_score_header,
-        ch_merged_library_peak_annotation_header,
+        ch_multiqc_merged_library_peak_count_header,
+        ch_multiqc_merged_library_frip_score_header,
+        ch_multiqc_merged_library_peak_annotation_header,
         params.skip_peak_annotation,
         params.skip_peak_qc
     )
@@ -418,8 +418,8 @@ workflow ATACSEQ {
             ch_bam_library,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.gtf,
-            ch_merged_library_deseq2_pca_header,
-            ch_merged_library_deseq2_clustering_header,
+            ch_multiqc_merged_library_deseq2_pca_header,
+            ch_multiqc_merged_library_deseq2_clustering_header,
             params.skip_peak_annotation,
             params.skip_deseq2_qc
         )
@@ -537,9 +537,9 @@ workflow ATACSEQ {
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.gtf,
             PREPARE_GENOME.out.macs_gsize,
-            ch_merged_replicate_peak_count_header,
-            ch_merged_replicate_frip_score_header,
-            ch_merged_replicate_peak_annotation_header,
+            ch_multiqc_merged_replicate_peak_count_header,
+            ch_multiqc_merged_replicate_frip_score_header,
+            ch_multiqc_merged_replicate_peak_annotation_header,
             params.skip_peak_annotation,
             params.skip_peak_qc
         )
@@ -558,8 +558,8 @@ workflow ATACSEQ {
                 ch_bam_replicate,
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf,
-                ch_merged_replicate_deseq2_pca_header,
-                ch_merged_replicate_deseq2_clustering_header,
+                ch_multiqc_merged_replicate_deseq2_pca_header,
+                ch_multiqc_merged_replicate_deseq2_clustering_header,
                 params.skip_peak_annotation,
                 params.skip_deseq2_qc
             )
