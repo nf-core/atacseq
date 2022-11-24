@@ -257,7 +257,7 @@ workflow ATACSEQ {
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.star_index,
             PREPARE_GENOME.out.fasta,
-            params.seq_center
+            params.seq_center ?: ''
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
         ch_genome_bam_index  = ALIGN_STAR.out.bai
