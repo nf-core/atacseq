@@ -277,7 +277,7 @@ workflow ATACSEQ {
             meta, bam ->
                 def meta_clone = meta.clone()
                 meta_clone.remove('read_group')
-                meta_clone.id = meta_clone.id.split('_')[0..-2].join('_')
+                meta_clone.id = meta_clone.id - ~/_T\d+$/
                 [ meta_clone, bam ]
         }
         .groupTuple(by: [0])
@@ -482,16 +482,23 @@ workflow ATACSEQ {
     ch_deseq2_clustering_replicate_multiqc              = Channel.empty()
     if (!params.skip_merge_replicates) {
 
+        // Check if we have multiple replicates
         MERGED_LIBRARY_FILTER_BAM
             .out
             .bam
             .map {
                 meta, bam ->
                     def meta_clone = meta.clone()
-                    meta_clone.id = meta_clone.id.split('_')[0..-2].join('_')
-                    [ meta_clone, bam ]
+                    meta_clone.id = meta_clone.id - ~/_REP\d+$/
+                    [ meta_clone.id, meta_clone, bam ]
             }
-            .groupTuple(by: [0])
+            .groupTuple()
+            .map {
+                id, metas, bams ->
+                    if (bams.size() > 1) {
+                        return [ metas[0], bams ]
+                    }
+            }
             .set { ch_merged_library_replicate_bam }
 
         //
