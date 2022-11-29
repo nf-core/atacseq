@@ -77,7 +77,7 @@
                     },
                     "fastqc": {
                         "branch": "master",
-                        "git_sha": "3dd73937b084b547f9272bc901e0f120a7913fd8",
+                        "git_sha": "810e8f2603ec38401d49a4aaed06f6d058745552",
                         "installed_by": ["modules", "fastq_fastqc_umitools_trimgalore"]
                     },
                     "gffread": {

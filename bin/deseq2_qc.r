@@ -224,7 +224,7 @@ normFactors <- sizeFactors(dds)
 save(normFactors, file=NormFactorsFile)
 
 for (name in names(sizeFactors(dds))) {
-    sizeFactorFile <- paste(SizeFactorsDir,name, ".txt", sep="")
+    sizeFactorFile <- paste(SizeFactorsDir,name, ".size_factors.txt", sep="")
     write(as.numeric(sizeFactors(dds)[name]), file=sizeFactorFile)
 }
 
