@@ -72,7 +72,7 @@ include { INPUT_CHECK    } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome'
 include { ALIGN_STAR     } from '../subworkflows/local/align_star'
 include { BIGWIG_PLOT_DEEPTOOLS as MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS       } from '../subworkflows/local/bigwig_plot_deeptools'
-include { FILTER_BAM_BAMTOOLS as MERGED_LIBRARY_FILTER_BAM                    } from '../subworkflows/local/filter_bam_bamtools'
+include { BAM_FILTER_BAMTOOLS as MERGED_LIBRARY_FILTER_BAM                    } from '../subworkflows/local/bam_filter_bamtools'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_LIBRARY_BAM_TO_BIGWIG   } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_REPLICATE_BAM_TO_BIGWIG } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
 
@@ -508,7 +508,7 @@ workflow ATACSEQ {
             ch_merged_library_replicate_bam
         )
         ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_REPLICATE.out.versions.first())
-
+    
         //
         // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
         //
@@ -523,7 +523,6 @@ workflow ATACSEQ {
         ch_markduplicates_replicate_metrics  = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.metrics
         ch_versions = ch_versions.mix(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.versions)
 
-        //
         // SUBWORKFLOW: Normalised bigWig coverage tracks
         //
         MERGED_REPLICATE_BAM_TO_BIGWIG (
@@ -570,7 +569,7 @@ workflow ATACSEQ {
         if (!params.skip_consensus_peaks) {
             MERGED_REPLICATE_CONSENSUS_PEAKS (
                 MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.peaks,
-                ch_bam_replicate,
+                ch_merged_library_replicate_bam,
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf,
                 ch_multiqc_merged_replicate_deseq2_pca_header,
