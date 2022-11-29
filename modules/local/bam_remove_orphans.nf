@@ -11,19 +11,21 @@ process BAM_REMOVE_ORPHANS {
     tuple val(meta), path(bam)
 
     output:
-    tuple val(meta), path("${prefix}.bam"), emit: bam
-    path "versions.yml"                   , emit: versions
+    tuple val(meta), path("*.bam"), emit: bam
+    path "versions.yml"           , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
     def args = task.ext.args ?: ''
-    prefix   = task.ext.prefix ?: "${meta.id}"
+    def prefix = task.ext.prefix ?: "${meta.id}"
     if (!meta.single_end) {
         """
-        samtools sort -n -@ $task.cpus -o ${prefix}.name.sorted.bam -T ${prefix}.name.sorted $bam
-        bampe_rm_orphan.py ${prefix}.name.sorted.bam ${prefix}.bam $args
+        bampe_rm_orphan.py \\
+            $bam \\
+            ${prefix}.bam \\
+            $args
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
