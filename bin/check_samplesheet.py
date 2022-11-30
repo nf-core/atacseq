@@ -157,13 +157,13 @@ def check_samplesheet(file_in, file_out):
                     )
 
                 for replicate in sorted(sample_mapping_dict[sample].keys()):
-                    ## Check that multiple replicates are of the same datatype i.e. single-end / paired-end
+                    ## Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
                     if not all(
                         x[3] == sample_mapping_dict[sample][replicate][0][3]
                         for x in sample_mapping_dict[sample][replicate]
                     ):
                         print_error(
-                            f"Multiple replicates of a sample must be of the same datatype i.e. single-end or paired-end!",
+                            f"Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end!",
                             "Sample",
                             sample,
                         )
