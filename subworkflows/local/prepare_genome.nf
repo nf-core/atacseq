@@ -161,7 +161,7 @@ workflow PREPARE_GENOME {
                 ch_bwa_index = UNTAR_BWA_INDEX ( [ [:], params.bwa_index ] ).untar
                 ch_versions  = ch_versions.mix(UNTAR_BWA_INDEX.out.versions)
             } else {
-                ch_bwa_index = [ [:], file(params.bwa_index) ]
+                ch_bwa_index = Channel.of([ [:], file(params.bwa_index) ])
             }
         } else {
             ch_bwa_index = BWA_INDEX ( [ [:], ch_fasta ] ).index
@@ -179,7 +179,7 @@ workflow PREPARE_GENOME {
                 ch_bowtie2_index = UNTAR_BOWTIE2_INDEX ( [ [:], params.bowtie2_index ] ).untar
                 ch_versions  = ch_versions.mix(UNTAR_BOWTIE2_INDEX.out.versions)
             } else {
-                ch_bowtie2_index = [ [:], file(params.bowtie2_index) ]
+                ch_bowtie2_index = Channel.of([ [:], file(params.bowtie2_index) ])
             }
         } else {
             ch_bowtie2_index = BOWTIE2_BUILD ( [ [:], ch_fasta ] ).index
@@ -197,7 +197,7 @@ workflow PREPARE_GENOME {
                 ch_chromap_index = UNTAR_CHROMAP_INDEX ( [ [:], params.chromap_index ] ).untar
                 ch_versions  = ch_versions.mix(UNTAR.out.versions)
             } else {
-                ch_chromap_index = [ [:], file(params.chromap_index) ]
+                ch_chromap_index = Channel.of([ [:], file(params.chromap_index) ])
             }
         } else {
             ch_chromap_index = CHROMAP_INDEX ( [ [:], ch_fasta ] ).index
