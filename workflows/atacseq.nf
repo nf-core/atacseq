@@ -200,35 +200,22 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Alignment with CHROMAP & BAM QC
     //
     if (params.aligner == 'chromap') {
-        FASTQ_ALIGN_CHROMAP (
-            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
-            PREPARE_GENOME.out.chromap_index,
-            PREPARE_GENOME.out.fasta
-                .map {
-                    [ [:], it ]
-                },
-            [],
-            [],
-            [],
-            []
-        )
 
         // Filter out paired-end reads until the issue below is fixed
         // https://github.com/nf-core/chipseq/issues/291
-        // ch_genome_bam = FASTQ_ALIGN_CHROMAP.out.bam
-        FASTQ_ALIGN_CHROMAP
+        FASTQ_FASTQC_UMITOOLS_TRIMGALORE
             .out
-            .bam
+            .reads
             .branch {
-                meta, bam ->
+                meta, reads ->
                     single_end: meta.single_end
-                        return [ meta, bam ]
+                        return [ meta, reads ]
                     paired_end: !meta.single_end
-                        return [ meta, bam ]
+                        return [ meta, reads ]
             }
-            .set { ch_genome_bam_chromap }
+            .set { ch_reads_chromap }
 
-        ch_genome_bam_chromap
+        ch_reads_chromap
             .paired_end
             .collect()
             .map {
@@ -243,7 +230,19 @@ workflow ATACSEQ {
                     }
             }
 
-        ch_genome_bam        = ch_genome_bam_chromap.single_end
+        FASTQ_ALIGN_CHROMAP (
+            ch_reads_chromap.single_end,
+            PREPARE_GENOME.out.chromap_index,
+            PREPARE_GENOME.out.fasta
+                .map {
+                    [ [:], it ]
+                },
+            [],
+            [],
+            [],
+            []
+        )
+        ch_genome_bam        = FASTQ_ALIGN_CHROMAP.out.bam
         ch_genome_bam_index  = FASTQ_ALIGN_CHROMAP.out.bai
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat

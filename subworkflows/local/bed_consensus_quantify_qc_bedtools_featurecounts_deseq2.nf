@@ -66,6 +66,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         .map { [ it ] }
         .concat(MACS2_CONSENSUS.out.saf)
         .collect()
+        .filter { it.size() == 3 }
         .map {
             bam, meta, saf -> 
                 [ meta, bam , saf ]
