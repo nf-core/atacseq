@@ -42,7 +42,6 @@ jobs:
     strategy:
       matrix:
         parameters:
-          - "--single_end"
           - "--skip_trimming"
           - "--skip_merge_replicates"
           - "--skip_consensus_peaks"
