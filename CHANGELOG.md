@@ -5,20 +5,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unpublished Version / DEV]
 
-### Major enhancements
+### :warning: Major enhancements
 
+- Samplesheet format has changed from `group,replicate,fastq_1,fastq_2` to `sample,fastq_1,fastq_2,replicate`.
+  - This is primarily because we have removed the differential accessibility from the pipeline in favour of using more formal statistical methods downstream with the pipeline results. We kept replicate information as mandatory to merge samples at the replicate level to improve coverage for footprinting analysis.
 - Pipeline has been re-implemented in [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html)
-- Updated pipeline template to [nf-core/tools 2.6](https://github.com/nf-core/tools/releases/tag/2.6)
-- Port pipeline to the updated Nextflow DSL2 syntax adopted on nf-core/modules
 - Bump minimum Nextflow version from `19.10.0` -> `21.10.3`
+- Updated pipeline template to [nf-core/tools 2.6](https://github.com/nf-core/tools/releases/tag/2.6)
 - [[201](https://github.com/nf-core/atacseq/issues/201)] - Update blacklist bed files.
 - [[182](https://github.com/nf-core/atacseq/issues/182)] - Update `macs_gsize` in `igenomes.config`, create a new `--read_length` parameter and implement the logic to calculate `--macs_gsize` when the parameter is missing
-- Turn `--deseq2_vst` on by default
 - [[#233](https://github.com/nf-core/chipseq/issues/233)] - Add `chromap` to the available aligners
 - [[#160](https://github.com/nf-core/chipseq/issues/160)] - Add `bowtie2` and `star` as available aligners, via the `--aligner` parameter
 - Add `--save_unaligned` parameter (only available for `bowtie2` and `star`)
-- Fix handling of Homer outputs staged for MultiQC
 - Preseq will be skipped by default (see [nf-core/rnaseq#897](https://github.com/nf-core/rnaseq/issues/897))
+- `--deseq2_vst` will be turned on by default
 
 ### Parameters
 
@@ -51,15 +51,16 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `bedtools`              | 2.29.2      | 2.30.0      |
 | `bioconductor-deseq2`   | 1.26.0      | 1.28.0      |
 | `deeptools`             | 3.4.3       | 3.5.1       |
-| `multiqc`               | 1.9         | 1.13a       |
+| `multiqc`               | 1.9         | 1.13        |
 | `ucsc-bedgraphtobigwig` | 357         | 377         |
-| `samtools`              | 1.10        | 1.15.1      |
+| `samtools`              | 1.10        | 1.16.1      |
 | `picard`                | 2.23.1      | 2.27.4      |
 | `preseq`                | 2.0.3       | 3.1.2       |
 | `pysam`                 | 0.15.3      | 0.19.0      |
 | `r-base`                | 3.6.1       | 4.0.3       |
 | `r-ggplot2`             | 3.3.2       | 3.3.3       |
 | `trim-galore`           | 0.6.5       | 0.6.7       |
+| `khmer`                 | -           | 3.0.0a3     |
 | `r-optparse`            | -           | 1.7.1       |
 | `r-tidyr`               | -           | -           |
 | `r-lattice`             | -           | -           |

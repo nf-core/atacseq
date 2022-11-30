@@ -14,7 +14,7 @@ You will need to create a samplesheet with information about the samples you wou
 
 ### Multiple replicates
 
-The `sample` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1. Below is an example for a single experimental group in triplicate:
+The `sample` identifier is the same when you have multiple biological replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1. Below is an example for a single experimental group in triplicate:
 
 ```console
 sample,fastq_1,fastq_2,replicate
@@ -23,9 +23,11 @@ CONTROL,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz,2
 CONTROL,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz,3
 ```
 
+The pipeline will automatically append the `&_REP<BIOLOGICAL_REPLICATE_NUMBER>` suffix to the sample name within the pipeline e.g. `CONTROL_REP1`, `CONTROL_REP2` and `CONTROL_REP3` using the example above. If you don't have replicates you can set the `replicate` value to 1 for all of your samples.
+
 ### Multiple runs of the same sample
 
-The `sample` and `replicate` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will concatenate the raw reads before performing any downstream analysis. Below is an example for the same sample sequenced across 3 lanes:
+The `sample` and `replicate` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example a sample sequenced across 3 lanes:
 
 ```console
 sample,fastq_1,fastq_2,replicate
@@ -34,14 +36,16 @@ CONTROL,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz,1
 CONTROL,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz,1
 ```
 
+The pipeline will automatically append the `*_T<TECHNICAL_REPLICATE_NUMBER>` suffix to the sample name within the pipeline e.g. `CONTROL_REP1_T1`, `CONTROL_REP1_T2` and `CONTROL_REP1_T3` using the example above.
+
 ### Full samplesheet
 
-The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. Multiple runs The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
+The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 4 columns to match those defined in the table below.
 
-A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 6 samples, where `TREATMENT_REP3` has been sequenced twice.
+A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 7 samples, where we have biological triplicates for both the `CONTROL` and `TREATMENT` groups, and the third replicate in the `TREATMENT` group has been a technical replicate as a result of being sequenced twice.
 
 ```console
-sample,fastq_1,fastq_2
+sample,fastq_1,fastq_2,replicate
 CONTROL,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,1
 CONTROL,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,2
 CONTROL,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,3
@@ -51,12 +55,12 @@ TREATMENT,AEG588A6_S6_L003_R1_001.fastq.gz,,3
 TREATMENT,AEG588A6_S6_L004_R1_001.fastq.gz,,3
 ```
 
-| Column    | Description                                                                                                                                                                            |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `replicate` | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
+| Column      | Description                                                                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sample`    | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
 | `fastq_1`   | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
 | `fastq_2`   | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
-| `sample`    | Integer representing replicate number. Must start from `1..<number of replicates>`. |
+| `replicate` | Integer representing replicate number. Must start from `1..<number of replicates>`.                                                                                                    |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 

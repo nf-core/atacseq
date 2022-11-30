@@ -30,12 +30,12 @@
                     }
                 ]
             },
-            "condition": {
-                "type": "string",
-                "pattern": "^\\S+$",
-                "errorMessage": "Condition entry cannot contain spaces"
+            "replicate": {
+                "type": "integer",
+                "pattern": "^[1-9][0-9]*$",
+                "errorMessage": "Integer representing replicate number. Must start from 1..<number of replicates>."
             }
         },
-        "required": ["sample", "fastq_1"]
+        "required": ["sample", "fastq_1", "replicate"]
     }
 }

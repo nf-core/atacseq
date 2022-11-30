@@ -1,6 +1,3 @@
-/*
- * Prepare genome intervals for filtering by removing regions in blacklist file
- */
 process GENOME_BLACKLIST_REGIONS {
     tag "$sizes"
 
@@ -12,15 +9,20 @@ process GENOME_BLACKLIST_REGIONS {
     input:
     path sizes
     path blacklist
+    val mito_name
+    val keep_mito
 
     output:
     path '*.bed'       , emit: bed
     path "versions.yml", emit: versions
 
+    when:
+    task.ext.when == null || task.ext.when
+
     script:
     def file_out = "${sizes.simpleName}.include_regions.bed"
-    def name_filter = params.mito_name ? "| awk '\$1 !~ /${params.mito_name}/ {print \$0}'": ''
-    def mito_filter = params.keep_mito ? '' : name_filter
+    def name_filter = mito_name ? "| awk '\$1 !~ /${params.mito_name}/ {print \$0}'": ''
+    def mito_filter = keep_mito ? '' : name_filter
     if (blacklist) {
         """
         sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes $mito_filter > $file_out

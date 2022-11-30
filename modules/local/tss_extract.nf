@@ -9,8 +9,11 @@ process TSS_EXTRACT {
     path bed
 
     output:
-    path("*.bed"), emit: tss
+    path "*.bed"       , emit: tss
     path "versions.yml", emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     """

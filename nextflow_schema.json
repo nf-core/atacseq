@@ -131,9 +131,11 @@
                 },
                 "tss_bed": {
                     "type": "string",
-                    "description": "Path to BED file containing transcription start sites. This will be created from the gene BED file if not specified.",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.bed(\\.gz)?$",
                     "fa_icon": "fas fa-procedures",
-                    "help_text": ""
+                    "description": "Path to BED file containing transcription start sites. This will be created from the gene BED file if not specified."
                 },
                 "macs_gsize": {
                     "type": "number",
@@ -177,7 +179,7 @@
                 "keep_mito": {
                     "type": "boolean",
                     "description": "Reads mapping to mitochondrial contig are not filtered from alignments.",
-                    "default": "false"
+                    "default": false
                 }
             }
         },
@@ -416,7 +418,7 @@
                 },
                 "skip_ataqv": {
                     "type": "boolean",
-                    "default": "false",
+                    "default": false,
                     "description": "Skip Ataqv.",
                     "fa_icon": "fas fa-fast-forward"
                 }

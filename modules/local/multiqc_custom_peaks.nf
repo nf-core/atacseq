@@ -11,13 +11,17 @@ process MULTIQC_CUSTOM_PEAKS {
     path frip_score_header
 
     output:
-    tuple val(meta), path("*.peak_count_mqc.tsv"), emit: count
+    tuple val(meta), path("*.count_mqc.tsv"), emit: count
     tuple val(meta), path("*.FRiP_mqc.tsv")      , emit: frip
+    path "versions.yml"                          , emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    cat $peak | wc -l | awk -v OFS='\t' '{ print "${prefix}", \$1 }' | cat $peak_count_header - > ${prefix}.peak_count_mqc.tsv
+    cat $peak | wc -l | awk -v OFS='\t' '{ print "${prefix}", \$1 }' | cat $peak_count_header - > ${prefix}.count_mqc.tsv
     cat $frip_score_header $frip > ${prefix}.FRiP_mqc.tsv
 
     cat <<-END_VERSIONS > versions.yml
