@@ -146,7 +146,7 @@ def check_samplesheet(file_in, file_out):
                     )
                     sys.exit(1)
 
-                ## Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
+                ## Check that multiple replicates are of the same datatype i.e. single-end / paired-end
                 if not all(
                     x[0][3] == sample_mapping_dict[sample][1][0][3] for x in sample_mapping_dict[sample].values()
                 ):
