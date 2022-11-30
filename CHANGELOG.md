@@ -12,10 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pipeline has been re-implemented in [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html)
 - Bump minimum Nextflow version from `19.10.0` -> `21.10.3`
 - Updated pipeline template to [nf-core/tools 2.6](https://github.com/nf-core/tools/releases/tag/2.6)
-- [[201](https://github.com/nf-core/atacseq/issues/201)] - Update blacklist bed files.
-- [[182](https://github.com/nf-core/atacseq/issues/182)] - Update `macs_gsize` in `igenomes.config`, create a new `--read_length` parameter and implement the logic to calculate `--macs_gsize` when the parameter is missing
-- [[#233](https://github.com/nf-core/chipseq/issues/233)] - Add `chromap` to the available aligners
-- [[#160](https://github.com/nf-core/chipseq/issues/160)] - Add `bowtie2` and `star` as available aligners, via the `--aligner` parameter
+- [[#135](https://github.com/nf-core/atacseq/issues/135)] - ERROR: Please check design file header
+- [[#158](https://github.com/nf-core/atacseq/issues/158)] - Problem using hyphens in group names
+- [[#182](https://github.com/nf-core/atacseq/issues/182)] - Update `macs_gsize` in `igenomes.config`, create a new `--read_length` parameter and implement the logic to calculate `--macs_gsize` when the parameter is missing
+- [[#193](https://github.com/nf-core/atacseq/issues/193)] - TSS heatmap inconsistency between ChIPseeker and nf-core ATAC-seq pipeline
+- [[#201](https://github.com/nf-core/atacseq/issues/201)] - Update blacklist bed files.
+- [[#220](https://github.com/nf-core/atacseq/issues/220)] - Move FastQ files for minimal tests to S3
+- [[nf-core/chipseq#160](https://github.com/nf-core/chipseq/issues/160)] - Add `bowtie2` and `star` as available aligners, via the `--aligner` parameter
+- [[nf-core/chipseq#233](https://github.com/nf-core/chipseq/issues/233)] - Add `chromap` to the available aligners
 - Add `--save_unaligned` parameter (only available for `bowtie2` and `star`)
 - Preseq will be skipped by default (see [nf-core/rnaseq#897](https://github.com/nf-core/rnaseq/issues/897))
 - `--deseq2_vst` will be turned on by default
