@@ -99,7 +99,7 @@ def check_samplesheet(file_in, file_out):
                             )
 
                 ## Check replicate column is integer
-                if not replicate.isdigit():
+                if not replicate.isdecimal():
                     print_error("Replicate id not an integer!", "Line", line)
                     sys.exit(1)
 
@@ -138,7 +138,7 @@ def check_samplesheet(file_in, file_out):
 
                 ## Check that replicate ids are in format 1..<num_replicates>
                 uniq_rep_ids = sorted(list(set(sample_mapping_dict[sample].keys())))
-                if len(uniq_rep_ids) != max(uniq_rep_ids):
+                if len(uniq_rep_ids) != max(uniq_rep_ids) or 1 != min(uniq_rep_ids):
                     print_error(
                         "Replicate ids must start with 1..<num_replicates>!",
                         "Sample",
@@ -147,13 +147,13 @@ def check_samplesheet(file_in, file_out):
                     sys.exit(1)
 
                 for replicate in sorted(sample_mapping_dict[sample].keys()):
-                    ## Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
+                    ## Check that multiple replicates are of the same datatype i.e. single-end / paired-end
                     if not all(
                         x[3] == sample_mapping_dict[sample][replicate][0][3]
                         for x in sample_mapping_dict[sample][replicate]
                     ):
                         print_error(
-                            f"Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end!",
+                            f"Multiple replicates of a sample must be of the same datatype i.e. single-end or paired-end!",
                             "Sample",
                             sample,
                         )
