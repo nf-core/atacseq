@@ -158,10 +158,10 @@ workflow PREPARE_GENOME {
     if (prepare_tool_index == 'bwa') {
         if (params.bwa_index) {
             if (params.bwa_index.endsWith('.tar.gz')) {
-                ch_bwa_index = UNTAR_BWA_INDEX ( [ [:], params.bwa_index ] ).untar.map{ it[1] }
+                ch_bwa_index = UNTAR_BWA_INDEX ( [ [:], params.bwa_index ] ).untar
                 ch_versions  = ch_versions.mix(UNTAR_BWA_INDEX.out.versions)
             } else {
-                ch_bwa_index = file(params.bwa_index)
+                ch_bwa_index = [ [:], file(params.bwa_index) ]
             }
         } else {
             ch_bwa_index = BWA_INDEX ( [ [:], ch_fasta ] ).index
@@ -176,10 +176,10 @@ workflow PREPARE_GENOME {
     if (prepare_tool_index == 'bowtie2') {
         if (params.bowtie2_index) {
             if (params.bowtie2_index.endsWith('.tar.gz')) {
-                ch_bowtie2_index = UNTAR_BOWTIE2_INDEX ( [ [:], params.bowtie2_index ] ).untar.map{ it[1] }
+                ch_bowtie2_index = UNTAR_BOWTIE2_INDEX ( [ [:], params.bowtie2_index ] ).untar
                 ch_versions  = ch_versions.mix(UNTAR_BOWTIE2_INDEX.out.versions)
             } else {
-                ch_bowtie2_index = file(params.bowtie2_index)
+                ch_bowtie2_index = [ [:], file(params.bowtie2_index) ]
             }
         } else {
             ch_bowtie2_index = BOWTIE2_BUILD ( [ [:], ch_fasta ] ).index
@@ -194,10 +194,10 @@ workflow PREPARE_GENOME {
     if (prepare_tool_index == 'chromap') {
         if (params.chromap_index) {
             if (params.chromap_index.endsWith('.tar.gz')) {
-                ch_chromap_index = UNTAR_CHROMAP_INDEX ( [ [:], params.chromap_index ] ).untar.map{ it[1] }
+                ch_chromap_index = UNTAR_CHROMAP_INDEX ( [ [:], params.chromap_index ] ).untar
                 ch_versions  = ch_versions.mix(UNTAR.out.versions)
             } else {
-                ch_chromap_index = file(params.chromap_index)
+                ch_chromap_index = [ [:], file(params.chromap_index) ]
             }
         } else {
             ch_chromap_index = CHROMAP_INDEX ( [ [:], ch_fasta ] ).index
