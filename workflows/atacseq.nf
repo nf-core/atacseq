@@ -508,7 +508,7 @@ workflow ATACSEQ {
             ch_merged_library_replicate_bam
         )
         ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_REPLICATE.out.versions.first())
-    
+
         //
         // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
         //
@@ -569,7 +569,7 @@ workflow ATACSEQ {
         if (!params.skip_consensus_peaks) {
             MERGED_REPLICATE_CONSENSUS_PEAKS (
                 MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.peaks,
-                ch_merged_library_replicate_bam,
+                ch_bam_replicate,
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf,
                 ch_multiqc_merged_replicate_deseq2_pca_header,
