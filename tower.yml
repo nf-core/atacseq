@@ -1,0 +1,33 @@
+reports:
+  multiqc_report.html:
+    display: "MultiQC HTML report"
+  macs2_peak.mLb.clN.plots.pdf:
+    display: "Merged library all samples MACS2 peak QC PDF plots"
+  macs2_peak.mRp.clN.plots.pdf:
+    display: "Merged replicate all samples MACS2 peak QC PDF plots"
+  macs2_annotatePeaks.mLb.clN.plots.pdf:
+    display: "Merged library all samples HOMER annotatePeaks.pl QC PDF plots"
+  macs2_annotatePeaks.mRp.clN.plots.pdf:
+    display: "Merged replicate all samples HOMER annotatePeaks.pl QC PDF plots"
+  consensus_peaks.mLb.clN.plots.pdf:
+    display: "Merged library consensus peaks DESeq2 QC PDF plots"
+  consensus_peaks.mRp.clN.plots.pdf:
+    display: "Merged replicate consensus peaks DESeq2 QC PDF plots"
+  consensus_peaks.mLb.clN.boolean.intersect.plot.pdf:
+    display: "Merged library consensus peaks UpSetR intersection PDF plots"
+  consensus_peaks.mRp.clN.boolean.intersect.plot.pdf:
+    display: "Merged replicate consensus peaks UpSetR intersection PDF plots"
+  consensus_peaks.mLb.clN.annotatePeaks.txt:
+    display: "Merged library consensus peaks annotated by HOMER"
+  consensus_peaks.mRp.clN.annotatePeaks.txt:
+    display: "Merged replicate consensus peaks annotated by HOMER"
+  "*.plotHeatmap.pdf":
+    display: "Merged library per-sample deepTools plotHeatmap PDF plots"
+  "*mLb.clN_peaks.broadPeak":
+    display: "Merged library per-sample MACS2 broadPeak file"
+  "*mRp.clN_peaks.broadPeak":
+    display: "Merged replicate per-sample MACS2 broadPeak file"
+  "*mLb.clN_peaks.narrowPeak":
+    display: "Merged library per-sample MACS2 narrowPeak file"
+  "*mRp.clN_peaks.narrowPeak":
+    display: "Merged replicate per-sample MACS2 narrowPeak file"
