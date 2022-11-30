@@ -16,6 +16,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
     ch_fasta                          // channel: [ fasta ]
     ch_gtf                            // channel: [ gtf ]
     macs_gsize                        // integer: value for --macs_gsize parameter
+    annotate_peaks_suffix             //  string: suffix for input HOMER annotate peaks files to be trimmed off
     ch_peak_count_header_multiqc      // channel: [ header_file ]
     ch_frip_score_multiqc             // channel: [ header_file ]
     ch_peak_annotation_header_multiqc // channel: [ header_file ]
@@ -120,7 +121,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
             PLOT_HOMER_ANNOTATEPEAKS (
                 HOMER_ANNOTATEPEAKS.out.txt.collect{it[1]},
                 ch_peak_annotation_header_multiqc,
-                "_peaks.annotatePeaks.txt"
+                annotate_peaks_suffix
             )
             ch_plot_homer_annotatepeaks_txt = PLOT_HOMER_ANNOTATEPEAKS.out.txt
             ch_plot_homer_annotatepeaks_pdf = PLOT_HOMER_ANNOTATEPEAKS.out.pdf
