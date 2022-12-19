@@ -47,7 +47,7 @@
                     },
                     "custom/dumpsoftwareversions": {
                         "branch": "master",
-                        "git_sha": "8022c68e7403eecbd8ba9c49496f69f8c49d50f0",
+                        "git_sha": "c8e35eb2055c099720a75538d1b8adb3fb5a464c",
                         "installed_by": ["modules"]
                     },
                     "custom/getchromsizes": {
@@ -77,8 +77,8 @@
                     },
                     "fastqc": {
                         "branch": "master",
-                        "git_sha": "810e8f2603ec38401d49a4aaed06f6d058745552",
-                        "installed_by": ["modules", "fastq_fastqc_umitools_trimgalore"]
+                        "git_sha": "c8e35eb2055c099720a75538d1b8adb3fb5a464c",
+                        "installed_by": ["fastq_fastqc_umitools_trimgalore", "modules"]
                     },
                     "gffread": {
                         "branch": "master",
