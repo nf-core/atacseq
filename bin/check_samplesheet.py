@@ -12,7 +12,7 @@ def parse_args(args=None):
     parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
     parser.add_argument("FILE_IN", help="Input samplesheet file.")
     parser.add_argument("FILE_OUT", help="Output file.")
-    parser.add_argument("--with_control", action='store_true', help="shows output")
+    parser.add_argument("--with_control", action="store_true", help="shows output")
     return parser.parse_args(args)
 
 
