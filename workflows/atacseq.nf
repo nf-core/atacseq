@@ -38,6 +38,7 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath( params.mult
 ch_multiqc_logo          = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo, checkIfExists: true ) : Channel.empty()
 ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
 
+
 // JSON files required by BAMTools for alignment filtering
 ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
 ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
@@ -395,10 +396,7 @@ workflow ATACSEQ {
             }
             .set { ch_control_bam_bai }
 
-        MERGED_LIBRARY_FILTER_BAM
-            .out
-            .bam
-            .join (MERGED_LIBRARY_FILTER_BAM.out.bai, by: [0])
+        ch_bam_bai
             .map {
                 meta, bam, bai ->
                     meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null

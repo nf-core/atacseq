@@ -2,12 +2,11 @@
 
 import os
 import sys
-import errno
 import argparse
 
 
 def parse_args(args=None):
-    Description = "Reformat bovreg/atacseq samplesheet file and check its contents."
+    Description = "Reformat nf-core/atacseq samplesheet file and check its contents."
     Epilog = "Example usage: python check_samplesheet.py <FILE_IN> <FILE_OUT>"
 
     parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
