@@ -55,7 +55,7 @@ def check_samplesheet(file_in, file_out, expect_control=False):
         ## Check header
         MIN_COLS = 3
         if expect_control:
-            HEADER = ["sample", "fastq_1", "fastq_2", "replicate", "control"]
+            HEADER = ["sample", "fastq_1", "fastq_2", "replicate", "control", "control_replicate"]
         else:
             HEADER = ["sample", "fastq_1", "fastq_2", "replicate"]
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
@@ -84,8 +84,9 @@ def check_samplesheet(file_in, file_out, expect_control=False):
                     )
 
                 ## Check sample name entries
-                sample, fastq_1, fastq_2, replicate = lspl[: len(HEADER)-1 if expect_control else len(HEADER)]
-                control = lspl[len(HEADER)-1] if expect_control else ''
+                sample, fastq_1, fastq_2, replicate = lspl[: len(HEADER)-2 if expect_control else len(HEADER)]
+                control             = lspl[len(HEADER)-2] if expect_control else ''
+                control_replicate   = lspl[len(HEADER)-1] if expect_control else ''
                 if sample.find(" ") != -1:
                     print(f"WARNING: Spaces have been replaced by underscores for sample: {sample}")
                     sample = sample.replace(" ", "_")
@@ -115,6 +116,10 @@ def check_samplesheet(file_in, file_out, expect_control=False):
                             f"WARNING: Spaces have been replaced by underscores for control: {control}"
                         )
                         control = control.replace(" ", "_")
+                    if not control_replicate.isdecimal():
+                        print_error("Control replicate id not an integer!", "Line", line)
+                        sys.exit(1)
+                    control =  "{}_REP{}".format(control, control_replicate)
 
                 ## Auto-detect paired-end/single-end
                 sample_info = []
@@ -145,7 +150,10 @@ def check_samplesheet(file_in, file_out, expect_control=False):
         out_dir = os.path.dirname(file_out)
         make_dir(out_dir)
         with open(file_out, "w") as fout:
-            fout.write(",".join(HEADER + ([] if expect_control else ['control']) + ["single_end"] + header[len(HEADER) :]) + "\n")
+            if expect_control:
+                fout.write(",".join(HEADER[:-2] + ["single_end", "control"] + header[len(HEADER) :]) + "\n")
+            else:
+                fout.write(",".join(HEADER + ["single_end", "control"] + header[len(HEADER) :]) + "\n")
 
             for sample in sorted(sample_mapping_dict.keys()):
 
@@ -182,12 +190,13 @@ def check_samplesheet(file_in, file_out, expect_control=False):
                         )
 
                     for idx, val in enumerate(sample_mapping_dict[sample][replicate]):
-                        control = val[-1]
-                        if control and control not in sample_mapping_dict.keys():
+                        control           = "_REP".join(val[4].split("_REP")[:-1])
+                        control_replicate = val[4].split("_REP")[-1]
+                        if control and ( control not in sample_mapping_dict.keys() or int(control_replicate) not in sample_mapping_dict[control].keys() ):
                             print_error(
-                                f"Control identifier has to match a provided sample identifier!",
+                                f"Control identifier and replicate has to match a provided sample identifier and replicate!",
                                 "Control",
-                                control,
+                                val[4],
                             )
 
                     ## Write to file
