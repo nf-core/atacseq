@@ -6,8 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## v2.1dev - [date]
 
 ### Enhancements & fixes
+- optional support of control data analog to nf-core/chipseq.
 
 - Updated pipeline template to [nf-core/tools 2.7.2](https://github.com/nf-core/tools/releases/tag/2.7.2)
+
+### Parameters
+
+| Old parameter          | New parameter      |
+| ---------------------- | ------------------ |
+|                        | `--with_control`   |
+
+
+> **NB:** Parameter has been **updated** if both old and new parameter information is present.
+> **NB:** Parameter has been **added** if just the new parameter information is present.
+> **NB:** Parameter has been **removed** if parameter information isn't present.
 
 ## [[2.0](https://github.com/nf-core/atacseq/releases/tag/2.0)] - 2022-11-30
 
