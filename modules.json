@@ -12,7 +12,7 @@
                     },
                     "ataqv/mkarv": {
                         "branch": "master",
-                        "git_sha": "c8e35eb2055c099720a75538d1b8adb3fb5a464c",
+                        "git_sha": "d36a2655ce0769d7f0b604ceab08fac1d1b91bae",
                         "installed_by": ["modules"]
                     },
                     "bowtie2/align": {
@@ -157,7 +157,7 @@
                     },
                     "trimgalore": {
                         "branch": "master",
-                        "git_sha": "c8e35eb2055c099720a75538d1b8adb3fb5a464c",
+                        "git_sha": "72ffbd7128015a1d4b65b95ff8d37be8fee2f981",
                         "installed_by": ["modules", "fastq_fastqc_umitools_trimgalore"]
                     },
                     "ucsc/bedgraphtobigwig": {
@@ -172,7 +172,7 @@
                     },
                     "untar": {
                         "branch": "master",
-                        "git_sha": "c8e35eb2055c099720a75538d1b8adb3fb5a464c",
+                        "git_sha": "cc1f997fab6d8fde5dc0e6e2a310814df5b53ce7",
                         "installed_by": ["modules"]
                     }
                 }
