@@ -49,7 +49,6 @@ def check_samplesheet(file_in, file_out):
 
     sample_mapping_dict = {}
     with open(file_in, "r", encoding="utf-8-sig") as fin:
-
         ## Check header
         MIN_COLS = 3
         HEADER = ["sample", "fastq_1", "fastq_2", "replicate"]
@@ -135,7 +134,6 @@ def check_samplesheet(file_in, file_out):
             fout.write(",".join(HEADER + ["single_end"] + header[len(HEADER) :]) + "\n")
 
             for sample in sorted(sample_mapping_dict.keys()):
-
                 ## Check that replicate ids are in format 1..<num_replicates>
                 uniq_rep_ids = sorted(list(set(sample_mapping_dict[sample].keys())))
                 if len(uniq_rep_ids) != max(uniq_rep_ids) or 1 != min(uniq_rep_ids):
