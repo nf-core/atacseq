@@ -35,7 +35,7 @@ def print_error(error, context="Line", context_str=""):
     sys.exit(1)
 
 
-def check_samplesheet(file_in, file_out, expect_control=False):
+def check_samplesheet(file_in, file_out, with_control=False):
     """
     This function checks that the samplesheet follows the following structure:
     sample,fastq_1,fastq_2,replicate
@@ -52,7 +52,7 @@ def check_samplesheet(file_in, file_out, expect_control=False):
     with open(file_in, "r", encoding="utf-8-sig") as fin:
         ## Check header
         MIN_COLS = 3
-        if expect_control:
+        if with_control:
             HEADER = ["sample", "fastq_1", "fastq_2", "replicate", "control", "control_replicate"]
         else:
             HEADER = ["sample", "fastq_1", "fastq_2", "replicate"]
@@ -82,9 +82,9 @@ def check_samplesheet(file_in, file_out, expect_control=False):
                     )
 
                 ## Check sample name entries
-                sample, fastq_1, fastq_2, replicate = lspl[: len(HEADER) - 2 if expect_control else len(HEADER)]
-                control = lspl[len(HEADER) - 2] if expect_control else ""
-                control_replicate = lspl[len(HEADER) - 1] if expect_control else ""
+                sample, fastq_1, fastq_2, replicate = lspl[: len(HEADER) - 2 if with_control else len(HEADER)]
+                control = lspl[len(HEADER) - 2] if with_control else ""
+                control_replicate = lspl[len(HEADER) - 1] if with_control else ""
                 if sample.find(" ") != -1:
                     print(f"WARNING: Spaces have been replaced by underscores for sample: {sample}")
                     sample = sample.replace(" ", "_")
@@ -108,7 +108,7 @@ def check_samplesheet(file_in, file_out, expect_control=False):
                     print_error("Replicate id not an integer!", "Line", line)
                     sys.exit(1)
 
-                if expect_control and control:
+                if with_control and control:
                     if control.find(" ") != -1:
                         print(f"WARNING: Spaces have been replaced by underscores for control: {control}")
                         control = control.replace(" ", "_")
@@ -146,7 +146,7 @@ def check_samplesheet(file_in, file_out, expect_control=False):
         out_dir = os.path.dirname(file_out)
         make_dir(out_dir)
         with open(file_out, "w") as fout:
-            if expect_control:
+            if with_control:
                 fout.write(",".join(HEADER[:-2] + ["single_end", "control"] + header[len(HEADER) :]) + "\n")
             else:
                 fout.write(",".join(HEADER + ["single_end", "control"] + header[len(HEADER) :]) + "\n")
