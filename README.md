@@ -91,6 +91,7 @@ On release, automated continuous integration tests run the pipeline on a full-si
    ```bash
    nextflow run nf-core/atacseq --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
    ```
+
 See [usage docs](https://nf-co.re/atacseq/usage) for all of the available options when running the pipeline.
 
 ## Documentation
