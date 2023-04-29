@@ -19,7 +19,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 ### Raw read QC
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `fastqc/`
   - `*_fastqc.html`: FastQC report containing quality metrics for read 1 (_and read2 if paired-end_) **before** adapter trimming.
@@ -33,7 +33,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 ### Adapter trimming
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `trimgalore/`
   - `*fastq.gz`: If `--save_trimmed` is specified, FastQ files **after** adapter trimming will be placed in this directory.
@@ -55,7 +55,7 @@ The initial QC and alignments are performed at the library-level e.g. if the sam
 The pipeline has been written in a way where all the files generated downstream of the alignment are placed in the same directory as specified by `--aligner` e.g. if `--aligner bwa` is specified then all the downstream results will be placed in the `bwa/` directory. This helps with organising the directory structure and more importantly, allows the end-user to get the results from multiple aligners by simply re-running the pipeline with a different `--aligner` option along the `-resume` parameter. It also means that results won't be overwritten when resuming the pipeline and can be used for benchmarking between alignment algorithms if required. Thus, `<ALIGNER>` in the directory structure below corresponds to the aligner set when running the pipeline.
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `<ALIGNER>/library/`
   - `*.bam`: The files resulting from the alignment of individual libraries are not saved by default so this directory will not be present in your results. You can override this behaviour with the use of the `--save_align_intermeds` flag in which case it will contain the coordinate sorted alignment files in [`*.bam`](https://samtools.github.io/hts-specs/SAMv1.pdf) format.
@@ -83,7 +83,7 @@ The library-level alignments associated with the same sample are merged and subs
 The `--save_unaligned` parameter enables to obtain FastQ files containing unmapped reads (only available for STAR and Bowtie2).
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 - `<ALIGNER>/library/unmapped/`
   - `*.fastq.gz`: If `--save_unaligned` is specified, FastQ files containing unmapped reads will be placed in this directory.
 
@@ -92,7 +92,7 @@ The `--save_unaligned` parameter enables to obtain FastQ files containing unmapp
 #### STAR logs
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `star/library/log/`
   - `*.SJ.out.tab`: File containing filtered splice junctions detected after mapping the reads.
@@ -108,7 +108,7 @@ The library-level alignments associated with the same sample are merged and subs
 ### Alignment merging, duplicate marking, filtering and QC
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `<ALIGNER>/merged_library/`
   - `*.bam`: Merged library-level, coordinate sorted `*.bam` files after the marking of duplicates, and filtering based on various criteria. The file suffix for the final filtered files will be `*.mLb.clN.*`. If you specify the `--save_align_intermeds` parameter then two additional sets of files will be present. These represent the unfiltered alignments with duplicates marked (`*.mLb.mkD.*`), and in the case of paired-end datasets the filtered alignments before the removal of orphan read pairs (`*.mLb.flT.*`).
@@ -143,7 +143,7 @@ The [Preseq](http://smithlabresearch.org/software/preseq/) package is aimed at p
 ### Normalised bigWig files
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `<ALIGNER>/merged_library/bigwig/`
   - `*.bigWig`: Normalised bigWig files scaled to 1 million mapped reads.
@@ -155,7 +155,7 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is in a
 ### Coverage QC
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `<ALIGNER>/merged_library/deeptools/plotfingerprint/`
   - `*.plotFingerprint.pdf`, `*.plotFingerprint.qcmetrics.txt`, `*.plotFingerprint.raw.txt`: plotFingerprint output files.
@@ -175,7 +175,7 @@ The results from deepTools plotProfile gives you a quick visualisation for the g
 ### Call peaks
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/`
   - `*.xls`, `*.broadPeak` or `*.narrowPeak`, `*.gappedPeak`, `*summits.bed`: MACS2 output files - the files generated will depend on whether MACS2 has been run in _narrowPeak_ or _broadPeak_ mode.
@@ -204,7 +204,7 @@ Various QC plots per sample including number of peaks, fold-change distribution,
 ### Create and quantify consensus set of peaks
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/consensus/`
   - `*.bed`: Consensus peak-set across all samples in BED format.
@@ -232,16 +232,16 @@ The [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) tool is used to co
 ### Read counting and differential accessibility analysis
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/consensus/deseq2/`
-  - `*.sample.dists.txt`: Spreadsheet containing sample-to-sample distance.
   - `*.plots.pdf`: File containing PCA and hierarchical clustering plots.
   - `*.dds.RData`: File containing R `DESeqDataSet` object generated by DESeq2, with either
     an rlog or vst `assay` storing the variance-stabilised data.
   - `*.rds`: Alternative version of the RData file suitable for
     `readRDS` to give user control of the eventual object name.
   - `*pca.vals.txt`: Matrix of values for the first 2 principal components.
+  - `*.sample.dists.txt`: Sample distance matrix.
   - `R_sessionInfo.log`: File containing information about R, the OS and attached or loaded packages.
 - `<ALIGNER>/merged_library/macs2/<PEAK_TYPE>/consensus/sizeFactors/`
   - `*.txt`, `*.RData`: Files containing DESeq2 sizeFactors per sample.
@@ -252,28 +252,18 @@ The [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) tool is used to co
 
 **This pipeline uses a standardised DESeq2 analysis script to get an idea of the reproducibility within the experiment, and to assess the overall differential accessibility. Please note that this will not suit every experimental design, and if there are other problems with the experiment then it may not work as well as expected.**
 
+The script included in the pipeline uses DESeq2 to normalise read counts across all of the provided samples in order to create a PCA plot and a clustered heatmap showing pairwise Euclidean distances between the samples in the experiment. These help to show the similarity between groups of samples and can reveal batch effects and other potential issues with the experiment.
+
 By default, the pipeline uses the `vst` transformation which is more suited to larger experiments. You can set the parameter `--deseq2_vst false` if you wish to use the DESeq2 native `rlog` option. See [DESeq2 docs](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#data-transformations-and-visualization) for a more detailed explanation.
 
 ![MultiQC - DESeq2 PCA plot](images/mqc_deseq2_pca_plot.png)
 
-<p markdown="1" align="center">
-    <img src="images/mqc_deseq2_sample_similarity_plot.png" alt="MultiQC - DESeq2 sample similarity plot" width="600">
-</p>
-
-By default, all possible pairwise comparisons across the groups are performed (as defined in [`design.csv`](usage.md#--design)). The DESeq2 results are generated by the pipeline in various ways. You can load up the results across all of the comparisons in a single spreadsheet, or individual folders will also be created that contain the results specific to a particular comparison. For the latter, additional files will also be generated where the intervals have been pre-filtered based on a couple of standard FDR thresholds. Please see [DESeq2 output](http://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#differential-expression-analysis) for a description of the columns generated by DESeq2.
-
-<p markdown="1" align="center">
-    <img src="images/r_deseq2_ma_plot.png" alt="R - DESeq2 MA plot">
-</p>
-
-<p markdown="1" align="center">
-    <img src="images/r_deseq2_volcano_plot.png" alt="R - DESeq2 Volcano plot">
-</p>
+<p align="center"><img src="images/mqc_deseq2_sample_similarity_plot.png" alt="MultiQC - DESeq2 sample similarity plot" width="600"></p>
 
 ### ataqv
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `<ALIGNER>/merged_library/ataqv/<PEAK_TYPE>/`
   - `.json`: JSON files containing ATAC-seq specific metrics for each sample.
@@ -299,7 +289,7 @@ You can skip this portion of the analysis by specifying the `--skip_merge_replic
 ### Present QC for the raw read, alignment, peak and differential accessibility results
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `multiqc/<PEAK_TYPE>/`
   - `multiqc_report.html`: A standalone HTML file that can be viewed in your web browser.
@@ -317,7 +307,7 @@ The pipeline has special steps which also allow the software versions to be repo
 ### Create IGV session file
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `igv/<PEAK_TYPE>/`
   - `igv_session.xml`: Session file that can be directly loaded into IGV.
@@ -342,7 +332,7 @@ Once installed, open IGV, go to `File > Open Session` and select the `igv_sessio
 ### Reference genome files
 
 <details markdown="1">
-    <summary>Output files</summary>
+<summary>Output files</summary>
 
 - `genome/`
   - A number of genome-specific files are generated by the pipeline in order to aid in the filtering of the data, and because they are required by standard tools such as BEDTools. These can be found in this directory along with the genome fasta file which is required by IGV. If using a genome from AWS iGenomes and if it exists a `README.txt` file containing information about the annotation version will also be saved in this directory.

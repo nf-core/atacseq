@@ -334,9 +334,24 @@ workflow ATACSEQ {
     ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
     if (!params.skip_picard_metrics) {
         MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS (
-            MERGED_LIBRARY_FILTER_BAM.out.bam,
-            PREPARE_GENOME.out.fasta,
-            PREPARE_GENOME.out.fai,
+            MERGED_LIBRARY_FILTER_BAM
+                .out
+                .bam
+                .map {
+                    [ it[0], it[1], [] ]
+                },
+            PREPARE_GENOME
+                .out
+                .fasta
+                .map {
+                    [ [:], it ]
+                },
+            PREPARE_GENOME
+                .out
+                .fai
+                .map {
+                    [ [:], it ]
+                }
         )
         ch_picardcollectmultiplemetrics_multiqc = MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS.out.metrics
         ch_versions = ch_versions.mix(MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
@@ -701,7 +716,7 @@ workflow.onComplete {
     }
 
     if (params.hook_url) {
-        NfcoreTemplate.adaptivecard(workflow, params, summary_params, projectDir, log)
+        NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)
     }
 
     NfcoreTemplate.summary(workflow, params, log)

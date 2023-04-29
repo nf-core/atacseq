@@ -3,7 +3,13 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [[2.0](https://github.com/nf-core/rnaseq/releases/tag/2.0)] - 2022-11-30
+## v2.1dev - [date]
+
+### Enhancements & fixes
+
+- Updated pipeline template to [nf-core/tools 2.7.2](https://github.com/nf-core/tools/releases/tag/2.7.2)
+
+## [[2.0](https://github.com/nf-core/atacseq/releases/tag/2.0)] - 2022-11-30
 
 ### :warning: Major enhancements
 

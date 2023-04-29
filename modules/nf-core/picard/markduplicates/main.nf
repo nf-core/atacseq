@@ -2,7 +2,7 @@ process PICARD_MARKDUPLICATES {
     tag "$meta.id"
     label 'process_medium'
 
-    conda (params.enable_conda ? "bioconda::picard=2.27.4" : null)
+    conda "bioconda::picard=2.27.4"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/picard:2.27.4--hdfd78af_0' :
         'quay.io/biocontainers/picard:2.27.4--hdfd78af_0' }"
@@ -28,7 +28,7 @@ process PICARD_MARKDUPLICATES {
     if (!task.memory) {
         log.info '[Picard MarkDuplicates] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
     } else {
-        avail_mem = task.memory.giga
+        avail_mem = (task.memory.giga*0.8).intValue()
     }
     """
     picard \\
