@@ -102,7 +102,7 @@
                     },
                     "macs2/callpeak": {
                         "branch": "master",
-                        "git_sha": "f2d63bd5b68925f98f572eed70993d205cc694b7",
+                        "git_sha": "0f8a77ff00e65eaeebc509b8156eaa983192474b",
                         "installed_by": ["modules"]
                     },
                     "picard/collectmultiplemetrics": {
