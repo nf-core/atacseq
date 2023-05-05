@@ -89,7 +89,16 @@ Now, you can run the pipeline using:
 nextflow run nf-core/atacseq --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
 ```
 
-## Documentation
+See [usage docs](https://nf-co.re/atacseq/usage) for all of the available options when running the pipeline.
+
+> **Warning:**
+> Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those
+> provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
+> see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
+
+For more details, please refer to the [usage documentation](https://nf-co.re/atacseq/usage) and the [parameter documentation](https://nf-co.re/atacseq/parameters).
+
+## Pipeline output
 
 To see the the results of a test run with a full size dataset refer to the [results](https://nf-co.re/atacseq/results) tab on the nf-core website pipeline page.
 For more details about the output files and reports, please refer to the
