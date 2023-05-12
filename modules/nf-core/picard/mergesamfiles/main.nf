@@ -25,7 +25,7 @@ process PICARD_MERGESAMFILES {
     if (!task.memory) {
         log.info '[Picard MergeSamFiles] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
     } else {
-        avail_mem = task.memory.giga
+        avail_mem = (task.memory.giga*0.8).intValue()
     }
     if (bam_files.size() > 1) {
         """
