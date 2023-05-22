@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Enhancements & fixes
 
 - Updated pipeline template to [nf-core/tools 2.7.2](https://github.com/nf-core/tools/releases/tag/2.7.2)
+- Add public_aws_ecr profile for using containers hosted on ECR.
 
 ## [[2.0](https://github.com/nf-core/atacseq/releases/tag/2.0)] - 2022-11-30
 
