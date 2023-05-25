@@ -21,7 +21,6 @@ process BEDTOOLS_GENOMECOV {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def pe     = meta.single_end ? '' : '-pc'
     """
     SCALE_FACTOR=\$(grep '[0-9] mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
@@ -31,7 +30,6 @@ process BEDTOOLS_GENOMECOV {
         -ibam $bam \\
         -bg \\
         -scale \$SCALE_FACTOR \\
-        $pe \\
         $args \\
         | sort -T '.' -k1,1 -k2,2n > ${prefix}.bedGraph
 
