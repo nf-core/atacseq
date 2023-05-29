@@ -151,7 +151,8 @@ workflow ATACSEQ {
         false,
         false,
         params.skip_trimming,
-        0
+        0,
+        params.min_trimmed_reads
     )
     ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
 
