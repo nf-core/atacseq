@@ -40,7 +40,7 @@ jobs:
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker --outdir ./results
 
       - name: Upload logs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success() || failure()
         with:
           name: default_run_logs
