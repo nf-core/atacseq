@@ -47,8 +47,6 @@ jobs:
           path: |
             *.log
             *.err
-            work/
-            results/
 
   parameters:
     name: Test workflow parameters
