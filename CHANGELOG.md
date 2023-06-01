@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements & fixes
 
-- optional support of control data analog to nf-core/chipseq.
+- Optional support of control data analog to nf-core/chipseq.
 
 - Updated pipeline template to [nf-core/tools 2.7.2](https://github.com/nf-core/tools/releases/tag/2.7.2)
 - Add public_aws_ecr profile for using containers hosted on ECR.
