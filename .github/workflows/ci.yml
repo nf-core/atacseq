@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   test:
-    name: Run pipeline with test data
+    name: "Test (${{ matrix.parameters }}, nxf: ${{ matrix.NXF_VER }})"
     # Only run on push if this is the nf-core dev branch (merged PRs)
     if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/atacseq') }}"
     runs-on: ubuntu-latest
@@ -31,8 +31,6 @@ jobs:
           - "--skip_trimming"
           - "--skip_merge_replicates"
           - "--skip_consensus_peaks"
-        aligner:
-          - ""
           - "--aligner bowtie2"
           - "--aligner chromap"
           - "--aligner star"
@@ -48,7 +46,7 @@ jobs:
 
       - name: Run pipeline with test data
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,docker ${{ matrix.parameters }} ${{ matrix.aligner }} --outdir ./results
+          nextflow run ${GITHUB_WORKSPACE} -profile test,docker ${{ matrix.parameters }} --outdir ./results
 
       - name: Upload logs
         uses: actions/upload-artifact@v3
