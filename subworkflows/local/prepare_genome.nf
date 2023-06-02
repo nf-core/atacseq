@@ -44,7 +44,7 @@ workflow PREPARE_GENOME {
         ch_fasta    = GUNZIP_FASTA ( [ [:], params.fasta ] ).gunzip.map{ it[1] }
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
-        ch_fasta = file(params.fasta)
+        ch_fasta = Channel.value(file(params.fasta))
     }
 
     //
@@ -55,14 +55,14 @@ workflow PREPARE_GENOME {
             ch_gtf      = GUNZIP_GTF ( [ [:], params.gtf ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
         } else {
-            ch_gtf = file(params.gtf)
+            ch_gtf = Channel.value(file(params.gtf))
         }
     } else if (params.gff) {
         if (params.gff.endsWith('.gz')) {
             ch_gff      = GUNZIP_GFF ( [ [:], params.gff ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GFF.out.versions)
         } else {
-            ch_gff = file(params.gff)
+            ch_gff = Channel.value(file(params.gff))
         }
         ch_gtf      = GFFREAD ( ch_gff ).gtf
         ch_versions = ch_versions.mix(GFFREAD.out.versions)
@@ -123,7 +123,8 @@ workflow PREPARE_GENOME {
     //
     // Create chromosome sizes file
     //
-    ch_chrom_sizes = CUSTOM_GETCHROMSIZES ( [ [:], ch_fasta ] ).sizes.map{ it[1] }
+    CUSTOM_GETCHROMSIZES ( ch_fasta.map { [ [:], it ] } )
+    ch_chrom_sizes = CUSTOM_GETCHROMSIZES.out.sizes.map { it[1] }
     ch_fai         = CUSTOM_GETCHROMSIZES.out.fai.map{ it[1] }
     ch_versions    = ch_versions.mix(CUSTOM_GETCHROMSIZES.out.versions)
 
@@ -145,7 +146,7 @@ workflow PREPARE_GENOME {
     GENOME_BLACKLIST_REGIONS (
         ch_chrom_sizes,
         ch_blacklist.ifEmpty([]),
-        params.mito_name,
+        params.mito_name ?: '',
         params.keep_mito
     )
     ch_genome_filtered_bed = GENOME_BLACKLIST_REGIONS.out.bed
