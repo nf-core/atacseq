@@ -165,7 +165,7 @@ workflow PREPARE_GENOME {
                 ch_bwa_index = [ [:], file(params.bwa_index) ]
             }
         } else {
-            ch_bwa_index = BWA_INDEX ( [ [:], ch_fasta ] ).index
+            ch_bwa_index = BWA_INDEX ( ch_fasta.map { [ [:], it ] } ).index
             ch_versions  = ch_versions.mix(BWA_INDEX.out.versions)
         }
     }
@@ -183,7 +183,7 @@ workflow PREPARE_GENOME {
                 ch_bowtie2_index = [ [:], file(params.bowtie2_index) ]
             }
         } else {
-            ch_bowtie2_index = BOWTIE2_BUILD ( [ [:], ch_fasta ] ).index
+            ch_bowtie2_index = BOWTIE2_BUILD ( ch_fasta.map { [ [:], it ] } ).index
             ch_versions      = ch_versions.mix(BOWTIE2_BUILD.out.versions)
         }
     }
@@ -201,7 +201,7 @@ workflow PREPARE_GENOME {
                 ch_chromap_index = [ [:], file(params.chromap_index) ]
             }
         } else {
-            ch_chromap_index = CHROMAP_INDEX ( [ [:], ch_fasta ] ).index
+            ch_chromap_index = CHROMAP_INDEX ( ch_fasta.map { [ [:], it ] } ).index
             ch_versions  = ch_versions.mix(CHROMAP_INDEX.out.versions)
         }
     }
