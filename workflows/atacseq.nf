@@ -137,7 +137,8 @@ workflow ATACSEQ {
     //
     INPUT_CHECK (
         ch_input,
-        params.seq_center
+        params.seq_center,
+        params.with_control
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
 
@@ -381,12 +382,30 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS.out.versions)
     }
 
-    // Create channels: [ meta, [bam], [bai] ]
+    // Create channels: [ meta, [bam], [bai] ] or [ meta, [ bam, control_bam ] [ bai, control_bai ] ]
     MERGED_LIBRARY_FILTER_BAM
         .out
         .bam
         .join(MERGED_LIBRARY_FILTER_BAM.out.bai, by: [0])
         .set { ch_bam_bai }
+
+    if (params.with_control) {
+        ch_bam_bai
+            .map {
+                meta, bam, bai ->
+                    meta.control ? null : [ meta.id, [ bam ] , [ bai ] ]
+            }
+            .set { ch_control_bam_bai }
+
+        ch_bam_bai
+            .map {
+                meta, bam, bai ->
+                    meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null
+            }
+            .combine(ch_control_bam_bai, by: 0)
+            .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
+            .set { ch_bam_bai }
+    }
 
     //
     // MODULE: deepTools plotFingerprint QC
@@ -400,13 +419,22 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
     }
 
-    // Create channels: [ meta, bam, ([] for control_bam) ]
-    ch_bam_bai
-        .map {
-            meta, bam, bai ->
-                [ meta , bam, [] ]
-        }
-        .set { ch_bam_library }
+    // Create channel: [ val(meta), bam, control_bam ]
+    if (params.with_control) {
+        ch_bam_bai
+            .map {
+                meta, bams, bais ->
+                    [ meta , bams[0], bams[1] ]
+            }
+            .set { ch_bam_library }
+    } else {
+        ch_bam_bai
+            .map {
+                meta, bam, bai ->
+                    [ meta , bam, [] ]
+            }
+            .set { ch_bam_library }
+    }
 
     //
     // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
@@ -506,6 +534,7 @@ workflow ATACSEQ {
                 meta, bam ->
                     def meta_clone = meta.clone()
                     meta_clone.id = meta_clone.id - ~/_REP\d+$/
+                    meta_clone.control = meta_clone.control ? meta_clone.control - ~/_REP\d+$/ : ""
                     [ meta_clone.id, meta_clone, bam ]
             }
             .groupTuple()
@@ -549,15 +578,36 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_TO_BIGWIG.out.versions)
 
         // Create channels: [ meta, bam, ([] for control_bam) ]
-        MERGED_REPLICATE_MARKDUPLICATES_PICARD
-            .out
-            .bam
-            .map {
-                meta, bam ->
-                    [ meta , bam, [] ]
-            }
-            .set { ch_bam_replicate }
+        if (params.with_control) {
+            MERGED_REPLICATE_MARKDUPLICATES_PICARD
+                .out
+                .bam
+                .map {
+                    meta, bam ->
+                        meta.control ? null : [ meta.id, bam ]
+                }
+                .set { ch_bam_merged_control }
 
+            MERGED_REPLICATE_MARKDUPLICATES_PICARD
+                .out
+                .bam
+                .map {
+                    meta, bam ->
+                        meta.control ? [ meta.control, meta, bam ] : null
+                }
+                .combine( ch_bam_merged_control, by: 0)
+                .map { it -> [ it[1] , it[2], it[3] ] }
+                .set { ch_bam_replicate }
+        } else {
+            MERGED_REPLICATE_MARKDUPLICATES_PICARD
+                .out
+                .bam
+                .map {
+                    meta, bam ->
+                        [ meta , bam, [] ]
+                }
+                .set { ch_bam_replicate }
+        }
         //
         // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
         //
