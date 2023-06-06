@@ -495,7 +495,7 @@ workflow ATACSEQ {
         MERGED_LIBRARY_ATAQV_ATAQV (
             ch_bam_peaks,
             'NA',
-            params.mito_name,
+            params.mito_name ?: '',
             PREPARE_GENOME.out.tss_bed,
             [],
             PREPARE_GENOME.out.autosomes
