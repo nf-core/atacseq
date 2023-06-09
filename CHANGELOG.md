@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add public_aws_ecr profile for using containers hosted on ECR.
 - [[#277](https://github.com/nf-core/atacseq/issues/277)] - Fix error when using a gunziped fasta file.
 - [[#286](https://github.com/nf-core/atacseq/issues/286)] - Fix error when no `--mito_name parameter is provided.
+- [[#268](https://github.com/nf-core/atacseq/issues/268)] - Fix error when a bed file is provided using the `--blacklist` option.
+- [[#278](https://github.com/nf-core/atacseq/issues/278)] - Make genome fasta file available when `IGV` process is run.
 
 ### Parameters
 
