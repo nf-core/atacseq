@@ -39,14 +39,21 @@ jobs:
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker --outdir ./results
 
-      - name: Upload logs
-        uses: actions/upload-artifact@v3
-        if: success() || failure()
-        with:
-          name: default_run_logs
-          path: |
-            *.log
-            *.err
+  test_controls:
+    name: Run pipeline with test data and controls
+    # Only run on push if this is the nf-core dev branch (merged PRs)
+    if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/atacseq') }}"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pipeline code
+        uses: actions/checkout@v3
+
+      - name: Install Nextflow
+        uses: nf-core/setup-nextflow@v1
+
+      - name: Run pipeline with test data and controls
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile test_controls,docker --outdir ./results
 
   parameters:
     name: Test workflow parameters
