@@ -77,7 +77,7 @@ workflow PREPARE_GENOME {
             ch_blacklist = GUNZIP_BLACKLIST ( [ [:], params.blacklist ] ).gunzip.map{ it[1] }
             ch_versions  = ch_versions.mix(GUNZIP_BLACKLIST.out.versions)
         } else {
-            ch_blacklist = Channel.of(params.blacklist)
+            ch_blacklist = Channel.value(file(params.blacklist))
         }
     }
 
@@ -104,7 +104,7 @@ workflow PREPARE_GENOME {
             ch_gene_bed = GUNZIP_GENE_BED ( [ [:], params.gene_bed ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GENE_BED.out.versions)
         } else {
-            ch_gene_bed = file(params.gene_bed)
+            ch_gene_bed = Channel.value(file(params.gene_bed))
         }
     }
 
@@ -116,7 +116,7 @@ workflow PREPARE_GENOME {
             ch_tss_bed = GUNZIP_TSS_BED ( [ [:], params.tss_bed ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_TSS_BED.out.versions)
         } else {
-            ch_tss_bed = file(params.tss_bed)
+            ch_tss_bed = Channel.value(file(params.tss_bed))
         }
     }
 
@@ -216,7 +216,7 @@ workflow PREPARE_GENOME {
                 ch_star_index = UNTAR_STAR_INDEX ( [ [:], params.star_index ] ).untar.map{ it[1] }
                 ch_versions   = ch_versions.mix(UNTAR_STAR_INDEX.out.versions)
             } else {
-                ch_star_index = file(params.star_index)
+                ch_star_index = Channel.value(file(params.star_index))
             }
         } else {
             ch_star_index = STAR_GENOMEGENERATE ( ch_fasta, ch_gtf ).index
