@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#286](https://github.com/nf-core/atacseq/issues/286)] - Fix error when no `--mito_name parameter is provided.
 - [[#268](https://github.com/nf-core/atacseq/issues/268)] - Fix error when a bed file is provided using the `--blacklist` option.
 - [[#278](https://github.com/nf-core/atacseq/issues/278)] - Make genome fasta file available when `IGV` process is run.
+- [[#276](https://github.com/nf-core/atacseq/issues/276)] - Bump version 1.3.1 of ataqv to fix enrichment plots rendering.
 
 ### Parameters
 
