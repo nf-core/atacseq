@@ -7,6 +7,7 @@ process IGV {
 
     input:
     path fasta
+    path fai
     path ("${bigwig_library_publish_dir}/*")
     path ("${peak_library_publish_dir}/*")
     path ("${consensus_library_publish_dir}/*")
@@ -25,6 +26,7 @@ process IGV {
     path "*files.txt"  , emit: txt
     path "*.xml"       , emit: xml
     path fasta         , emit: fasta
+    path fai           , emit: fai
     path "versions.yml", emit: versions
 
     when:
