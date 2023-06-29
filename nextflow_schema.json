@@ -185,7 +185,8 @@
                 "keep_mito": {
                     "type": "boolean",
                     "description": "Reads mapping to mitochondrial contig are not filtered from alignments.",
-                    "fa_icon": "fas fa-cart-arrow-down"
+                    "fa_icon": "fas fa-cart-arrow-down",
+                    "default": false
                 },
                 "ataqv_mito_reference": {
                     "type": "string",
