@@ -1,19 +1,18 @@
-process BEDTOOLS_GENOMECOV {
+process BEDTOOLS_BAMTOBED {
     tag "$meta.id"
     label 'process_medium'
 
     conda "bioconda::bedtools=2.30.0"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0':
+        'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0' :
         'biocontainers/bedtools:2.30.0--hc088bd4_0' }"
 
     input:
-    tuple val(meta), path(bam), path(flagstat)
+    tuple val(meta), path(bam)
 
     output:
-    tuple val(meta), path("*.bedGraph"), emit: bedgraph
-    tuple val(meta), path("*.txt")     , emit: scale_factor
-    path "versions.yml"                , emit: versions
+    tuple val(meta), path("*.bed"), emit: bed
+    path  "versions.yml"          , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -22,16 +21,11 @@ process BEDTOOLS_GENOMECOV {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    SCALE_FACTOR=\$(grep '[0-9] mapped (' $flagstat | awk '{print 1000000/\$1}')
-    echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
-
     bedtools \\
-        genomecov \\
-        -ibam $bam \\
-        -bg \\
-        -scale \$SCALE_FACTOR \\
+        bamtobed \\
         $args \\
-        | bedtools sort > ${prefix}.bedGraph
+        -i $bam \\
+        > ${prefix}.bed
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
