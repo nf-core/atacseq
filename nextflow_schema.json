@@ -185,7 +185,14 @@
                 "keep_mito": {
                     "type": "boolean",
                     "description": "Reads mapping to mitochondrial contig are not filtered from alignments.",
+                    "fa_icon": "fas fa-cart-arrow-down",
                     "default": false
+                },
+                "ataqv_mito_reference": {
+                    "type": "string",
+                    "description": "Sets the value of the ataqv --mitochondrial-reference-name argument",
+                    "help_text": "By default takes the value of the mito_name parameter, if set. However, some plants and algae have chloroplast genomes in addition to a mitochondrial genome and thus mito_name can have values as multiple names that are separated by a | symbol that will break ataqv, in these cases this parameter can be used to overwrite these values.",
+                    "fa_icon": "fas fa-signature"
                 }
             }
         },
