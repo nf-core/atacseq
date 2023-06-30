@@ -11,3 +11,4 @@
 #    ymax: 1
 #    ymin: 0
 #    tt_decimals: 2
+#    cpswitch: False
