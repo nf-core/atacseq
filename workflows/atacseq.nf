@@ -209,7 +209,7 @@ workflow ATACSEQ {
     //
     if (params.aligner == 'chromap') {
         FASTQ_ALIGN_CHROMAP (
-            ch_reads_chromap.single_end,
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.chromap_index,
             PREPARE_GENOME.out.fasta
                 .map {
