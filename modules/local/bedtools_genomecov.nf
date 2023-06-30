@@ -11,7 +11,7 @@ process BEDTOOLS_GENOMECOV {
     tuple val(meta), path(bam), path(flagstat)
 
     output:
-    tuple val(meta), path("*.bedGraph"), emit: bedgraph
+    tuple val(meta), path("${prefix}.bedGraph"), emit: bedgraph
     tuple val(meta), path("*.txt")     , emit: scale_factor
     path "versions.yml"                , emit: versions
 
@@ -33,7 +33,7 @@ process BEDTOOLS_GENOMECOV {
         -scale \$SCALE_FACTOR \\
         $pe \\
         $args \\
-        > tmp.bedGraph
+    > tmp.bedGraph
 
     sort -T '.' -k1,1 -k2,2n tmp.bedGraph > ${prefix}.bedGraph
 
