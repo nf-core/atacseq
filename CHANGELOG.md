@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#278](https://github.com/nf-core/atacseq/issues/278)] - Make genome fasta file available when `IGV` process is run.
 - [[#276](https://github.com/nf-core/atacseq/issues/276)] - Bump version 1.3.1 of ataqv to fix enrichment plots rendering.
 - [[#290](https://github.com/nf-core/atacseq/issues/290)] - Fix case-sensitivity issue while sorting bedGraph.
+- [[#295](https://github.com/nf-core/atacseq/issues/295)] - Enable downstream steps for bam files produced from paired-end reads by `chromap` after its upgrade.
 
 ### Parameters
 

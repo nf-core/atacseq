@@ -208,36 +208,6 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Alignment with CHROMAP & BAM QC
     //
     if (params.aligner == 'chromap') {
-
-        // Filter out paired-end reads until the issue below is fixed
-        // https://github.com/nf-core/chipseq/issues/291
-        FASTQ_FASTQC_UMITOOLS_TRIMGALORE
-            .out
-            .reads
-            .branch {
-                meta, reads ->
-                    single_end: meta.single_end
-                        return [ meta, reads ]
-                    paired_end: !meta.single_end
-                        return [ meta, reads ]
-            }
-            .set { ch_reads_chromap }
-
-        ch_reads_chromap
-            .paired_end
-            .collect()
-            .map {
-                it ->
-                    def count = it.size()
-                    if (count > 0) {
-                        log.warn "=============================================================================\n" +
-                        "  Paired-end files produced by chromap cannot be used by some downstream tools due to the issue below:\n" +
-                        "  https://github.com/nf-core/chipseq/issues/291\n" +
-                        "  They will be excluded from the analysis. Consider using a different aligner\n" +
-                        "==================================================================================="
-                    }
-            }
-
         FASTQ_ALIGN_CHROMAP (
             ch_reads_chromap.single_end,
             PREPARE_GENOME.out.chromap_index,
