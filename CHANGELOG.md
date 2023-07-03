@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#278](https://github.com/nf-core/atacseq/issues/278)] - Make genome fasta file available when `IGV` process is run.
 - [[#276](https://github.com/nf-core/atacseq/issues/276)] - Bump version 1.3.1 of ataqv to fix enrichment plots rendering.
 - [[#290](https://github.com/nf-core/atacseq/issues/290)] - Fix case-sensitivity issue while sorting bedGraph.
+- [[#295](https://github.com/nf-core/atacseq/issues/295)] - Enable downstream steps for bam files produced from paired-end reads by `chromap` after its upgrade.
 
 ### Parameters
 
@@ -28,6 +29,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > **NB:** Parameter has been **updated** if both old and new parameter information is present.
 > **NB:** Parameter has been **added** if just the new parameter information is present.
 > **NB:** Parameter has been **removed** if parameter information isn't present.
+
+### Software dependencies
+
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+
+| Dependency | Old version | New version |
+| ---------- | ----------- | ----------- |
+| `chromap`  | 0.2.1       | 0.2.4       |
+| `multiqc`  | 1.13        | 1.14        |
+| `picard`   | 2.27.4      | 3.0.0       |
+| `samtools` | 1.15.1      | 1.17        |
+
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
 
 ## [[2.0](https://github.com/nf-core/atacseq/releases/tag/2.0)] - 2022-11-30
 

@@ -85,6 +85,7 @@ class WorkflowMain {
             Nextflow.error("Please provide an input samplesheet to the pipeline e.g. '--input samplesheet.csv'")
         }
     }
+
     //
     // Get attribute from genome config file e.g. fasta
     //

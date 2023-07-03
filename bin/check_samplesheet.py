@@ -45,7 +45,7 @@ def check_samplesheet(file_in, file_out, with_control=False):
     OSMOTIC_STRESS_T15,s3://nf-core-awsmegatests/atacseq/input_data/minimal/GSE66386/SRR1822158_1.fastq.gz,s3://nf-core-awsmegatests/atacseq/input_data/minimal/GSE66386/SRR1822158_2.fastq.gz,1
 
     For an example see:
-    https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/samplesheet/v2.0/samplesheet_test.csv
+    https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/samplesheet/v2.1/samplesheet_test.csv
     """
 
     sample_mapping_dict = {}

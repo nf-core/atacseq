@@ -33,7 +33,9 @@ process BEDTOOLS_GENOMECOV {
         -scale \$SCALE_FACTOR \\
         $pe \\
         $args \\
-        | bedtools sort > ${prefix}.bedGraph
+    > tmp.bg
+
+    bedtools sort -i tmp.bg > ${prefix}.bedGraph
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
