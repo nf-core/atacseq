@@ -20,6 +20,20 @@ def valid_params = [
 // Validate input parameters
 WorkflowAtacseq.initialise(params, log, valid_params)
 
+// Check input path parameters to see if they exist
+def checkPathParamList = [
+    params.input, params.multiqc_config,
+    params.fasta,
+    params.gtf, params.gff, params.gene_bed, params.tss_bed,
+    params.bwa_index, params.bowtie2_index, params.chromap_index, params.star_index,
+    params.blacklist,
+    params.bamtools_filter_pe_config, params.bamtools_filter_se_config
+]
+for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
+
+// Check mandatory parameters
+if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
+
 // Check ataqv_mito_reference parameter
 ataqv_mito_reference = params.ataqv_mito_reference
 if (!params.ataqv_mito_reference && params.mito_name) {
