@@ -1,5 +1,6 @@
 include { SAMTOOLS_SORT            } from '../../modules/nf-core/samtools/sort/main'
 include { SAMTOOLS_INDEX           } from '../../modules/nf-core/samtools/index/main'
+include { SAMTOOLS_FLAGSTAT           } from '../../modules/nf-core/samtools/flagstat/main'
 include { DEEPTOOLS_ALIGNMENTSIEVE } from '../../modules/local/deeptools_alignmentsieve'
 
 workflow BAM_SHIFT_READS {
@@ -33,8 +34,17 @@ workflow BAM_SHIFT_READS {
     )
     ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions)
 
+    //
+    // Run samtools flagstat
+    //
+    SAMTOOLS_FLAGSTAT (
+        SAMTOOLS_SORT.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0])
+    )
+    ch_versions = ch_versions.mix(SAMTOOLS_FLAGSTAT.out.versions)
+
     emit:
     bam = SAMTOOLS_SORT.out.bam                     // channel: [ val(meta), [ bam ] ]
     bai = SAMTOOLS_INDEX.out.bai                    // channel: [ val(meta), [ bai ] ]
+    flagstat = SAMTOOLS_FLAGSTAT.out.flagstat       // channel: [ val(meta), [ flagstat ] ]
     versions = ch_versions                          // channel: [ versions.yml ]
 }

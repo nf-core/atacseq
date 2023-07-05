@@ -385,6 +385,7 @@ workflow ATACSEQ {
     //
     ch_merged_library_filter_bam = MERGED_LIBRARY_FILTER_BAM.out.bam
     ch_merged_library_filter_bai = MERGED_LIBRARY_FILTER_BAM.out.bai
+    ch_merged_library_filter_flagstat = MERGED_LIBRARY_FILTER_BAM.out.flagstat
 
     if (params.shift_reads && params.aligner != 'chromap' ) {
         MERGED_LIBRARY_BAM_SHIFT_READS (
@@ -394,13 +395,14 @@ workflow ATACSEQ {
 
         ch_merged_library_filter_bam = MERGED_LIBRARY_BAM_SHIFT_READS.out.bam
         ch_merged_library_filter_bai = MERGED_LIBRARY_BAM_SHIFT_READS.out.bai
+        ch_merged_library_filter_flagstat = MERGED_LIBRARY_BAM_SHIFT_READS.out.flagstat
     }
 
     //
     // SUBWORKFLOW: Normalised bigWig coverage tracks
     //
     MERGED_LIBRARY_BAM_TO_BIGWIG (
-        ch_merged_library_filter_bam.join(MERGED_LIBRARY_FILTER_BAM.out.flagstat, by: [0]),
+        ch_merged_library_filter_bam.join(ch_merged_library_filter_flagstat, by: [0]),
         PREPARE_GENOME.out.chrom_sizes
     )
     ch_versions = ch_versions.mix(MERGED_LIBRARY_BAM_TO_BIGWIG.out.versions)
@@ -609,6 +611,7 @@ workflow ATACSEQ {
         //
         ch_merged_replicate_markduplicate_bam = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bam
         ch_merged_replicate_markduplicate_bai = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bai
+        ch_merged_replicate_markduplicate_flagstat = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat
 
         if (params.shift_reads && params.aligner != 'chromap' ) {
             MERGED_REPLICATE_BAM_SHIFT_READS (
@@ -618,12 +621,13 @@ workflow ATACSEQ {
 
             ch_merged_replicate_markduplicate_bam = MERGED_REPLICATE_BAM_SHIFT_READS.out.bam
             ch_merged_replicate_markduplicate_bai = MERGED_REPLICATE_BAM_SHIFT_READS.out.bai
+            ch_merged_replicate_markduplicate_flagstat = MERGED_REPLICATE_BAM_SHIFT_READS.out.flagstat
         }
 
         // SUBWORKFLOW: Normalised bigWig coverage tracks
         //
         MERGED_REPLICATE_BAM_TO_BIGWIG (
-            ch_merged_replicate_markduplicate_bam.join(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat, by: [0]),
+            ch_merged_replicate_markduplicate_bam.join(ch_merged_replicate_markduplicate_flagstat, by: [0]),
             PREPARE_GENOME.out.chrom_sizes
         )
         ch_ucsc_bedgraphtobigwig_replicate_bigwig = MERGED_REPLICATE_BAM_TO_BIGWIG.out.bigwig
