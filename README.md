@@ -86,7 +86,7 @@ CONTROL,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz,3
 Now, you can run the pipeline using:
 
 ```bash
-nextflow run nf-core/atacseq --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
+nextflow run nf-core/atacseq --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 --read_length <50|100|150|200> -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
 ```
 
 See [usage docs](https://nf-co.re/atacseq/usage) for all of the available options when running the pipeline.
