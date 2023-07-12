@@ -645,6 +645,7 @@ workflow ATACSEQ {
     if (!params.skip_igv) {
         IGV (
             PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fai,
             MERGED_LIBRARY_BAM_TO_BIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
             MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_library_bed.collect{it[1]}.ifEmpty([]),
