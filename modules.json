@@ -128,12 +128,12 @@
                     "samtools/flagstat": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": ["bam_stats_samtools", "modules"]
+                        "installed_by": ["modules", "bam_stats_samtools"]
                     },
                     "samtools/idxstats": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": ["bam_stats_samtools", "modules"]
+                        "installed_by": ["modules", "bam_stats_samtools"]
                     },
                     "samtools/index": {
                         "branch": "master",
@@ -148,7 +148,7 @@
                     "samtools/stats": {
                         "branch": "master",
                         "git_sha": "735e1e04e7e01751d2d6e97055bbdb6f70683cc1",
-                        "installed_by": ["modules", "bam_stats_samtools"]
+                        "installed_by": ["bam_stats_samtools", "modules"]
                     },
                     "subread/featurecounts": {
                         "branch": "master",
@@ -197,7 +197,7 @@
                     "bam_stats_samtools": {
                         "branch": "master",
                         "git_sha": "735e1e04e7e01751d2d6e97055bbdb6f70683cc1",
-                        "installed_by": ["bam_markduplicates_picard", "subworkflows", "bam_sort_stats_samtools"]
+                        "installed_by": ["subworkflows", "bam_markduplicates_picard", "bam_sort_stats_samtools"]
                     },
                     "fastq_align_bowtie2": {
                         "branch": "master",

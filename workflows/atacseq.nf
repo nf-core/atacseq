@@ -221,7 +221,10 @@ workflow ATACSEQ {
         FASTQ_ALIGN_CHROMAP (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.chromap_index,
-            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fasta
+                .map {
+                    [ [:], it ]
+                },
             [],
             [],
             [],
