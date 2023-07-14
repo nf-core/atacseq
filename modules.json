@@ -201,7 +201,7 @@
                     },
                     "fastq_align_bowtie2": {
                         "branch": "master",
-                        "git_sha": "a9784afdd5dcda23b84e64db75dc591065d64653",
+                        "git_sha": "fe54581f8bed20e4c4a51c616c93fd3379d89820",
                         "installed_by": ["subworkflows"]
                     },
                     "fastq_align_bwa": {
@@ -211,7 +211,7 @@
                     },
                     "fastq_align_chromap": {
                         "branch": "master",
-                        "git_sha": "a9784afdd5dcda23b84e64db75dc591065d64653",
+                        "git_sha": "735e1e04e7e01751d2d6e97055bbdb6f70683cc1",
                         "installed_by": ["subworkflows"]
                     },
                     "fastq_fastqc_umitools_trimgalore": {
