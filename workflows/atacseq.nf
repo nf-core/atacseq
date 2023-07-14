@@ -186,6 +186,9 @@ workflow ATACSEQ {
             PREPARE_GENOME.out.bwa_index,
             false,
             PREPARE_GENOME.out.fasta
+                .map {
+                        [ [:], it ]
+                }
         )
         ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
         ch_genome_bam_index  = FASTQ_ALIGN_BWA.out.bai
@@ -205,6 +208,9 @@ workflow ATACSEQ {
             params.save_unaligned,
             false,
             PREPARE_GENOME.out.fasta
+                .map {
+                    [ [:], it ]
+                }
         )
         ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
         ch_genome_bam_index  = FASTQ_ALIGN_BOWTIE2.out.bai
@@ -246,7 +252,10 @@ workflow ATACSEQ {
         ALIGN_STAR (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.star_index,
-            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fasta
+                .map {
+                    [ [:], it ]
+                },
             params.seq_center ?: ''
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
