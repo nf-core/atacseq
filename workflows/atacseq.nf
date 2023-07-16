@@ -296,7 +296,12 @@ workflow ATACSEQ {
     //
     MERGED_LIBRARY_MARKDUPLICATES_PICARD (
         PICARD_MERGESAMFILES_LIBRARY.out.bam,
-        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME
+            .out
+            .fasta
+            .map {
+                    [ [:], it ]
+            },
         PREPARE_GENOME.out.fai
     )
     ch_versions = ch_versions.mix(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.versions)
