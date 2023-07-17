@@ -300,9 +300,12 @@ workflow ATACSEQ {
             .out
             .fasta
             .map {
-                    [ [:], it ]
+                [ [:], it ]
             },
         PREPARE_GENOME.out.fai
+            .map {
+                [ [:], it ]
+            }
     )
     ch_versions = ch_versions.mix(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.versions)
 
@@ -312,7 +315,12 @@ workflow ATACSEQ {
     MERGED_LIBRARY_FILTER_BAM (
         MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam.join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
-        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME
+            .out
+            .fasta
+            .map {
+                [ [:], it ]
+            },
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
@@ -559,8 +567,16 @@ workflow ATACSEQ {
         //
         MERGED_REPLICATE_MARKDUPLICATES_PICARD (
             PICARD_MERGESAMFILES_REPLICATE.out.bam,
-            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME
+                .out
+                .fasta
+                .map {
+                    [ [:], it ]
+                },
             PREPARE_GENOME.out.fai
+                .map {
+                    [ [:], it ]
+                }
         )
         ch_markduplicates_replicate_stats    = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.stats
         ch_markduplicates_replicate_flagstat = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat
