@@ -17,7 +17,7 @@ workflow BAM_MARKDUPLICATES_PICARD {
 
     ch_versions = Channel.empty()
 
-    PICARD_MARKDUPLICATES ( ch_bam, ch_fasta.map { [ [:], it ] }, ch_fai.map { [ [:], it ] } )
+    PICARD_MARKDUPLICATES ( ch_bam, ch_fasta, ch_fai )
     ch_versions = ch_versions.mix(PICARD_MARKDUPLICATES.out.versions.first())
 
     SAMTOOLS_INDEX ( PICARD_MARKDUPLICATES.out.bam )
