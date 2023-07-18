@@ -64,9 +64,9 @@ TREATMENT,AEG588A6_S6_L004_R1_001.fastq.gz,,3,CONTROL,3
 | `sample`            | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
 | `fastq_1`           | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
 | `fastq_2`           | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
-| `replicate`         | Integer representing replicate number. Must start from `1..<number of replicates>`.                                                                                                    |
+| `replicate`         | Integer representing replicate number. This will be identical for re-sequenced libraries. Must start from `1..<number of replicates>`.                                                 |
 | `control`           | Sample name for control sample.                                                                                                                                                        |
-| `control_replicate` | Sample replicate for control replicate.                                                                                                                                                |
+| `control_replicate` | Integer representing replicate number of the control sample                                                                                                                            |
 
 Example sheets [without controls](../assets/samplesheet.csv) and [with controls](../assets/samplesheet_with_control.csv) have been provided with the pipeline.
 
