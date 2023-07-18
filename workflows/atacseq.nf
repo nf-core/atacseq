@@ -186,6 +186,9 @@ workflow ATACSEQ {
             PREPARE_GENOME.out.bwa_index,
             false,
             PREPARE_GENOME.out.fasta
+                .map {
+                        [ [:], it ]
+                }
         )
         ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
         ch_genome_bam_index  = FASTQ_ALIGN_BWA.out.bai
@@ -205,6 +208,9 @@ workflow ATACSEQ {
             params.save_unaligned,
             false,
             PREPARE_GENOME.out.fasta
+                .map {
+                    [ [:], it ]
+                }
         )
         ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
         ch_genome_bam_index  = FASTQ_ALIGN_BOWTIE2.out.bai
@@ -246,7 +252,10 @@ workflow ATACSEQ {
         ALIGN_STAR (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.star_index,
-            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fasta
+                .map {
+                    [ [:], it ]
+                },
             params.seq_center ?: ''
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
@@ -287,8 +296,16 @@ workflow ATACSEQ {
     //
     MERGED_LIBRARY_MARKDUPLICATES_PICARD (
         PICARD_MERGESAMFILES_LIBRARY.out.bam,
-        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME
+            .out
+            .fasta
+            .map {
+                [ [:], it ]
+            },
         PREPARE_GENOME.out.fai
+            .map {
+                [ [:], it ]
+            }
     )
     ch_versions = ch_versions.mix(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.versions)
 
@@ -298,7 +315,12 @@ workflow ATACSEQ {
     MERGED_LIBRARY_FILTER_BAM (
         MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam.join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
-        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME
+            .out
+            .fasta
+            .map {
+                [ [:], it ]
+            },
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
@@ -545,8 +567,16 @@ workflow ATACSEQ {
         //
         MERGED_REPLICATE_MARKDUPLICATES_PICARD (
             PICARD_MERGESAMFILES_REPLICATE.out.bam,
-            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME
+                .out
+                .fasta
+                .map {
+                    [ [:], it ]
+                },
             PREPARE_GENOME.out.fai
+                .map {
+                    [ [:], it ]
+                }
         )
         ch_markduplicates_replicate_stats    = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.stats
         ch_markduplicates_replicate_flagstat = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat
