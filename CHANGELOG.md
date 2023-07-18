@@ -44,7 +44,6 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | `samtools`              | 1.15.1      | 1.17        |
 | `ucsc-bedgraphtobigwig` | 377         | 445         |
 
-
 > **NB:** Dependency has been **updated** if both old and new version information is present.
 > **NB:** Dependency has been **added** if just the new version information is present.
 > **NB:** Dependency has been **removed** if version information isn't present.
@@ -231,7 +230,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 
 ### `Fixed`
 
-- **Change all parameters from `camelCase` to `snake_case` (see [Deprecated](#Deprecated))**
+- **Change all parameters from `camelCase` to `snake_case` (see [Deprecated](#deprecated))**
 - [#41](https://github.com/nf-core/atacseq/issues/41) - Docs: Add example plot images
 - [#44](https://github.com/nf-core/atacseq/issues/44) - Output directory missing: macs2/consensus/deseq2
 - [#45](https://github.com/nf-core/atacseq/issues/45) - Wrong x-axis scale for the HOMER: Peak annotation Counts tab plot?
