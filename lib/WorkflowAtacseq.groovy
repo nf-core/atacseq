@@ -10,13 +10,8 @@ class WorkflowAtacseq {
     //
     // Check and validate parameters
     //
-    public static void initialise(params, log, valid_params) {
+    public static void initialise(params, log) {
         genomeExistsError(params, log)
-
-
-        if (!params.fasta) {
-            Nextflow.error "Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file."
-        }
 
         if (!params.gtf && !params.gff) {
             log.error "No GTF or GFF3 annotation specified! The pipeline requires at least one of these files."
@@ -34,12 +29,6 @@ class WorkflowAtacseq {
         if (!params.read_length && !params.macs_gsize) {
             log.error "Both '--read_length' and '--macs_gsize' not specified! Please specify either to infer MACS2 genome size for peak calling."
             System.exit(1)
-        }
-        if (params.aligner) {
-            if (!valid_params['aligners'].contains(params.aligner)) {
-                log.error "Invalid option: '${params.aligner}'. Valid options for '--aligner': ${valid_params['aligners'].join(', ')}."
-                System.exit(1)
-            }
         }
     }
 

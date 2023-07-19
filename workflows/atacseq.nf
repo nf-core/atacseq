@@ -13,12 +13,11 @@ def summary_params = paramsSummaryMap(workflow)
 // Print parameter summary log to screen
 log.info logo + paramsSummaryLog(workflow) + citation
 
-def valid_params = [
-    aligners : [ 'bwa', 'bowtie2', 'chromap', 'star' ]
-]
-
 // Validate input parameters
-WorkflowAtacseq.initialise(params, log, valid_params)
+WorkflowAtacseq.initialise(params, log)
+
+// Check mandatory parameters
+ch_input = file(params.input)
 
 // Check ataqv_mito_reference parameter
 ataqv_mito_reference = params.ataqv_mito_reference

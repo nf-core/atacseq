@@ -91,6 +91,7 @@
                 "gtf": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.gtf(\\.gz)?$",
                     "description": "Path to GTF annotation file.",
@@ -100,6 +101,7 @@
                 "gff": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.gff(\\.gz)?$",
                     "fa_icon": "fas fa-code-branch",
@@ -108,30 +110,36 @@
                 },
                 "bwa_index": {
                     "type": "string",
+                    "format": "path",
+                    "exists": true,
                     "description": "Path to directory or tar.gz archive for pre-built BWA index.",
                     "fa_icon": "fas fa-bezier-curve"
                 },
                 "bowtie2_index": {
                     "type": "string",
                     "format": "path",
+                    "exists": true,
                     "fa_icon": "fas fa-bezier-curve",
                     "description": "Path to directory or tar.gz archive for pre-built Bowtie2 index."
                 },
                 "chromap_index": {
                     "type": "string",
                     "format": "path",
+                    "exists": true,
                     "fa_icon": "fas fa-bezier-curve",
                     "description": "Path to directory or tar.gz archive for pre-built Chromap index."
                 },
                 "star_index": {
                     "type": "string",
                     "format": "path",
+                    "exists": true,
                     "fa_icon": "fas fa-bezier-curve",
                     "description": "Path to directory or tar.gz archive for pre-built STAR index."
                 },
                 "gene_bed": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.bed(\\.gz)?$",
                     "fa_icon": "fas fa-procedures",
@@ -140,6 +148,7 @@
                 "tss_bed": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.bed(\\.gz)?$",
                     "fa_icon": "fas fa-procedures",
@@ -153,6 +162,8 @@
                 },
                 "blacklist": {
                     "type": "string",
+                    "format": "path",
+                    "exists": true,
                     "description": "Path to blacklist regions in BED format, used for filtering alignments.",
                     "help_text": "If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.",
                     "fa_icon": "fas fa-book-dead"
@@ -196,7 +207,8 @@
                     "help_text": "By default takes the value of the mito_name parameter, if set. However, some plants and algae have chloroplast genomes in addition to a mitochondrial genome and thus mito_name can have values as multiple names that are separated by a | symbol that will break ataqv, in these cases this parameter can be used to overwrite these values.",
                     "fa_icon": "fas fa-signature"
                 }
-            }
+            },
+            "required": ["fasta"]
         },
         "adapter_trimming_options": {
             "title": "Adapter trimming options",
@@ -299,6 +311,8 @@
                 },
                 "bamtools_filter_pe_config": {
                     "type": "string",
+                    "format": "path",
+                    "exists": true,
                     "default": "$projectDir/assets/bamtools_filter_pe.json",
                     "hidden": true,
                     "description": "BAMTools JSON file with custom filters for paired-end data.",
@@ -306,6 +320,8 @@
                 },
                 "bamtools_filter_se_config": {
                     "type": "string",
+                    "format": "path",
+                    "exists": true,
                     "default": "$projectDir/assets/bamtools_filter_se.json",
                     "hidden": true,
                     "description": "BAMTools JSON file with custom filters for single-end data.",
@@ -539,14 +555,12 @@
                     "type": "boolean",
                     "description": "Display help text.",
                     "fa_icon": "fas fa-question-circle",
-                    "default": false,
                     "hidden": true
                 },
                 "version": {
                     "type": "boolean",
                     "description": "Display version and exit.",
                     "fa_icon": "fas fa-question-circle",
-                    "default": false,
                     "hidden": true
                 },
                 "publish_dir_mode": {
@@ -577,7 +591,6 @@
                     "type": "boolean",
                     "description": "Send plain-text email instead of HTML.",
                     "fa_icon": "fas fa-remove-format",
-                    "default": false,
                     "hidden": true
                 },
                 "max_multiqc_email_size": {
@@ -592,7 +605,6 @@
                     "type": "boolean",
                     "description": "Do not use coloured log outputs.",
                     "fa_icon": "fas fa-palette",
-                    "default": false,
                     "hidden": true
                 },
                 "hook_url": {
@@ -605,6 +617,8 @@
                 "multiqc_config": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
                     "description": "Custom config file to supply to MultiQC.",
                     "fa_icon": "fas fa-cog",
                     "hidden": true
@@ -617,6 +631,9 @@
                 },
                 "multiqc_methods_description": {
                     "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "mimetype": "text/plain",
                     "description": "Custom MultiQC yaml file containing HTML including a methods description.",
                     "fa_icon": "fas fa-cog"
                 },
@@ -639,7 +656,6 @@
                     "type": "boolean",
                     "fa_icon": "far fa-check-circle",
                     "description": "Validation of parameters fails when an unrecognised parameter is found.",
-                    "default": false,
                     "hidden": true,
                     "help_text": "By default, when an unrecognised parameter is found, it returns a warinig."
                 },
