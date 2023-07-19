@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#290](https://github.com/nf-core/atacseq/issues/290)] - Fix case-sensitivity issue while sorting bedGraph.
 - [[#295](https://github.com/nf-core/atacseq/issues/295)] - Enable downstream steps for bam files produced from paired-end reads by `chromap` after its upgrade.
 - Make fasta index available for IGV session.
-- [[nf-core/chipseq#](https://github.com/nf-core/chipseq/issues/347)] - Add read group tag to bam files processed by bowtie2
+- [[nf-core/chipseq#347](https://github.com/nf-core/chipseq/issues/347)] - Add read group tag to bam files processed by bowtie2
 
 ### Parameters
 
