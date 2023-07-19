@@ -5,6 +5,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [[2.1.0](https://github.com/nf-core/atacseq/releases/tag/2.1.0)] - 2022-07-21
 
+### Credits
+
+Special thanks to the following for their contributions to the release:
+
+- [Adam Talbot](https://github.com/adamrtalbot)
+- [Björn Langer](https://github.com/bjlang)
+- [Harshil Patel](https://github.com/drpatelh)
+- [Maxime Garcia](https://github.com/maxulysse)
+- [Rob Syme](https://github.com/robsyme)
+
+Thank you to everyone else that has contributed by reporting bugs, enhancements or in any other way, shape or form.
+
 ### Enhancements & fixes
 
 - [[#226](https://github.com/nf-core/atacseq/issues/262)] - Add `ataqv_mito_reference` parameter.
