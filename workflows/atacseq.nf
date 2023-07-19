@@ -20,9 +20,6 @@ def valid_params = [
 // Validate input parameters
 WorkflowAtacseq.initialise(params, log, valid_params)
 
-// Check mandatory parameters
-if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
-
 // Check ataqv_mito_reference parameter
 ataqv_mito_reference = params.ataqv_mito_reference
 if (!params.ataqv_mito_reference && params.mito_name) {
