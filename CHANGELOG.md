@@ -21,8 +21,6 @@ Thank you to everyone else that has contributed by reporting bugs, enhancements 
 
 - [[#226](https://github.com/nf-core/atacseq/issues/262)] - Add `ataqv_mito_reference` parameter.
 - Optional support of control data analog to nf-core/chipseq.
-- Updated pipeline template to [nf-core/tools 2.8](https://github.com/nf-core/tools/releases/tag/2.8)
-- Add public_aws_ecr profile for using containers hosted on ECR.
 - [[#277](https://github.com/nf-core/atacseq/issues/277)] - Fix error when using a gunziped fasta file.
 - [[#286](https://github.com/nf-core/atacseq/issues/286)] - Fix error when no `--mito_name parameter is provided.
 - [[#268](https://github.com/nf-core/atacseq/issues/268)] - Fix error when a bed file is provided using the `--blacklist` option.
@@ -30,6 +28,7 @@ Thank you to everyone else that has contributed by reporting bugs, enhancements 
 - [[#276](https://github.com/nf-core/atacseq/issues/276)] - Bump version 1.3.1 of ataqv to fix enrichment plots rendering.
 - [[#290](https://github.com/nf-core/atacseq/issues/290)] - Fix case-sensitivity issue while sorting bedGraph.
 - [[#295](https://github.com/nf-core/atacseq/issues/295)] - Enable downstream steps for bam files produced from paired-end reads by `chromap` after its upgrade.
+- Updated pipeline template to [nf-core/tools 2.9](https://github.com/nf-core/tools/releases/tag/2.9)
 - Make fasta index available for IGV session.
 - [[nf-core/chipseq#347](https://github.com/nf-core/chipseq/issues/347)] - Add read group tag to bam files processed by bowtie2
 
