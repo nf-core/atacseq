@@ -34,7 +34,6 @@ args = argParser.parse_args()
 
 
 def makedir(path):
-
     if not len(path) == 0:
         try:
             os.makedirs(path)
@@ -69,7 +68,6 @@ def makedir(path):
 
 
 def get_autosomes(FAIFile, OutFile):
-
     makedir(os.path.dirname(OutFile))
 
     ## READ IN CHROMOSOME IDS

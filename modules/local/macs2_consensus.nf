@@ -2,10 +2,10 @@ process MACS2_CONSENSUS {
     tag "$meta.id"
     label 'process_long'
 
-    conda (params.enable_conda ? "conda-forge::biopython conda-forge::r-optparse=1.7.1 conda-forge::r-upsetr=1.4.0 bioconda::bedtools=2.30.0" : null)
+    conda "conda-forge::biopython conda-forge::r-optparse=1.7.1 conda-forge::r-upsetr=1.4.0 bioconda::bedtools=2.30.0"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/mulled-v2-2f48cc59b03027e31ead6d383fe1b8057785dd24:5d182f583f4696f4c4d9f3be93052811b383341f-0':
-        'quay.io/biocontainers/mulled-v2-2f48cc59b03027e31ead6d383fe1b8057785dd24:5d182f583f4696f4c4d9f3be93052811b383341f-0' }"
+        'biocontainers/mulled-v2-2f48cc59b03027e31ead6d383fe1b8057785dd24:5d182f583f4696f4c4d9f3be93052811b383341f-0' }"
 
     input:
     tuple val(meta), path(peaks)
@@ -23,12 +23,12 @@ process MACS2_CONSENSUS {
     task.ext.when == null || task.ext.when
 
     script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
-    def args         = task.ext.args ?: ''
-    def prefix       = task.ext.prefix    ?: "${meta.id}"
-    def peak_type    = is_narrow_peak ? 'narrowPeak' : 'broadPeak'
-    def mergecols    = is_narrow_peak ? (2..10).join(',') : (2..9).join(',')
-    def collapsecols = is_narrow_peak ? (['collapse']*9).join(',') : (['collapse']*8).join(',')
-    def expandparam  = is_narrow_peak ? '--is_narrow_peak' : ''
+    def args         = task.ext.args   ?: ''
+    def prefix       = task.ext.prefix ?: "${meta.id}"
+    def peak_type    = is_narrow_peak  ? 'narrowPeak' : 'broadPeak'
+    def mergecols    = is_narrow_peak  ? (2..10).join(',') : (2..9).join(',')
+    def collapsecols = is_narrow_peak  ? (['collapse']*9).join(',') : (['collapse']*8).join(',')
+    def expandparam  = is_narrow_peak  ? '--is_narrow_peak' : ''
     """
     sort -T '.' -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt

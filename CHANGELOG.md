@@ -3,7 +3,64 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [[2.0](https://github.com/nf-core/rnaseq/releases/tag/2.0)] - 2022-11-30
+## [[2.1.0](https://github.com/nf-core/atacseq/releases/tag/2.1.0)] - 2022-07-21
+
+### Credits
+
+Special thanks to the following for their contributions to the release:
+
+- [Adam Talbot](https://github.com/adamrtalbot)
+- [Björn Langer](https://github.com/bjlang)
+- [Harshil Patel](https://github.com/drpatelh)
+- [Maxime Garcia](https://github.com/maxulysse)
+- [Rob Syme](https://github.com/robsyme)
+
+Thank you to everyone else that has contributed by reporting bugs, enhancements or in any other way, shape or form.
+
+### Enhancements & fixes
+
+- [[#226](https://github.com/nf-core/atacseq/issues/262)] - Add `ataqv_mito_reference` parameter.
+- Optional support of control data analog to nf-core/chipseq.
+- [[#277](https://github.com/nf-core/atacseq/issues/277)] - Fix error when using a gunziped fasta file.
+- [[#286](https://github.com/nf-core/atacseq/issues/286)] - Fix error when no `--mito_name parameter is provided.
+- [[#268](https://github.com/nf-core/atacseq/issues/268)] - Fix error when a bed file is provided using the `--blacklist` option.
+- [[#278](https://github.com/nf-core/atacseq/issues/278)] - Make genome fasta file available when `IGV` process is run.
+- [[#276](https://github.com/nf-core/atacseq/issues/276)] - Bump version 1.3.1 of ataqv to fix enrichment plots rendering.
+- [[#290](https://github.com/nf-core/atacseq/issues/290)] - Fix case-sensitivity issue while sorting bedGraph.
+- [[#295](https://github.com/nf-core/atacseq/issues/295)] - Enable downstream steps for bam files produced from paired-end reads by `chromap` after its upgrade.
+- Updated pipeline template to [nf-core/tools 2.9](https://github.com/nf-core/tools/releases/tag/2.9)
+- Make fasta index available for IGV session.
+- [[nf-core/chipseq#347](https://github.com/nf-core/chipseq/issues/347)] - Add read group tag to bam files processed by bowtie2
+
+### Parameters
+
+| Old parameter | New parameter            |
+| ------------- | ------------------------ |
+|               | `--with_control`         |
+|               | `--ataqv_mito_reference` |
+
+> **NB:** Parameter has been **updated** if both old and new parameter information is present.
+> **NB:** Parameter has been **added** if just the new parameter information is present.
+> **NB:** Parameter has been **removed** if parameter information isn't present.
+
+### Software dependencies
+
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+
+| Dependency              | Old version | New version |
+| ----------------------- | ----------- | ----------- |
+| `ataqv`                 | 1.3.0       | 1.3.1       |
+| `chromap`               | 0.2.1       | 0.2.4       |
+| `multiqc`               | 1.13        | 1.14        |
+| `picard`                | 2.27.4      | 3.0.0       |
+| `samtools`              | 1.15.1      | 1.17        |
+| `ucsc-bedgraphtobigwig` | 377         | 445         |
+
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
+
+## [[2.0](https://github.com/nf-core/atacseq/releases/tag/2.0)] - 2022-11-30
 
 ### :warning: Major enhancements
 
@@ -185,7 +242,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 
 ### `Fixed`
 
-- **Change all parameters from `camelCase` to `snake_case` (see [Deprecated](#Deprecated))**
+- **Change all parameters from `camelCase` to `snake_case` (see [Deprecated](#deprecated))**
 - [#41](https://github.com/nf-core/atacseq/issues/41) - Docs: Add example plot images
 - [#44](https://github.com/nf-core/atacseq/issues/44) - Output directory missing: macs2/consensus/deseq2
 - [#45](https://github.com/nf-core/atacseq/issues/45) - Wrong x-axis scale for the HOMER: Peak annotation Counts tab plot?

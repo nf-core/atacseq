@@ -6,12 +6,13 @@ import argparse
 
 
 def parse_args(args=None):
-    Description = "Reformat nf-core/atacseq design file and check its contents."
-    Epilog = "Example usage: python check_design.py <DESIGN_FILE_IN> <DESIGN_FILE_OUT>"
+    Description = "Reformat nf-core/atacseq samplesheet file and check its contents."
+    Epilog = "Example usage: python check_samplesheet.py <FILE_IN> <FILE_OUT>"
 
     parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
     parser.add_argument("FILE_IN", help="Input samplesheet file.")
     parser.add_argument("FILE_OUT", help="Output file.")
+    parser.add_argument("--with_control", action="store_true", help="shows output")
     return parser.parse_args(args)
 
 
@@ -34,7 +35,7 @@ def print_error(error, context="Line", context_str=""):
     sys.exit(1)
 
 
-def check_samplesheet(file_in, file_out):
+def check_samplesheet(file_in, file_out, with_control=False):
     """
     This function checks that the samplesheet follows the following structure:
     sample,fastq_1,fastq_2,replicate
@@ -44,15 +45,17 @@ def check_samplesheet(file_in, file_out):
     OSMOTIC_STRESS_T15,s3://nf-core-awsmegatests/atacseq/input_data/minimal/GSE66386/SRR1822158_1.fastq.gz,s3://nf-core-awsmegatests/atacseq/input_data/minimal/GSE66386/SRR1822158_2.fastq.gz,1
 
     For an example see:
-    https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/samplesheet/v2.0/samplesheet_test.csv
+    https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/samplesheet/v2.1/samplesheet_test.csv
     """
 
     sample_mapping_dict = {}
     with open(file_in, "r", encoding="utf-8-sig") as fin:
-
         ## Check header
         MIN_COLS = 3
-        HEADER = ["sample", "fastq_1", "fastq_2", "replicate"]
+        if with_control:
+            HEADER = ["sample", "fastq_1", "fastq_2", "replicate", "control", "control_replicate"]
+        else:
+            HEADER = ["sample", "fastq_1", "fastq_2", "replicate"]
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
             print(f"ERROR: Please check samplesheet header -> {','.join(header)} != {','.join(HEADER)}")
@@ -79,7 +82,9 @@ def check_samplesheet(file_in, file_out):
                     )
 
                 ## Check sample name entries
-                sample, fastq_1, fastq_2, replicate = lspl[: len(HEADER)]
+                sample, fastq_1, fastq_2, replicate = lspl[: len(HEADER) - 2 if with_control else len(HEADER)]
+                control = lspl[len(HEADER) - 2] if with_control else ""
+                control_replicate = lspl[len(HEADER) - 1] if with_control else ""
                 if sample.find(" ") != -1:
                     print(f"WARNING: Spaces have been replaced by underscores for sample: {sample}")
                     sample = sample.replace(" ", "_")
@@ -103,18 +108,27 @@ def check_samplesheet(file_in, file_out):
                     print_error("Replicate id not an integer!", "Line", line)
                     sys.exit(1)
 
+                if with_control and control:
+                    if control.find(" ") != -1:
+                        print(f"WARNING: Spaces have been replaced by underscores for control: {control}")
+                        control = control.replace(" ", "_")
+                    if not control_replicate.isdecimal():
+                        print_error("Control replicate id not an integer!", "Line", line)
+                        sys.exit(1)
+                    control = "{}_REP{}".format(control, control_replicate)
+
                 ## Auto-detect paired-end/single-end
                 sample_info = []
                 ## Paired-end short reads
                 if sample and fastq_1 and fastq_2:
-                    sample_info = [fastq_1, fastq_2, replicate, "0"]
+                    sample_info = [fastq_1, fastq_2, replicate, "0", control]
                 ## Single-end short reads
                 elif sample and fastq_1 and not fastq_2:
-                    sample_info = [fastq_1, fastq_2, replicate, "1"]
+                    sample_info = [fastq_1, fastq_2, replicate, "1", control]
                 else:
                     print_error("Invalid combination of columns provided!", "Line", line)
 
-                ## Create sample mapping dictionary = {sample: {replicate: [[ fastq_1, fastq_2, replicate, single_end ]]}}
+                ## Create sample mapping dictionary = {sample: {replicate: [[ fastq_1, fastq_2, replicate, control, single_end ]]}}
                 replicate = int(replicate)
                 sample_info = sample_info + lspl[len(HEADER) :]
                 if sample not in sample_mapping_dict:
@@ -132,10 +146,12 @@ def check_samplesheet(file_in, file_out):
         out_dir = os.path.dirname(file_out)
         make_dir(out_dir)
         with open(file_out, "w") as fout:
-            fout.write(",".join(HEADER + ["single_end"] + header[len(HEADER) :]) + "\n")
+            if with_control:
+                fout.write(",".join(HEADER[:-2] + ["single_end", "control"] + header[len(HEADER) :]) + "\n")
+            else:
+                fout.write(",".join(HEADER + ["single_end", "control"] + header[len(HEADER) :]) + "\n")
 
             for sample in sorted(sample_mapping_dict.keys()):
-
                 ## Check that replicate ids are in format 1..<num_replicates>
                 uniq_rep_ids = sorted(list(set(sample_mapping_dict[sample].keys())))
                 if len(uniq_rep_ids) != max(uniq_rep_ids) or 1 != min(uniq_rep_ids):
@@ -168,6 +184,19 @@ def check_samplesheet(file_in, file_out):
                             sample,
                         )
 
+                    for idx, val in enumerate(sample_mapping_dict[sample][replicate]):
+                        control = "_REP".join(val[4].split("_REP")[:-1])
+                        control_replicate = val[4].split("_REP")[-1]
+                        if control and (
+                            control not in sample_mapping_dict.keys()
+                            or int(control_replicate) not in sample_mapping_dict[control].keys()
+                        ):
+                            print_error(
+                                f"Control identifier and replicate has to match a provided sample identifier and replicate!",
+                                "Control",
+                                val[4],
+                            )
+
                     ## Write to file
                     for idx in range(len(sample_mapping_dict[sample][replicate])):
                         fastq_files = sample_mapping_dict[sample][replicate][idx]
@@ -182,7 +211,7 @@ def check_samplesheet(file_in, file_out):
 
 def main(args=None):
     args = parse_args(args)
-    check_samplesheet(args.FILE_IN, args.FILE_OUT)
+    check_samplesheet(args.FILE_IN, args.FILE_OUT, args.with_control)
 
 
 if __name__ == "__main__":

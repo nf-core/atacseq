@@ -7,3 +7,4 @@
 #pconfig:
 #    title: 'Total peak count'
 #    ylab: 'Peak count'
+#    cpswitch: False

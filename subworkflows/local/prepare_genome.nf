@@ -44,7 +44,7 @@ workflow PREPARE_GENOME {
         ch_fasta    = GUNZIP_FASTA ( [ [:], params.fasta ] ).gunzip.map{ it[1] }
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
-        ch_fasta = file(params.fasta)
+        ch_fasta = Channel.value(file(params.fasta))
     }
 
     //
@@ -55,14 +55,14 @@ workflow PREPARE_GENOME {
             ch_gtf      = GUNZIP_GTF ( [ [:], params.gtf ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
         } else {
-            ch_gtf = file(params.gtf)
+            ch_gtf = Channel.value(file(params.gtf))
         }
     } else if (params.gff) {
         if (params.gff.endsWith('.gz')) {
             ch_gff      = GUNZIP_GFF ( [ [:], params.gff ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GFF.out.versions)
         } else {
-            ch_gff = file(params.gff)
+            ch_gff = Channel.value(file(params.gff))
         }
         ch_gtf      = GFFREAD ( ch_gff ).gtf
         ch_versions = ch_versions.mix(GFFREAD.out.versions)
@@ -77,7 +77,7 @@ workflow PREPARE_GENOME {
             ch_blacklist = GUNZIP_BLACKLIST ( [ [:], params.blacklist ] ).gunzip.map{ it[1] }
             ch_versions  = ch_versions.mix(GUNZIP_BLACKLIST.out.versions)
         } else {
-            ch_blacklist = Channel.of(params.blacklist)
+            ch_blacklist = Channel.value(file(params.blacklist))
         }
     }
 
@@ -104,7 +104,7 @@ workflow PREPARE_GENOME {
             ch_gene_bed = GUNZIP_GENE_BED ( [ [:], params.gene_bed ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GENE_BED.out.versions)
         } else {
-            ch_gene_bed = file(params.gene_bed)
+            ch_gene_bed = Channel.value(file(params.gene_bed))
         }
     }
 
@@ -116,14 +116,15 @@ workflow PREPARE_GENOME {
             ch_tss_bed = GUNZIP_TSS_BED ( [ [:], params.tss_bed ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_TSS_BED.out.versions)
         } else {
-            ch_tss_bed = file(params.tss_bed)
+            ch_tss_bed = Channel.value(file(params.tss_bed))
         }
     }
 
     //
     // Create chromosome sizes file
     //
-    ch_chrom_sizes = CUSTOM_GETCHROMSIZES ( [ [:], ch_fasta ] ).sizes.map{ it[1] }
+    CUSTOM_GETCHROMSIZES ( ch_fasta.map { [ [:], it ] } )
+    ch_chrom_sizes = CUSTOM_GETCHROMSIZES.out.sizes.map { it[1] }
     ch_fai         = CUSTOM_GETCHROMSIZES.out.fai.map{ it[1] }
     ch_versions    = ch_versions.mix(CUSTOM_GETCHROMSIZES.out.versions)
 
@@ -145,7 +146,7 @@ workflow PREPARE_GENOME {
     GENOME_BLACKLIST_REGIONS (
         ch_chrom_sizes,
         ch_blacklist.ifEmpty([]),
-        params.mito_name,
+        params.mito_name ?: '',
         params.keep_mito
     )
     ch_genome_filtered_bed = GENOME_BLACKLIST_REGIONS.out.bed
@@ -164,7 +165,7 @@ workflow PREPARE_GENOME {
                 ch_bwa_index = [ [:], file(params.bwa_index) ]
             }
         } else {
-            ch_bwa_index = BWA_INDEX ( [ [:], ch_fasta ] ).index
+            ch_bwa_index = BWA_INDEX ( ch_fasta.map { [ [:], it ] } ).index
             ch_versions  = ch_versions.mix(BWA_INDEX.out.versions)
         }
     }
@@ -182,7 +183,7 @@ workflow PREPARE_GENOME {
                 ch_bowtie2_index = [ [:], file(params.bowtie2_index) ]
             }
         } else {
-            ch_bowtie2_index = BOWTIE2_BUILD ( [ [:], ch_fasta ] ).index
+            ch_bowtie2_index = BOWTIE2_BUILD ( ch_fasta.map { [ [:], it ] } ).index
             ch_versions      = ch_versions.mix(BOWTIE2_BUILD.out.versions)
         }
     }
@@ -200,7 +201,7 @@ workflow PREPARE_GENOME {
                 ch_chromap_index = [ [:], file(params.chromap_index) ]
             }
         } else {
-            ch_chromap_index = CHROMAP_INDEX ( [ [:], ch_fasta ] ).index
+            ch_chromap_index = CHROMAP_INDEX ( ch_fasta.map { [ [:], it ] } ).index
             ch_versions  = ch_versions.mix(CHROMAP_INDEX.out.versions)
         }
     }
@@ -215,7 +216,7 @@ workflow PREPARE_GENOME {
                 ch_star_index = UNTAR_STAR_INDEX ( [ [:], params.star_index ] ).untar.map{ it[1] }
                 ch_versions   = ch_versions.mix(UNTAR_STAR_INDEX.out.versions)
             } else {
-                ch_star_index = file(params.star_index)
+                ch_star_index = Channel.value(file(params.star_index))
             }
         } else {
             ch_star_index = STAR_GENOMEGENERATE ( ch_fasta, ch_gtf ).index

@@ -1,31 +1,29 @@
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    VALIDATE INPUTS
+    PRINT PARAMS SUMMARY
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-def valid_params = [
-    aligners : [ 'bwa', 'bowtie2', 'chromap', 'star' ]
-]
+include { paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-validation'
 
-def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
+def logo = NfcoreTemplate.logo(workflow, params.monochrome_logs)
+def citation = '\n' + WorkflowMain.citation(workflow) + '\n'
+def summary_params = paramsSummaryMap(workflow)
+
+// Print parameter summary log to screen
+log.info logo + paramsSummaryLog(workflow) + citation
 
 // Validate input parameters
-WorkflowAtacseq.initialise(params, log, valid_params)
-
-// Check input path parameters to see if they exist
-def checkPathParamList = [
-    params.input, params.multiqc_config,
-    params.fasta,
-    params.gtf, params.gff, params.gene_bed, params.tss_bed,
-    params.bwa_index, params.bowtie2_index, params.chromap_index, params.star_index,
-    params.blacklist,
-    params.bamtools_filter_pe_config, params.bamtools_filter_se_config
-]
-for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
+WorkflowAtacseq.initialise(params, log)
 
 // Check mandatory parameters
-if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
+ch_input = file(params.input)
+
+// Check ataqv_mito_reference parameter
+ataqv_mito_reference = params.ataqv_mito_reference
+if (!params.ataqv_mito_reference && params.mito_name) {
+    ataqv_mito_reference = params.mito_name
+}
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -34,14 +32,14 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
 */
 
 ch_multiqc_config        = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath( params.multiqc_config, checkIfExists: true ) : Channel.empty()
-ch_multiqc_logo          = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo, checkIfExists: true ) : Channel.empty()
-ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
+ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
+ch_multiqc_logo          = params.multiqc_logo   ? Channel.fromPath(params.multiqc_logo)   : Channel.empty()
+ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
 
 
 // JSON files required by BAMTools for alignment filtering
-ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config, checkIfExists: true)
-ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config, checkIfExists: true)
+ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config)
+ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
 
 // Header files for MultiQC
 ch_multiqc_merged_library_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_peak_count_header.txt", checkIfExists: true)
@@ -137,9 +135,13 @@ workflow ATACSEQ {
     //
     INPUT_CHECK (
         ch_input,
-        params.seq_center
+        params.seq_center,
+        params.with_control
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
+    // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with Channel.fromSamplesheet("input")
+    // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
+    // ! There is currently no tooling to help you write a sample sheet schema
 
     //
     // SUBWORKFLOW: Read QC and trim adapters
@@ -150,7 +152,8 @@ workflow ATACSEQ {
         false,
         false,
         params.skip_trimming,
-        0
+        0,
+        params.min_trimmed_reads
     )
     ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
 
@@ -168,6 +171,9 @@ workflow ATACSEQ {
             PREPARE_GENOME.out.bwa_index,
             false,
             PREPARE_GENOME.out.fasta
+                .map {
+                        [ [:], it ]
+                }
         )
         ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
         ch_genome_bam_index  = FASTQ_ALIGN_BWA.out.bai
@@ -187,6 +193,9 @@ workflow ATACSEQ {
             params.save_unaligned,
             false,
             PREPARE_GENOME.out.fasta
+                .map {
+                    [ [:], it ]
+                }
         )
         ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
         ch_genome_bam_index  = FASTQ_ALIGN_BOWTIE2.out.bai
@@ -200,38 +209,8 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Alignment with CHROMAP & BAM QC
     //
     if (params.aligner == 'chromap') {
-
-        // Filter out paired-end reads until the issue below is fixed
-        // https://github.com/nf-core/chipseq/issues/291
-        FASTQ_FASTQC_UMITOOLS_TRIMGALORE
-            .out
-            .reads
-            .branch {
-                meta, reads ->
-                    single_end: meta.single_end
-                        return [ meta, reads ]
-                    paired_end: !meta.single_end
-                        return [ meta, reads ]
-            }
-            .set { ch_reads_chromap }
-
-        ch_reads_chromap
-            .paired_end
-            .collect()
-            .map {
-                it ->
-                    def count = it.size()
-                    if (count > 0) {
-                        log.warn "=============================================================================\n" +
-                        "  Paired-end files produced by chromap cannot be used by some downstream tools due to the issue below:\n" +
-                        "  https://github.com/nf-core/chipseq/issues/291\n" +
-                        "  They will be excluded from the analysis. Consider using a different aligner\n" +
-                        "==================================================================================="
-                    }
-            }
-
         FASTQ_ALIGN_CHROMAP (
-            ch_reads_chromap.single_end,
+            FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.chromap_index,
             PREPARE_GENOME.out.fasta
                 .map {
@@ -258,7 +237,10 @@ workflow ATACSEQ {
         ALIGN_STAR (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             PREPARE_GENOME.out.star_index,
-            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fasta
+                .map {
+                    [ [:], it ]
+                },
             params.seq_center ?: ''
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
@@ -299,8 +281,16 @@ workflow ATACSEQ {
     //
     MERGED_LIBRARY_MARKDUPLICATES_PICARD (
         PICARD_MERGESAMFILES_LIBRARY.out.bam,
-        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME
+            .out
+            .fasta
+            .map {
+                [ [:], it ]
+            },
         PREPARE_GENOME.out.fai
+            .map {
+                [ [:], it ]
+            }
     )
     ch_versions = ch_versions.mix(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.versions)
 
@@ -310,7 +300,12 @@ workflow ATACSEQ {
     MERGED_LIBRARY_FILTER_BAM (
         MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam.join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
-        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME
+            .out
+            .fasta
+            .map {
+                [ [:], it ]
+            },
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
@@ -334,9 +329,24 @@ workflow ATACSEQ {
     ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
     if (!params.skip_picard_metrics) {
         MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS (
-            MERGED_LIBRARY_FILTER_BAM.out.bam,
-            PREPARE_GENOME.out.fasta,
-            PREPARE_GENOME.out.fai,
+            MERGED_LIBRARY_FILTER_BAM
+                .out
+                .bam
+                .map {
+                    [ it[0], it[1], [] ]
+                },
+            PREPARE_GENOME
+                .out
+                .fasta
+                .map {
+                    [ [:], it ]
+                },
+            PREPARE_GENOME
+                .out
+                .fai
+                .map {
+                    [ [:], it ]
+                }
         )
         ch_picardcollectmultiplemetrics_multiqc = MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS.out.metrics
         ch_versions = ch_versions.mix(MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
@@ -365,12 +375,30 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS.out.versions)
     }
 
-    // Create channels: [ meta, [bam], [bai] ]
+    // Create channels: [ meta, [bam], [bai] ] or [ meta, [ bam, control_bam ] [ bai, control_bai ] ]
     MERGED_LIBRARY_FILTER_BAM
         .out
         .bam
         .join(MERGED_LIBRARY_FILTER_BAM.out.bai, by: [0])
         .set { ch_bam_bai }
+
+    if (params.with_control) {
+        ch_bam_bai
+            .map {
+                meta, bam, bai ->
+                    meta.control ? null : [ meta.id, [ bam ] , [ bai ] ]
+            }
+            .set { ch_control_bam_bai }
+
+        ch_bam_bai
+            .map {
+                meta, bam, bai ->
+                    meta.control ? [ meta.control, meta, [ bam ], [ bai ] ] : null
+            }
+            .combine(ch_control_bam_bai, by: 0)
+            .map { it -> [ it[1] , it[2] + it[4], it[3] + it[5] ] }
+            .set { ch_bam_bai }
+    }
 
     //
     // MODULE: deepTools plotFingerprint QC
@@ -384,13 +412,22 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
     }
 
-    // Create channels: [ meta, bam, ([] for control_bam) ]
-    ch_bam_bai
-        .map {
-            meta, bam, bai ->
-                [ meta , bam, [] ]
-        }
-        .set { ch_bam_library }
+    // Create channel: [ val(meta), bam, control_bam ]
+    if (params.with_control) {
+        ch_bam_bai
+            .map {
+                meta, bams, bais ->
+                    [ meta , bams[0], bams[1] ]
+            }
+            .set { ch_bam_library }
+    } else {
+        ch_bam_bai
+            .map {
+                meta, bam, bai ->
+                    [ meta , bam, [] ]
+            }
+            .set { ch_bam_library }
+    }
 
     //
     // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
@@ -451,7 +488,7 @@ workflow ATACSEQ {
         MERGED_LIBRARY_ATAQV_ATAQV (
             ch_bam_peaks,
             'NA',
-            params.mito_name,
+            ataqv_mito_reference ?: '',
             PREPARE_GENOME.out.tss_bed,
             [],
             PREPARE_GENOME.out.autosomes
@@ -490,6 +527,7 @@ workflow ATACSEQ {
                 meta, bam ->
                     def meta_clone = meta.clone()
                     meta_clone.id = meta_clone.id - ~/_REP\d+$/
+                    meta_clone.control = meta_clone.control ? meta_clone.control - ~/_REP\d+$/ : ""
                     [ meta_clone.id, meta_clone, bam ]
             }
             .groupTuple()
@@ -514,8 +552,16 @@ workflow ATACSEQ {
         //
         MERGED_REPLICATE_MARKDUPLICATES_PICARD (
             PICARD_MERGESAMFILES_REPLICATE.out.bam,
-            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME
+                .out
+                .fasta
+                .map {
+                    [ [:], it ]
+                },
             PREPARE_GENOME.out.fai
+                .map {
+                    [ [:], it ]
+                }
         )
         ch_markduplicates_replicate_stats    = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.stats
         ch_markduplicates_replicate_flagstat = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat
@@ -533,15 +579,36 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_TO_BIGWIG.out.versions)
 
         // Create channels: [ meta, bam, ([] for control_bam) ]
-        MERGED_REPLICATE_MARKDUPLICATES_PICARD
-            .out
-            .bam
-            .map {
-                meta, bam ->
-                    [ meta , bam, [] ]
-            }
-            .set { ch_bam_replicate }
+        if (params.with_control) {
+            MERGED_REPLICATE_MARKDUPLICATES_PICARD
+                .out
+                .bam
+                .map {
+                    meta, bam ->
+                        meta.control ? null : [ meta.id, bam ]
+                }
+                .set { ch_bam_merged_control }
 
+            MERGED_REPLICATE_MARKDUPLICATES_PICARD
+                .out
+                .bam
+                .map {
+                    meta, bam ->
+                        meta.control ? [ meta.control, meta, bam ] : null
+                }
+                .combine( ch_bam_merged_control, by: 0)
+                .map { it -> [ it[1] , it[2], it[3] ] }
+                .set { ch_bam_replicate }
+        } else {
+            MERGED_REPLICATE_MARKDUPLICATES_PICARD
+                .out
+                .bam
+                .map {
+                    meta, bam ->
+                        [ meta , bam, [] ]
+                }
+                .set { ch_bam_replicate }
+        }
         //
         // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
         //
@@ -593,6 +660,7 @@ workflow ATACSEQ {
     if (!params.skip_igv) {
         IGV (
             PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fai,
             MERGED_LIBRARY_BAM_TO_BIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
             MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_library_bed.collect{it[1]}.ifEmpty([]),
@@ -633,8 +701,8 @@ workflow ATACSEQ {
         workflow_summary    = WorkflowAtacseq.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
-        methods_description    = WorkflowAtacseq.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
-        ch_methods_description = Channel.value(methods_description)
+    methods_description    = WorkflowAtacseq.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description, params)
+    ch_methods_description = Channel.value(methods_description)
 
         MULTIQC (
             ch_multiqc_config,
@@ -701,7 +769,7 @@ workflow.onComplete {
     }
 
     if (params.hook_url) {
-        NfcoreTemplate.adaptivecard(workflow, params, summary_params, projectDir, log)
+        NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)
     }
 
     NfcoreTemplate.summary(workflow, params, log)
