@@ -16,7 +16,7 @@ class WorkflowAtacseq {
         if (!params.fasta) {
             Nextflow.error "Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file."
         }
-        
+
         if (!params.gtf && !params.gff) {
             log.error "No GTF or GFF3 annotation specified! The pipeline requires at least one of these files."
             System.exit(1)
