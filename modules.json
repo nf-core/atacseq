@@ -92,7 +92,7 @@
                     },
                     "homer/annotatepeaks": {
                         "branch": "master",
-                        "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
+                        "git_sha": "ffc27c68870f5f67e541bb67d94e03c597f75257",
                         "installed_by": ["modules"]
                     },
                     "khmer/uniquekmers": {
