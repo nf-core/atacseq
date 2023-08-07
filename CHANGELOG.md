@@ -3,12 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [[2.1.2](https://github.com/nf-core/atacseq/releases/tag/2.1.2)] - 2022-07-28
+## [[2.1.2](https://github.com/nf-core/atacseq/releases/tag/2.1.2)] - 2022-08-07
 
 ### Enhancements & fixes
 
 - [[#322](https://github.com/nf-core/atacseq/issues/322)]Remove fasta from required schema parameters so that when launching from tools it is not required.
-- Update `homer_annotatepeaks` module.
+- Updates `homer_annotatepeaks` module.
 
 ## [[2.1.1](https://github.com/nf-core/atacseq/releases/tag/2.1.1)] - 2022-07-21
 
