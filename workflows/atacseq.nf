@@ -297,8 +297,29 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Filter BAM file
     //
+        // ch_bam_bai = PICARD_MARKDUPLICATES.out.bam
+        // .join(SAMTOOLS_INDEX.out.bai, by: [0], remainder: true)
+        // .join(SAMTOOLS_INDEX.out.csi, by: [0], remainder: true)
+        // .map {
+        //     meta, bam, bai, csi ->
+        //         if (bai) {
+        //             [ meta, bam, bai ]
+        //         } else {
+        //             [ meta, bam, csi ]
+        //         }
+        // }
     MERGED_LIBRARY_FILTER_BAM (
-        MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam.join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0]),
+        MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam
+            .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0], remainder: true)
+            .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.csi, by: [0], remainder: true)
+            .map {
+                meta, bam, bai, csi ->
+                    if (bai) {
+                        [ meta, bam, bai ]
+                    } else {
+                        [ meta, bam, csi ]
+                    }
+            },
         PREPARE_GENOME.out.filtered_bed.first(),
         PREPARE_GENOME
             .out
@@ -379,7 +400,16 @@ workflow ATACSEQ {
     MERGED_LIBRARY_FILTER_BAM
         .out
         .bam
-        .join(MERGED_LIBRARY_FILTER_BAM.out.bai, by: [0])
+        .join(MERGED_LIBRARY_FILTER_BAM.out.bai, by: [0], remainder: true)
+        .join(MERGED_LIBRARY_FILTER_BAM.out.csi, by: [0], remainder: true)
+        .map {
+            meta, bam, bai, csi ->
+                if (bai) {
+                    [ meta, bam, bai ]
+                } else {
+                    [ meta, bam, csi ]
+                }
+        }
         .set { ch_bam_bai }
 
     if (params.with_control) {
@@ -477,7 +507,16 @@ workflow ATACSEQ {
     MERGED_LIBRARY_MARKDUPLICATES_PICARD
         .out
         .bam
-        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0])
+        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0], remainder: true)
+        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.csi, by: [0], remainder: true)
+        .map {
+            meta, bam, bai, csi ->
+                if (bai) {
+                    [ meta, bam, bai ]
+                } else {
+                    [ meta, bam, csi ]
+                }
+        }
         .join(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks, by: [0])
         .set { ch_bam_peaks }
 
