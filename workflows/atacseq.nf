@@ -161,7 +161,6 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Alignment with BWA & BAM QC
     //
     ch_genome_bam        = Channel.empty()
-    ch_genome_bam_index  = Channel.empty()
     ch_samtools_stats    = Channel.empty()
     ch_samtools_flagstat = Channel.empty()
     ch_samtools_idxstats = Channel.empty()
@@ -176,7 +175,6 @@ workflow ATACSEQ {
                 }
         )
         ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
-        ch_genome_bam_index  = FASTQ_ALIGN_BWA.out.bai
         ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BWA.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BWA.out.idxstats
@@ -198,7 +196,6 @@ workflow ATACSEQ {
                 }
         )
         ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
-        ch_genome_bam_index  = FASTQ_ALIGN_BOWTIE2.out.bai
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
@@ -222,7 +219,6 @@ workflow ATACSEQ {
             []
         )
         ch_genome_bam        = FASTQ_ALIGN_CHROMAP.out.bam
-        ch_genome_bam_index  = FASTQ_ALIGN_CHROMAP.out.bai
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
@@ -244,7 +240,6 @@ workflow ATACSEQ {
             params.seq_center ?: ''
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
-        ch_genome_bam_index  = ALIGN_STAR.out.bai
         ch_samtools_stats    = ALIGN_STAR.out.stats
         ch_samtools_flagstat = ALIGN_STAR.out.flagstat
         ch_samtools_idxstats = ALIGN_STAR.out.idxstats
@@ -298,7 +293,17 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Filter BAM file
     //
     MERGED_LIBRARY_FILTER_BAM (
-        MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam.join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0]),
+        MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam
+            .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0], remainder: true)
+            .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.csi, by: [0], remainder: true)
+            .map {
+                meta, bam, bai, csi ->
+                    if (bai) {
+                        [ meta, bam, bai ]
+                    } else {
+                        [ meta, bam, csi ]
+                    }
+            },
         PREPARE_GENOME.out.filtered_bed.first(),
         PREPARE_GENOME
             .out
@@ -379,7 +384,16 @@ workflow ATACSEQ {
     MERGED_LIBRARY_FILTER_BAM
         .out
         .bam
-        .join(MERGED_LIBRARY_FILTER_BAM.out.bai, by: [0])
+        .join(MERGED_LIBRARY_FILTER_BAM.out.bai, by: [0], remainder: true)
+        .join(MERGED_LIBRARY_FILTER_BAM.out.csi, by: [0], remainder: true)
+        .map {
+            meta, bam, bai, csi ->
+                if (bai) {
+                    [ meta, bam, bai ]
+                } else {
+                    [ meta, bam, csi ]
+                }
+        }
         .set { ch_bam_bai }
 
     if (params.with_control) {
@@ -477,7 +491,16 @@ workflow ATACSEQ {
     MERGED_LIBRARY_MARKDUPLICATES_PICARD
         .out
         .bam
-        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0])
+        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0], remainder: true)
+        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.csi, by: [0], remainder: true)
+        .map {
+            meta, bam, bai, csi ->
+                if (bai) {
+                    [ meta, bam, bai ]
+                } else {
+                    [ meta, bam, csi ]
+                }
+        }
         .join(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks, by: [0])
         .set { ch_bam_peaks }
 
