@@ -99,7 +99,7 @@ workflow BAM_FILTER_BAMTOOLS {
     name_bam = SAMTOOLS_SORT.out.bam                                                     // channel: [ val(meta), [ bam ] ]
     bam      = BAM_SORT_STATS_SAMTOOLS.out.bam.mix(ch_bam.single_end)                    // channel: [ val(meta), [ bam ] ]
     bai      = BAM_SORT_STATS_SAMTOOLS.out.bai.mix(SAMTOOLS_INDEX.out.bai)               // channel: [ val(meta), [ bai ] ]
-    csi      = BAM_SORT_STATS_SAMTOOLS.out.csi.mix(SAMTOOLS_INDEX.out.csi)               // channel: [ val(meta), [ bai ] ]
+    csi      = BAM_SORT_STATS_SAMTOOLS.out.csi.mix(SAMTOOLS_INDEX.out.csi)               // channel: [ val(meta), [ csi ] ]
     stats    = BAM_SORT_STATS_SAMTOOLS.out.stats.mix(BAM_STATS_SAMTOOLS.out.stats)       // channel: [ val(meta), [ stats ] ]
     flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat.mix(BAM_STATS_SAMTOOLS.out.flagstat) // channel: [ val(meta), [ flagstat ] ]
     idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats.mix(BAM_STATS_SAMTOOLS.out.idxstats) // channel: [ val(meta), [ idxstats ] ]
