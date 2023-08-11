@@ -161,7 +161,6 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Alignment with BWA & BAM QC
     //
     ch_genome_bam        = Channel.empty()
-    ch_genome_bam_index  = Channel.empty()
     ch_samtools_stats    = Channel.empty()
     ch_samtools_flagstat = Channel.empty()
     ch_samtools_idxstats = Channel.empty()
@@ -176,7 +175,6 @@ workflow ATACSEQ {
                 }
         )
         ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
-        ch_genome_bam_index  = FASTQ_ALIGN_BWA.out.bai
         ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BWA.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BWA.out.idxstats
@@ -198,7 +196,6 @@ workflow ATACSEQ {
                 }
         )
         ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
-        ch_genome_bam_index  = FASTQ_ALIGN_BOWTIE2.out.bai
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
@@ -222,7 +219,6 @@ workflow ATACSEQ {
             []
         )
         ch_genome_bam        = FASTQ_ALIGN_CHROMAP.out.bam
-        ch_genome_bam_index  = FASTQ_ALIGN_CHROMAP.out.bai
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
@@ -244,7 +240,6 @@ workflow ATACSEQ {
             params.seq_center ?: ''
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
-        ch_genome_bam_index  = ALIGN_STAR.out.bai
         ch_samtools_stats    = ALIGN_STAR.out.stats
         ch_samtools_flagstat = ALIGN_STAR.out.flagstat
         ch_samtools_idxstats = ALIGN_STAR.out.idxstats
