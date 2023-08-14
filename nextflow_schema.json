@@ -325,6 +325,13 @@
                     "hidden": true,
                     "description": "BAMTools JSON file with custom filters for single-end data.",
                     "fa_icon": "fas fa-cog"
+                },
+                "analyze_multimappers": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Output this number of multimapping reads from the alignment step and include them in peak calling.",
+                    "help_text": "This will include non-unique reads in the alignment (Bowtie2 and STAR) and peak calling steps (Genrich). Default of 0 means only the best alignment is use and multimappers are ignored.",
+                    "fa_icon": "fas fa-chart-bar"
                 }
             }
         },
@@ -382,6 +389,43 @@
                     "type": "boolean",
                     "description": "Skip consensus peak generation, annotation and counting.",
                     "fa_icon": "fas fa-fast-forward"
+                },
+                "save_genrich_pileup": {
+                    "type": "boolean",
+                    "description": "Instruct Genrich to create bedGraph files normalised to signal per million reads.",
+                    "fa_icon": "fas fa-save"
+                },
+                "save_genrich_pvalues": {
+                    "type": "boolean",
+                    "description": "Instruct Genrich to create bedGraph files with p-values.",
+                    "fa_icon": "fas fa-save"
+                },
+                "save_genrich_bed": {
+                    "type": "boolean",
+                    "description": "Instruct Genrich to create BED files.",
+                    "fa_icon": "fas fa-save"
+                },
+                "save_genrich_duplicates": {
+                    "type": "boolean",
+                    "description": "Instruct Genrich to save duplicates.",
+                    "fa_icon": "fas fa-save"
+                },
+                "genrich_qvalue": {
+                    "type": "number",
+                    "default": 0.1,
+                    "description": "Minimum q-value cutoff for peak detection.",
+                    "fa_icon": "fas fa-sort-amount-down"
+                },
+                "genrich_pvalue": {
+                    "type": "number",
+                    "default": 0.1,
+                    "description": "Minimum p-value cutoff for peak detection.",
+                    "fa_icon": "fas fa-sort-amount-down"
+                },
+                "homer_detail_annotation": {
+                    "type": "boolean",
+                    "description": "Annotate peaks with HOMER in detailed mode.",
+                    "fa_icon": "fas fa-search-plus"
                 }
             }
         },

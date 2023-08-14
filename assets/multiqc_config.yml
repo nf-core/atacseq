@@ -91,8 +91,14 @@ module_order:
         - "./macs2/merged_replicate/featurecounts/*.summary"
 
 report_section_order:
-  mlib_peak_count:
+  mlib_sep_genrich_peak_count:
     before: mlib_deeptools
+  mlib_sep_genrich_frip_score:
+    before: mlib_sep_genrich_peak_count
+  mlib_sep_genrich_peak_annotation:
+    before: mlib_sep_genrich_frip_score
+  mlib_peak_count:
+    before: mlib_sep_genrich_peak_annotation
   mlib_frip_score:
     before: mlib_peak_count
   mlib_peak_annotation:
@@ -115,6 +121,12 @@ report_section_order:
     before: mrep_featurecounts
   mrep_deseq2_clustering_1:
     before: mrep_deseq2_pca_1
+  mlib_joint_genrich_peak_count:
+    before: mrep_deseq2_clustering_1
+  mlib_joint_genrich_frip_score:
+    before: mlib_joint_genrich_peak_count
+  mlib_joint_genrich_peak_annotation:
+    before: mlib_joint_genrich_frip_score
   "nf-core-atacseq-methods-description":
     order: -1000
   software_versions:

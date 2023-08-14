@@ -14,12 +14,21 @@ process IGV {
     path ("${bigwig_replicate_publish_dir}/*")
     path ("${peak_replicate_publish_dir}/*")
     path ("${consensus_replicate_publish_dir}/*")
+
+    path ("${bigwig_library_nf_publish_dir}/*")
+    path ("${peak_library_s_genrich_publish_dir}/*")
+    path ("${peak_library_j_genrich_publish_dir}/*")
+
     val bigwig_library_publish_dir
     val peak_library_publish_dir
     val consensus_library_publish_dir
     val bigwig_replicate_publish_dir
     val peak_replicate_publish_dir
     val consensus_replicate_publish_dir
+
+    val bigwig_library_nf_publish_dir
+    val peak_library_s_genrich_publish_dir
+    val peak_library_j_genrich_publish_dir
 
     output:
     // Publish fasta file while copyTo fails when the source and destination buckets are in different regions
@@ -40,6 +49,9 @@ process IGV {
     find * -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$bigwig_replicate_publish_dir" || test \$? = 1; } > mRp_bigwig.igv.txt
     find * -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$peak_replicate_publish_dir" || test \$? = 1; } > mRp_peaks.igv.txt
     find * -type l -name "*.bed" -exec echo -e ""{}"\\t0,0,0" \\; | { grep "^$consensus_replicate_publish_dir" || test \$? = 1; } > mRp_bed.igv.txt
+    find * -type l -name "*.bigWig" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$bigwig_library_nf_publish_dir" || test \$? = 1; } > mLb_nf_bigwig.igv.txt
+    find * -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$peak_library_s_genrich_publish_dir" || test \$? = 1; } > mLb_s_genrich_peaks.igv.txt
+    find * -type l -name "*Peak" -exec echo -e ""{}"\\t0,0,178" \\; | { grep "^$peak_library_j_genrich_publish_dir" || test \$? = 1; } > mLb_j_genrich_peaks.igv.txt
 
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'

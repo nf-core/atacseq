@@ -1,6 +1,6 @@
 process BOWTIE2_ALIGN {
     tag "$meta.id"
-    label "process_high"
+    label "process_ultra"
 
     conda "bioconda::bowtie2=2.4.4 bioconda::samtools=1.16.1 conda-forge::pigz=2.6"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?

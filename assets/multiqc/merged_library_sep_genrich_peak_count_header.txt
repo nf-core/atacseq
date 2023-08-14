@@ -1,7 +1,7 @@
-#id: 'mlib_peak_count'
-#section_name: 'MERGED LIB: MACS2: Peak count'
+#id: 'mlib_sep_genrich_peak_count'
+#section_name: 'MERGED LIB: Genrich (sep): Peak count'
 #description: "is calculated from total number of peaks called by
-#	       <a href='https://github.com/taoliu/MACS' target='_blank'>MACS2</a>"
+#	       <a href='https://github.com/jsh58/Genrich' target='_blank'>Genrich</a>"
 #plot_type: 'bargraph'
 #anchor: 'mlib_peak_count'
 #pconfig:
