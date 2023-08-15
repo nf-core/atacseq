@@ -570,31 +570,36 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
     //
-    MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH (
-        ch_merged_library_bams_sep,
-        PREPARE_GENOME.out.fasta,
-        PREPARE_GENOME.out.gtf,
-        params.genome,
-        PREPARE_GENOME.out.blacklist_bed.first(),
-        ".mLb.genrich.speaks.annotatePeaks.txt",
-        ch_multiqc_merged_library_sep_genrich_peak_count_header,
-        ch_multiqc_merged_library_sep_genrich_frip_score_header,
-        ch_multiqc_merged_library_sep_genrich_peak_annotation_header,
-        params.narrow_peak,
-        params.skip_peak_annotation,
-        params.skip_peak_qc,
-        params.save_genrich_pvalues,
-        params.save_genrich_pileup,
-        params.save_genrich_bed,
-        params.save_genrich_duplicates,
-        params.homer_detail_annotation
-    )
-    ch_library_genrich_sep_peaks                         = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
-    ch_library_genrich_sep_frip_multiqc                  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
-    ch_library_genrich_sep_peak_count_multiqc            = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peak_count_multiqc
-    ch_library_genrich_sep_plot_homer_annotatepeaks_tsv  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
-
-    ch_versions = ch_versions.mix(MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.versions)
+    ch_library_genrich_sep_peaks                        = Channel.empty()
+    ch_library_genrich_sep_frip_multiqc                 = Channel.empty()
+    ch_library_genrich_sep_peak_count_multiqc           = Channel.empty()
+    ch_library_genrich_sep_plot_homer_annotatepeaks_tsv = Channel.empty()
+    if (!params.skip_genrich_sep) {
+        MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH (
+            ch_merged_library_bams_sep,
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.gtf,
+            params.genome,
+            PREPARE_GENOME.out.blacklist_bed.first(),
+            ".mLb.genrich.speaks.annotatePeaks.txt",
+            ch_multiqc_merged_library_sep_genrich_peak_count_header,
+            ch_multiqc_merged_library_sep_genrich_frip_score_header,
+            ch_multiqc_merged_library_sep_genrich_peak_annotation_header,
+            params.narrow_peak,
+            params.skip_peak_annotation,
+            params.skip_peak_qc,
+            params.save_genrich_pvalues,
+            params.save_genrich_pileup,
+            params.save_genrich_bed,
+            params.save_genrich_duplicates,
+            params.homer_detail_annotation
+        )
+        ch_library_genrich_sep_peaks                         = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
+        ch_library_genrich_sep_frip_multiqc                  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
+        ch_library_genrich_sep_peak_count_multiqc            = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peak_count_multiqc
+        ch_library_genrich_sep_plot_homer_annotatepeaks_tsv  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.versions)
+    }
 
     // Create channels: [ meta, bam, bai, peak_file ]
     MERGED_LIBRARY_MARKDUPLICATES_PICARD
