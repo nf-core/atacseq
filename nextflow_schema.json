@@ -390,6 +390,11 @@
                     "description": "Skip consensus peak generation, annotation and counting.",
                     "fa_icon": "fas fa-fast-forward"
                 },
+                "skip_genrich_sep": {
+                    "type": "boolean",
+                    "description": "Skip Genrich individual (separate replicates) peak calling. If skipped, each group of biological replicates will be analysed together, which is the recommended approach.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
                 "save_genrich_pileup": {
                     "type": "boolean",
                     "description": "Instruct Genrich to create bedGraph files normalised to signal per million reads.",
