@@ -4,7 +4,6 @@
 
 include { GENRICH           } from '../../modules/nf-core/genrich/main'
 include { HOMER_ANNOTATEPEAKS      } from '../../modules/nf-core/homer/annotatepeaks/main'
-include { HOMER_DETAIL_ANNOTATEPEAKS    } from '../../modules/local/homer_detailed_ann'
 
 include { FRIP_SCORE               } from '../../modules/local/frip_score'
 include { MULTIQC_CUSTOM_PEAKS     } from '../../modules/local/multiqc_custom_peaks'
@@ -33,8 +32,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     save_pileup                       // boolean: true/false
     save_bed                          // boolean: true/false
     save_duplicates                   // boolean: true/false
-    detailed_annotation               // boolean: true/false
-
 
     main:
 
@@ -135,20 +132,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
         ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions.first())
 
-        if (detailed_annotation) {
-            //
-            // Annotate peaks with HOMER (detailed)
-            //
-            if (genome) {
-            HOMER_DETAIL_ANNOTATEPEAKS (
-                ch_genrich_peaks,
-                genome
-            )
-            ch_homer_det_annotatepeaks = HOMER_DETAIL_ANNOTATEPEAKS.out.txt
-            ch_versions = ch_versions.mix(HOMER_DETAIL_ANNOTATEPEAKS.out.versions.first())
-            }
-        }
-
         if (!skip_peak_qc) {
             //
             // Genrich QC plots with R
@@ -189,7 +172,6 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER {
     peak_count_multiqc           = MULTIQC_CUSTOM_PEAKS.out.count   // channel: [ val(meta), [ counts ] ]
 
     homer_annotatepeaks          = ch_homer_annotatepeaks           // channel: [ val(meta), [ txt ] ]
-    homer_det_annotatepeaks      = ch_homer_det_annotatepeaks       // channel: [ val(meta), [ txt ] ]
     plot_genrich_qc_txt          = ch_plot_genrich_qc_txt             // channel: [ txt ]
     plot_genrich_qc_pdf          = ch_plot_genrich_qc_pdf             // channel: [ pdf ]
 

@@ -178,7 +178,7 @@ workflow ATACSEQ {
     //
     // Check if analyze_multimappers is set
     //
-    if (params.analyze_multimappers) {
+    if (params.analyze_multimappers != 0) {
         if (params.aligner == 'bwa' || params.aligner == 'chromap' || params.aligner == 'star') {
             exit 1, 'Multimapping read analysis is so far only supported for Bowtie2. Remove the --analyze_multimappers parameter or change --aligner to bowtie2.'
         }
@@ -591,8 +591,7 @@ workflow ATACSEQ {
             params.save_genrich_pvalues,
             params.save_genrich_pileup,
             params.save_genrich_bed,
-            params.save_genrich_duplicates,
-            params.homer_detail_annotation
+            params.save_genrich_duplicates
         )
         ch_library_genrich_sep_peaks                         = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
         ch_library_genrich_sep_frip_multiqc                  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
@@ -818,8 +817,7 @@ workflow ATACSEQ {
         params.save_genrich_pvalues,
         params.save_genrich_pileup,
         params.save_genrich_bed,
-        params.save_genrich_duplicates,
-        params.homer_detail_annotation
+        params.save_genrich_duplicates
     )
     ch_library_genrich_joint_peaks                         = MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
     ch_library_genrich_joint_frip_multiqc                  = MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
