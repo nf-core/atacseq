@@ -66,9 +66,11 @@ include { MULTIQC } from '../modules/local/multiqc'
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK    } from '../subworkflows/local/input_check'
-include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome'
-include { ALIGN_STAR     } from '../subworkflows/local/align_star'
+include { INPUT_CHECK     } from '../subworkflows/local/input_check'
+include { PREPARE_GENOME  } from '../subworkflows/local/prepare_genome'
+include { ALIGN_STAR      } from '../subworkflows/local/align_star'
+include { BAM_SHIFT_READS as MERGED_LIBRARY_BAM_SHIFT_READS } from '../subworkflows/local/bam_shift_reads'
+include { BAM_SHIFT_READS as MERGED_REPLICATE_BAM_SHIFT_READS } from '../subworkflows/local/bam_shift_reads'
 include { BIGWIG_PLOT_DEEPTOOLS as MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS       } from '../subworkflows/local/bigwig_plot_deeptools'
 include { BAM_FILTER_BAMTOOLS as MERGED_LIBRARY_FILTER_BAM                    } from '../subworkflows/local/bam_filter_bamtools'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_LIBRARY_BAM_TO_BIGWIG   } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
@@ -94,6 +96,7 @@ include { PRESEQ_LCEXTRAP as MERGED_LIBRARY_PRESEQ_LCEXTRAP                     
 include { DEEPTOOLS_PLOTFINGERPRINT as MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT         } from '../modules/nf-core/deeptools/plotfingerprint/main'
 include { ATAQV_ATAQV as MERGED_LIBRARY_ATAQV_ATAQV                                     } from '../modules/nf-core/ataqv/ataqv/main'
 include { ATAQV_MKARV as MERGED_LIBRARY_ATAQV_MKARV                                     } from '../modules/nf-core/ataqv/mkarv/main'
+include { SAMTOOLS_INDEX } from '../modules/nf-core/samtools/index/main'
 
 include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_LIBRARY   } from '../modules/nf-core/picard/mergesamfiles/main'
 include { PICARD_MERGESAMFILES as PICARD_MERGESAMFILES_REPLICATE } from '../modules/nf-core/picard/mergesamfiles/main'
@@ -142,6 +145,24 @@ workflow ATACSEQ {
     // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with Channel.fromSamplesheet("input")
     // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
     // ! There is currently no tooling to help you write a sample sheet schema
+
+    //
+    // Check if reads are all paired-end if 'shift_reads' parameter is set
+    //
+    if (params.shift_reads) {
+        INPUT_CHECK
+            .out
+            .reads
+            .filter { meta, reads -> meta.single_end }
+            .collect()
+            .map {
+                it ->
+                    def count = it.size()
+                    if (count > 0) {
+                        exit 1, 'The parameter --shift_reads can only be applied if all samples are paired-end.'
+                    }
+            }
+    }
 
     //
     // SUBWORKFLOW: Read QC and trim adapters
@@ -219,6 +240,7 @@ workflow ATACSEQ {
             []
         )
         ch_genome_bam        = FASTQ_ALIGN_CHROMAP.out.bam
+        ch_genome_bam_index  = FASTQ_ALIGN_CHROMAP.out.bai
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
@@ -358,10 +380,28 @@ workflow ATACSEQ {
     }
 
     //
+    // SUBWORKFLOW: Shift paired-end reads
+    //
+    ch_merged_library_filter_bam = MERGED_LIBRARY_FILTER_BAM.out.bam
+    ch_merged_library_filter_bai = MERGED_LIBRARY_FILTER_BAM.out.bai
+    ch_merged_library_filter_flagstat = MERGED_LIBRARY_FILTER_BAM.out.flagstat
+
+    if (params.shift_reads && params.aligner != 'chromap' ) {
+        MERGED_LIBRARY_BAM_SHIFT_READS (
+            ch_merged_library_filter_bam.join(ch_merged_library_filter_bai, by: [0]),
+        )
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_BAM_SHIFT_READS.out.versions)
+
+        ch_merged_library_filter_bam = MERGED_LIBRARY_BAM_SHIFT_READS.out.bam
+        ch_merged_library_filter_bai = MERGED_LIBRARY_BAM_SHIFT_READS.out.bai
+        ch_merged_library_filter_flagstat = MERGED_LIBRARY_BAM_SHIFT_READS.out.flagstat
+    }
+
+    //
     // SUBWORKFLOW: Normalised bigWig coverage tracks
     //
     MERGED_LIBRARY_BAM_TO_BIGWIG (
-        MERGED_LIBRARY_FILTER_BAM.out.bam.join(MERGED_LIBRARY_FILTER_BAM.out.flagstat, by: [0]),
+        ch_merged_library_filter_bam.join(ch_merged_library_filter_flagstat, by: [0]),
         PREPARE_GENOME.out.chrom_sizes
     )
     ch_versions = ch_versions.mix(MERGED_LIBRARY_BAM_TO_BIGWIG.out.versions)
@@ -592,10 +632,29 @@ workflow ATACSEQ {
         ch_markduplicates_replicate_metrics  = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.metrics
         ch_versions = ch_versions.mix(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.versions)
 
+        //
+        // SUBWORKFLOW: Shift paired-end reads
+        // Shift again, as ch_merged_library_replicate_bam is generated out of unshifted reads
+        //
+        ch_merged_replicate_markduplicate_bam = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bam
+        ch_merged_replicate_markduplicate_bai = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bai
+        ch_merged_replicate_markduplicate_flagstat = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat
+
+        if (params.shift_reads && params.aligner != 'chromap' ) {
+            MERGED_REPLICATE_BAM_SHIFT_READS (
+                ch_merged_replicate_markduplicate_bam.join(ch_merged_replicate_markduplicate_bai, by: [0]),
+            )
+            ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_SHIFT_READS.out.versions)
+
+            ch_merged_replicate_markduplicate_bam = MERGED_REPLICATE_BAM_SHIFT_READS.out.bam
+            ch_merged_replicate_markduplicate_bai = MERGED_REPLICATE_BAM_SHIFT_READS.out.bai
+            ch_merged_replicate_markduplicate_flagstat = MERGED_REPLICATE_BAM_SHIFT_READS.out.flagstat
+        }
+
         // SUBWORKFLOW: Normalised bigWig coverage tracks
         //
         MERGED_REPLICATE_BAM_TO_BIGWIG (
-            MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bam.join(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat, by: [0]),
+            ch_merged_replicate_markduplicate_bam.join(ch_merged_replicate_markduplicate_flagstat, by: [0]),
             PREPARE_GENOME.out.chrom_sizes
         )
         ch_ucsc_bedgraphtobigwig_replicate_bigwig = MERGED_REPLICATE_BAM_TO_BIGWIG.out.bigwig
@@ -603,18 +662,14 @@ workflow ATACSEQ {
 
         // Create channels: [ meta, bam, ([] for control_bam) ]
         if (params.with_control) {
-            MERGED_REPLICATE_MARKDUPLICATES_PICARD
-                .out
-                .bam
+            ch_merged_replicate_markduplicate_bam
                 .map {
                     meta, bam ->
                         meta.control ? null : [ meta.id, bam ]
                 }
                 .set { ch_bam_merged_control }
 
-            MERGED_REPLICATE_MARKDUPLICATES_PICARD
-                .out
-                .bam
+            ch_merged_replicate_markduplicate_bam
                 .map {
                     meta, bam ->
                         meta.control ? [ meta.control, meta, bam ] : null
@@ -623,15 +678,14 @@ workflow ATACSEQ {
                 .map { it -> [ it[1] , it[2], it[3] ] }
                 .set { ch_bam_replicate }
         } else {
-            MERGED_REPLICATE_MARKDUPLICATES_PICARD
-                .out
-                .bam
+            ch_merged_replicate_markduplicate_bam
                 .map {
                     meta, bam ->
                         [ meta , bam, [] ]
                 }
                 .set { ch_bam_replicate }
         }
+
         //
         // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
         //
