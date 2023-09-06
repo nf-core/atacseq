@@ -43,8 +43,9 @@ workflow BAM_SHIFT_READS {
     ch_versions = ch_versions.mix(SAMTOOLS_FLAGSTAT.out.versions)
 
     emit:
-    bam = SAMTOOLS_SORT.out.bam                     // channel: [ val(meta), [ bam ] ]
-    bai = SAMTOOLS_INDEX.out.bai                    // channel: [ val(meta), [ bai ] ]
+    bam      = SAMTOOLS_SORT.out.bam                // channel: [ val(meta), [ bam ] ]
+    bai      = SAMTOOLS_INDEX.out.bai               // channel: [ val(meta), [ bai ] ]
+    csi      = SAMTOOLS_INDEX.out.csi               // channel: [ val(meta), [ csi ] ]
     flagstat = SAMTOOLS_FLAGSTAT.out.flagstat       // channel: [ val(meta), [ flagstat ] ]
     versions = ch_versions                          // channel: [ versions.yml ]
 }
