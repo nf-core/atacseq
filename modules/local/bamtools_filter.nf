@@ -29,7 +29,7 @@ process BAMTOOLS_FILTER {
     samtools view \\
         $args \\
         $blacklist \\
-        -b $bam \\
+        --uncompressed $bam \\
         | bamtools filter \\
             -out ${prefix}.bam \\
             -script $config
