@@ -71,7 +71,7 @@ class WorkflowMain {
         }
         return val
     }
-    
+
     // Exit pipeline if --profile contains spaces
     //
     private static void checkProfile(profile, args, log) {

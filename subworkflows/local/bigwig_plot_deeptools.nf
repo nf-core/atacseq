@@ -13,7 +13,7 @@ workflow BIGWIG_PLOT_DEEPTOOLS {
     ch_bigwig   // channel: [ val(meta), bigwig ]
     ch_gene_bed // channel: [ bed ]
     ch_tss_bed  // channel: [ bed ]
-    
+
     main:
 
     ch_versions = Channel.empty()
