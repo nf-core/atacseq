@@ -29,7 +29,7 @@ The pipeline will automatically append the `&_REP<BIOLOGICAL_REPLICATE_NUMBER>` 
 
 The `sample` and `replicate` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will perform the alignments in parallel, and subsequently merge them before further analysis. Below is an example a sample sequenced across 3 lanes:
 
-```console
+```csv title="samplesheet.csv"
 sample,fastq_1,fastq_2,replicate
 CONTROL,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,1
 CONTROL,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz,1
@@ -48,7 +48,7 @@ The pipeline will auto-detect whether a sample is single- or paired-end using th
 
 A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 7 samples, where we have biological triplicates for both the `CONTROL` and `TREATMENT` groups, and the third replicate in the `TREATMENT` group has been a technical replicate as a result of being sequenced twice.
 
-```console
+```csv title="samplesheet.csv"
 sample,fastq_1,fastq_2,replicate,control,control_replicate
 CONTROL,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,1,,
 CONTROL,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,2,,

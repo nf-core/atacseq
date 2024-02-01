@@ -19,7 +19,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     is_narrow_peak                      // boolean: true/false
     skip_peak_annotation                // boolean: true/false
     skip_deseq2_qc                      // boolean: true/false
-    
+
     main:
 
     ch_versions = Channel.empty()
@@ -29,7 +29,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     ch_peaks
         .collect { it[1] }
         .filter { it.size() > 1 }
-        .map { 
+        .map {
             peaks ->
                 [ [ id: 'consensus_peaks' ], peaks ]
         }
@@ -68,7 +68,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         .collect()
         .filter { it.size() == 3 }
         .map {
-            bam, meta, saf -> 
+            bam, meta, saf ->
                 [ meta, bam , saf ]
         }
         .set { ch_bam_saf }
