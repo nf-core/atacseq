@@ -154,7 +154,7 @@ def validateInputParameters() {
     if (!params.gtf && !params.gff) {
         error("No GTF or GFF3 annotation specified! The pipeline requires at least one of these files.")
     }
-    
+
     if (params.gtf && params.gff) {
         gtfGffWarn(log)
     }

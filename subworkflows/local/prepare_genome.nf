@@ -46,7 +46,7 @@ workflow PREPARE_GENOME {
     star_index         //    file: /path/to/star/index/
     macs_gsize         // integer: MACS2 genome size
     read_length        // integer: read length
-    
+
     main:
     ch_versions = Channel.empty()
 

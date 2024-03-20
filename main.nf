@@ -81,7 +81,7 @@ workflow NFCORE_ATACSEQ {
     // WORKFLOW: Run nf-core/rnaseq workflow
     //
     ch_samplesheet = Channel.value(file(params.input, checkIfExists: true))
-    
+
     ATACSEQ (
         params.input,
         ch_versions,
