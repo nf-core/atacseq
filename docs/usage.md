@@ -56,7 +56,7 @@ A final samplesheet file consisting of both single- and paired-end data may look
 
 ```csv title="samplesheet.csv"
 sample,fastq_1,fastq_2,replicate,control,control_replicate
-INPUT_A,IEG577I1_S1_L001_R1_001.fastq.gz,IEG577I1_S1_L002_R2_001.fastq.gz,1,, 
+INPUT_A,IEG577I1_S1_L001_R1_001.fastq.gz,IEG577I1_S1_L002_R2_001.fastq.gz,1,,
 UNTREATED_A,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,1,INPUT_A,1
 UNTREATED_A,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,2,INPUT_A,1
 UNTREATED_A,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,3,INPUT_A,1
