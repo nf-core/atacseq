@@ -101,11 +101,11 @@ workflow ATACSEQ {
     ch_filtered_bed  // channel: path(filtered.bed)
     ch_bwa_index     // channel: path(bwa/index/)
     ch_bowtie2_index // channel: path(bowtie2/index)
-    ch_chromap_index // channel: path(chromap.index) 
+    ch_chromap_index // channel: path(chromap.index)
     ch_star_index    // channel: path(star/index/)
     ch_autosomes     // channel: path(autosomes.txt)
     ch_macs_gsize    // channel: integer
-    
+
     main:
     ch_multiqc_files = Channel.empty()
 
