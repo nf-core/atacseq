@@ -32,7 +32,7 @@ workflow BAM_FILTER_BAMTOOLS {
     BAMTOOLS_FILTER
         .out
         .bam
-        .branch { 
+        .branch {
             meta, bam ->
                 single_end: meta.single_end
                     return [ meta, bam ]
@@ -49,11 +49,23 @@ workflow BAM_FILTER_BAMTOOLS {
     }
     ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions.first())
 
+    SAMTOOLS_INDEX.out.bai
+        .join(SAMTOOLS_INDEX.out.csi, by: [0], remainder: true)
+        .map {
+            meta, bai, csi ->
+                if (bai) {
+                    [ meta, bai ]
+                } else {
+                    [ meta, csi ]
+                }
+        }
+        .set { ch_index }
+
     //
     // Run samtools stats, flagstat and idxstats on SE BAM
     //
     BAM_STATS_SAMTOOLS (
-        ch_bam.single_end.join(SAMTOOLS_INDEX.out.bai),
+        ch_bam.single_end.join(ch_index),
         ch_fasta
     )
     ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
@@ -87,6 +99,7 @@ workflow BAM_FILTER_BAMTOOLS {
     name_bam = SAMTOOLS_SORT.out.bam                                                     // channel: [ val(meta), [ bam ] ]
     bam      = BAM_SORT_STATS_SAMTOOLS.out.bam.mix(ch_bam.single_end)                    // channel: [ val(meta), [ bam ] ]
     bai      = BAM_SORT_STATS_SAMTOOLS.out.bai.mix(SAMTOOLS_INDEX.out.bai)               // channel: [ val(meta), [ bai ] ]
+    csi      = BAM_SORT_STATS_SAMTOOLS.out.csi.mix(SAMTOOLS_INDEX.out.csi)               // channel: [ val(meta), [ csi ] ]
     stats    = BAM_SORT_STATS_SAMTOOLS.out.stats.mix(BAM_STATS_SAMTOOLS.out.stats)       // channel: [ val(meta), [ stats ] ]
     flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat.mix(BAM_STATS_SAMTOOLS.out.flagstat) // channel: [ val(meta), [ flagstat ] ]
     idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats.mix(BAM_STATS_SAMTOOLS.out.idxstats) // channel: [ val(meta), [ idxstats ] ]
