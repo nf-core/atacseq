@@ -59,6 +59,8 @@ workflow NFCORE_ATACSEQ {
 
     // SUBWORKFLOW: Prepare genome files
     PREPARE_GENOME (
+        params.genome,
+        params.genomes,
         params.aligner,
         params.fasta,
         params.gtf,

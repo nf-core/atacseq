@@ -31,6 +31,8 @@ include { TSS_EXTRACT              } from '../../modules/local/tss_extract'
 
 workflow PREPARE_GENOME {
     take:
+    genome             //  string: genome name
+    genomes            //   map: genome attributes
     prepare_tool_index //  string: tool to prepare index for
     fasta              //    path: path to genome fasta file
     gtf                //    file: /path/to/genome.gtf
@@ -95,19 +97,29 @@ workflow PREPARE_GENOME {
         }
     }
 
-    //
     // Uncompress gene BED annotation file or create from GTF if required
     //
-    if (gene_bed) {
+    // If --gtf is supplied along with --genome
+    // Make gene bed from supplied --gtf instead of using iGenomes one automatically
+    def make_bed = false
+    if (!gene_bed) {
+        make_bed = true
+    } else if (genome && gtf) {
+        if (genomes[ genome ].gtf != gtf) {
+            make_bed = true
+        }
+    }
+    
+    if (make_bed) {
+        ch_gene_bed = GTF2BED ( ch_gtf ).bed
+        ch_versions = ch_versions.mix(GTF2BED.out.versions)
+    } else {
         if (gene_bed.endsWith('.gz')) {
-            ch_gene_bed = GUNZIP_GENE_BED ( [ [:], gene_bed ] ).gunzip.map { it[1] }
+            ch_gene_bed = GUNZIP_GENE_BED ( [ [:], params.gene_bed ] ).gunzip.map{ it[1] }
             ch_versions = ch_versions.mix(GUNZIP_GENE_BED.out.versions)
         } else {
             ch_gene_bed = Channel.value(file(gene_bed))
         }
-    } else {
-        ch_gene_bed = GTF2BED ( ch_gtf ).bed
-        ch_versions = ch_versions.mix(GTF2BED.out.versions)
     }
 
     if (!tss_bed) {
