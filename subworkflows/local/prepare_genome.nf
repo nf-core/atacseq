@@ -32,7 +32,7 @@ include { TSS_EXTRACT              } from '../../modules/local/tss_extract'
 workflow PREPARE_GENOME {
     take:
     genome             //  string: genome name
-    genomes            //   map: genome attributes
+    genomes            //     map: genome attributes
     prepare_tool_index //  string: tool to prepare index for
     fasta              //    path: path to genome fasta file
     gtf                //    file: /path/to/genome.gtf
