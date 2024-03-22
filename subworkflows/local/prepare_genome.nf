@@ -109,7 +109,7 @@ workflow PREPARE_GENOME {
             make_bed = true
         }
     }
-    
+
     if (make_bed) {
         ch_gene_bed = GTF2BED ( ch_gtf ).bed
         ch_versions = ch_versions.mix(GTF2BED.out.versions)
