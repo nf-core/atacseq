@@ -43,8 +43,19 @@ ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
 
 // Header files for MultiQC
 ch_multiqc_merged_library_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_peak_count_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_sep_genrich_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_sep_genrich_peak_count_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_joint_genrich_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_joint_genrich_peak_count_header.txt", checkIfExists: true)
+
+
 ch_multiqc_merged_library_frip_score_header        = file("$projectDir/assets/multiqc/merged_library_frip_score_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_sep_genrich_frip_score_header        = file("$projectDir/assets/multiqc/merged_library_sep_genrich_frip_score_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_joint_genrich_frip_score_header        = file("$projectDir/assets/multiqc/merged_library_joint_genrich_frip_score_header.txt", checkIfExists: true)
+
 ch_multiqc_merged_library_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_library_peak_annotation_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_sep_genrich_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_library_sep_genrich_peak_annotation_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_joint_genrich_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_library_joint_genrich_peak_annotation_header.txt", checkIfExists: true)
+
+
 ch_multiqc_merged_library_deseq2_pca_header        = file("$projectDir/assets/multiqc/merged_library_deseq2_pca_header.txt", checkIfExists: true)
 ch_multiqc_merged_library_deseq2_clustering_header = file("$projectDir/assets/multiqc/merged_library_deseq2_clustering_header.txt", checkIfExists: true)
 
@@ -71,13 +82,20 @@ include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome'
 include { ALIGN_STAR     } from '../subworkflows/local/align_star'
 include { BIGWIG_PLOT_DEEPTOOLS as MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS       } from '../subworkflows/local/bigwig_plot_deeptools'
 include { BAM_FILTER_BAMTOOLS as MERGED_LIBRARY_FILTER_BAM                    } from '../subworkflows/local/bam_filter_bamtools'
+include { BAM_NOFILTER_BAMTOOLS as MERGED_LIBRARY_NOFILTER_BAM                } from '../subworkflows/local/bam_nofilter_bamtools'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_LIBRARY_BAM_TO_BIGWIG   } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
+include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_LIBRARY_NF_BAM_TO_BIGWIG   } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_REPLICATE_BAM_TO_BIGWIG } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
 
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_LIBRARY_CALL_ANNOTATE_PEAKS   } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_REPLICATE_CALL_ANNOTATE_PEAKS } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2          } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2        } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
 include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 as MERGED_LIBRARY_CONSENSUS_PEAKS   } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
 include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 as MERGED_REPLICATE_CONSENSUS_PEAKS } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
+
+include { BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER as MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH      } from '../subworkflows/local/bam_peaks_call_qc_annotate_genrich_homer.nf'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_GENRICH_HOMER as MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH    } from '../subworkflows/local/bam_peaks_call_qc_annotate_genrich_homer.nf'
+
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -158,9 +176,19 @@ workflow ATACSEQ {
     ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
 
     //
+    // Check if analyze_multimappers is set
+    //
+    if (params.analyze_multimappers != 0) {
+        if (params.aligner == 'bwa' || params.aligner == 'chromap') {
+            exit 1, 'Multimapping read analysis is so far only supported for Bowtie2 and STAR. Remove the --analyze_multimappers parameter or change --aligner to bowtie2 or star.'
+        }
+    }
+
+    //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
     //
     ch_genome_bam        = Channel.empty()
+    ch_genome_bam_index  = Channel.empty()
     ch_samtools_stats    = Channel.empty()
     ch_samtools_flagstat = Channel.empty()
     ch_samtools_idxstats = Channel.empty()
@@ -175,6 +203,7 @@ workflow ATACSEQ {
                 }
         )
         ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
+        ch_genome_bam_index  = FASTQ_ALIGN_BWA.out.bai
         ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BWA.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BWA.out.idxstats
@@ -196,6 +225,7 @@ workflow ATACSEQ {
                 }
         )
         ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
+        ch_genome_bam_index  = FASTQ_ALIGN_BOWTIE2.out.bai
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
@@ -219,6 +249,7 @@ workflow ATACSEQ {
             []
         )
         ch_genome_bam        = FASTQ_ALIGN_CHROMAP.out.bam
+        ch_genome_bam_index  = FASTQ_ALIGN_CHROMAP.out.bai
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
@@ -240,6 +271,7 @@ workflow ATACSEQ {
             params.seq_center ?: ''
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
+        ch_genome_bam_index  = ALIGN_STAR.out.bai
         ch_samtools_stats    = ALIGN_STAR.out.stats
         ch_samtools_flagstat = ALIGN_STAR.out.flagstat
         ch_samtools_idxstats = ALIGN_STAR.out.idxstats
@@ -293,17 +325,7 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Filter BAM file
     //
     MERGED_LIBRARY_FILTER_BAM (
-        MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam
-            .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0], remainder: true)
-            .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.csi, by: [0], remainder: true)
-            .map {
-                meta, bam, bai, csi ->
-                    if (bai) {
-                        [ meta, bam, bai ]
-                    } else {
-                        [ meta, bam, csi ]
-                    }
-            },
+        MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam.join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0]),
         PREPARE_GENOME.out.filtered_bed.first(),
         PREPARE_GENOME
             .out
@@ -384,16 +406,7 @@ workflow ATACSEQ {
     MERGED_LIBRARY_FILTER_BAM
         .out
         .bam
-        .join(MERGED_LIBRARY_FILTER_BAM.out.bai, by: [0], remainder: true)
-        .join(MERGED_LIBRARY_FILTER_BAM.out.csi, by: [0], remainder: true)
-        .map {
-            meta, bam, bai, csi ->
-                if (bai) {
-                    [ meta, bam, bai ]
-                } else {
-                    [ meta, bam, csi ]
-                }
-        }
+        .join(MERGED_LIBRARY_FILTER_BAM.out.bai, by: [0])
         .set { ch_bam_bai }
 
     if (params.with_control) {
@@ -446,7 +459,7 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
     //
-    MERGED_LIBRARY_CALL_ANNOTATE_PEAKS (
+    MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2 (
         ch_bam_library,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.gtf,
@@ -459,7 +472,12 @@ workflow ATACSEQ {
         params.skip_peak_annotation,
         params.skip_peak_qc
     )
-    ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.versions)
+    ch_library_peaks                        = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.peaks
+    ch_library_frip_multiqc                 = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.frip_multiqc
+    ch_library_peak_count_multiqc           = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.peak_count_multiqc
+    ch_library_plot_homer_annotatepeaks_tsv = MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.plot_homer_annotatepeaks_tsv
+
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS_MACS2.out.versions)
 
     //
     // SUBWORKFLOW: Consensus peaks analysis
@@ -470,7 +488,7 @@ workflow ATACSEQ {
     ch_deseq2_clustering_library_multiqc = Channel.empty()
     if (!params.skip_consensus_peaks) {
         MERGED_LIBRARY_CONSENSUS_PEAKS (
-            MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks,
+            ch_library_peaks,
             ch_bam_library,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.gtf,
@@ -487,21 +505,107 @@ workflow ATACSEQ {
         ch_versions = ch_versions.mix(MERGED_LIBRARY_CONSENSUS_PEAKS.out.versions)
     }
 
+    //
+    // SUBWORKFLOW: Sort by name and generate stats for unfiltered BAMs
+    //
+    MERGED_LIBRARY_NOFILTER_BAM (
+        PICARD_MERGESAMFILES_LIBRARY.out.bam,
+        PREPARE_GENOME
+            .out
+            .fasta
+            .map {
+                [ [:], it ]
+            }
+    )
+    ch_bam = MERGED_LIBRARY_NOFILTER_BAM.out.bam
+    ch_name_bam = MERGED_LIBRARY_NOFILTER_BAM.out.name_bam
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_NOFILTER_BAM.out.versions.first())
+
+    //
+    // SUBWORKFLOW: Normalised bigWig coverage tracks
+    //
+    MERGED_LIBRARY_NF_BAM_TO_BIGWIG (
+        ch_bam.join(MERGED_LIBRARY_NOFILTER_BAM.out.flagstat, by: [0]),
+        PREPARE_GENOME.out.chrom_sizes
+    )
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_NF_BAM_TO_BIGWIG.out.versions)
+
+
+    // Create channels: [ meta, [bam] ] or [ meta, [ bam, control_bam ] ] (now for Genrich)
+    if (params.with_control) {
+        ch_name_bam
+            .map {
+                meta, bam ->
+                    meta.control ? null : [ meta.id, [ bam ] ]
+            }
+            .set { ch_control_bam }
+
+        ch_name_bam
+            .map {
+                meta, bam ->
+                    meta.control ? [ meta.control, meta, [ bam ] ] : null
+            }
+            .combine(ch_control_bam, by: 0)
+            .map { it -> [ it[1] , it[2] + it[4] ] }
+            .set { ch_name_bam }
+    }
+
+    // Create channel: [ val(meta), bam, control_bam ] (now for Genrich)
+    if (params.with_control) {
+        ch_name_bam
+            .map {
+                meta, bams ->
+                    [ meta , bams[0], bams[1] ]
+            }
+            .set { ch_merged_library_bams_sep }
+    } else {
+        ch_name_bam
+            .map {
+                meta, bam ->
+                    [ meta , bam, [] ]
+            }
+            .set { ch_merged_library_bams_sep }
+    }
+
+    //
+    // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
+    //
+    ch_library_genrich_sep_peaks                        = Channel.empty()
+    ch_library_genrich_sep_frip_multiqc                 = Channel.empty()
+    ch_library_genrich_sep_peak_count_multiqc           = Channel.empty()
+    ch_library_genrich_sep_plot_homer_annotatepeaks_tsv = Channel.empty()
+    if (!params.skip_genrich_sep) {
+        MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH (
+            ch_merged_library_bams_sep,
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.gtf,
+            params.genome,
+            PREPARE_GENOME.out.blacklist_bed.first(),
+            ".mLb.genrich.speaks.annotatePeaks.txt",
+            ch_multiqc_merged_library_sep_genrich_peak_count_header,
+            ch_multiqc_merged_library_sep_genrich_frip_score_header,
+            ch_multiqc_merged_library_sep_genrich_peak_annotation_header,
+            params.narrow_peak,
+            params.skip_peak_annotation,
+            params.skip_peak_qc,
+            params.save_genrich_pvalues,
+            params.save_genrich_pileup,
+            params.save_genrich_bed,
+            params.save_genrich_duplicates
+        )
+        ch_library_genrich_sep_peaks                         = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
+        ch_library_genrich_sep_frip_multiqc                  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
+        ch_library_genrich_sep_peak_count_multiqc            = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.peak_count_multiqc
+        ch_library_genrich_sep_plot_homer_annotatepeaks_tsv  = MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
+        ch_versions = ch_versions.mix(MERGED_LIBRARY_SEP_CALL_ANNOTATE_PEAKS_GENRICH.out.versions)
+    }
+
     // Create channels: [ meta, bam, bai, peak_file ]
     MERGED_LIBRARY_MARKDUPLICATES_PICARD
         .out
         .bam
-        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0], remainder: true)
-        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.csi, by: [0], remainder: true)
-        .map {
-            meta, bam, bai, csi ->
-                if (bai) {
-                    [ meta, bam, bai ]
-                } else {
-                    [ meta, bam, csi ]
-                }
-        }
-        .join(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks, by: [0])
+        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0])
+        .join(ch_library_peaks, by: [0])
         .set { ch_bam_peaks }
 
     //
@@ -635,7 +739,8 @@ workflow ATACSEQ {
         //
         // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
         //
-        MERGED_REPLICATE_CALL_ANNOTATE_PEAKS (
+
+        MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2 (
             ch_bam_replicate,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.gtf,
@@ -648,18 +753,18 @@ workflow ATACSEQ {
             params.skip_peak_annotation,
             params.skip_peak_qc
         )
-        ch_macs2_replicate_peaks                            = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.peaks
-        ch_macs2_frip_replicate_multiqc                     = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.frip_multiqc
-        ch_macs2_peak_count_replicate_multiqc               = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.peak_count_multiqc
-        ch_macs2_plot_homer_annotatepeaks_replicate_multiqc = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.plot_homer_annotatepeaks_tsv
-        ch_versions = ch_versions.mix(MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.versions)
+        ch_macs2_replicate_peaks                            = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.peaks
+        ch_macs2_frip_replicate_multiqc                     = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.frip_multiqc
+        ch_macs2_peak_count_replicate_multiqc               = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.peak_count_multiqc
+        ch_macs2_plot_homer_annotatepeaks_replicate_multiqc = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.plot_homer_annotatepeaks_tsv
+        ch_versions = ch_versions.mix(MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.versions)
 
         //
         // SUBWORKFLOW: Consensus peaks analysis
         //
         if (!params.skip_consensus_peaks) {
             MERGED_REPLICATE_CONSENSUS_PEAKS (
-                MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.peaks,
+                MERGED_REPLICATE_CALL_ANNOTATE_PEAKS_MACS2.out.peaks,
                 ch_merged_library_replicate_bam,
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf,
@@ -677,6 +782,50 @@ workflow ATACSEQ {
         }
     }
 
+    // Check if we have multiple replicates (now for Genrich)
+    ch_merged_library_bams_sep
+        .map {
+            meta, bam, control_bam ->
+                def meta_clone = meta.clone()
+                meta_clone.id = meta_clone.id - ~/_REP\d+$/
+                meta_clone.control = meta_clone.control ? meta_clone.control - ~/_REP\d+$/ : ""
+                [ meta_clone.id, meta_clone, bam, control_bam ]
+        }
+        .groupTuple()
+        .map {
+            id, metas, bams, control_bams ->
+                [ metas[0], bams.flatten(), control_bams.flatten() ]
+        }
+        .set { ch_merged_library_bams_joint }
+
+    //
+    // SUBWORKFLOW: Call peaks with Genrich, annotate with HOMER and perform downstream QC
+    //
+    MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH (
+        ch_merged_library_bams_joint,
+        PREPARE_GENOME.out.fasta,
+        PREPARE_GENOME.out.gtf,
+        params.genome,
+        PREPARE_GENOME.out.blacklist_bed.first(),
+        ".mLb.genrich.jpeaks.annotatePeaks.txt",
+        ch_multiqc_merged_library_joint_genrich_peak_count_header,
+        ch_multiqc_merged_library_joint_genrich_frip_score_header,
+        ch_multiqc_merged_library_joint_genrich_peak_annotation_header,
+        params.narrow_peak,
+        params.skip_peak_annotation,
+        params.skip_peak_qc,
+        params.save_genrich_pvalues,
+        params.save_genrich_pileup,
+        params.save_genrich_bed,
+        params.save_genrich_duplicates
+    )
+    ch_library_genrich_joint_peaks                         = MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.peaks
+    ch_library_genrich_joint_frip_multiqc                  = MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.frip_multiqc
+    ch_library_genrich_joint_peak_count_multiqc            = MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.peak_count_multiqc
+    ch_library_genrich_joint_plot_homer_annotatepeaks_tsv  = MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.plot_homer_annotatepeaks_tsv
+
+    ch_versions = ch_versions.mix(MERGED_LIBRARY_JOINT_CALL_ANNOTATE_PEAKS_GENRICH.out.versions)
+
     //
     // MODULE: Create IGV session
     //
@@ -685,11 +834,16 @@ workflow ATACSEQ {
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.fai,
             MERGED_LIBRARY_BAM_TO_BIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
-            MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks.collect{it[1]}.ifEmpty([]),
+            ch_library_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_library_bed.collect{it[1]}.ifEmpty([]),
             ch_ucsc_bedgraphtobigwig_replicate_bigwig.collect{it[1]}.ifEmpty([]),
             ch_macs2_replicate_peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_replicate_bed.collect{it[1]}.ifEmpty([]),
+
+            MERGED_LIBRARY_NF_BAM_TO_BIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
+            ch_library_genrich_sep_peaks.collect{it[1]}.ifEmpty([]),
+            ch_library_genrich_joint_peaks.collect{it[1]}.ifEmpty([]),
+
             "${params.aligner}/merged_library/bigwig",
             { ["${params.aligner}/merged_library/macs2",
                 params.narrow_peak? '/narrow_peak' : '/broad_peak'
@@ -706,6 +860,15 @@ workflow ATACSEQ {
                 params.narrow_peak? '/narrow_peak' : '/broad_peak',
                 "/consensus"
                 ].join('') },
+
+            "${params.aligner}/merged_library/genrich/bigwig",
+            { ["${params.aligner}/merged_library/genrich/sep",
+                params.narrow_peak? '/narrow_peak' : '/broad_peak'
+                ].join('') },
+            { ["${params.aligner}/merged_library/genrich/joint",
+                params.narrow_peak? '/narrow_peak' : '/broad_peak'
+                ].join('') },
+
         )
         ch_versions = ch_versions.mix(IGV.out.versions)
     }
@@ -756,10 +919,14 @@ workflow ATACSEQ {
             ch_deeptoolsplotprofile_multiqc.collect{it[1]}.ifEmpty([]),
             ch_deeptoolsplotfingerprint_multiqc.collect{it[1]}.ifEmpty([]),
 
-            MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.frip_multiqc.collect{it[1]}.ifEmpty([]),
-            MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peak_count_multiqc.collect{it[1]}.ifEmpty([]),
-            MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
+            ch_library_frip_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_library_peak_count_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_library_plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
             ch_featurecounts_library_multiqc.collect{it[1]}.ifEmpty([]),
+
+            ch_library_genrich_sep_frip_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_library_genrich_sep_peak_count_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_library_genrich_sep_plot_homer_annotatepeaks_tsv.collect().ifEmpty([]),
 
             ch_markduplicates_replicate_stats.collect{it[1]}.ifEmpty([]),
             ch_markduplicates_replicate_flagstat.collect{it[1]}.ifEmpty([]),
@@ -774,7 +941,11 @@ workflow ATACSEQ {
             ch_deseq2_pca_library_multiqc.collect().ifEmpty([]),
             ch_deseq2_clustering_library_multiqc.collect().ifEmpty([]),
             ch_deseq2_pca_replicate_multiqc.collect().ifEmpty([]),
-            ch_deseq2_clustering_replicate_multiqc.collect().ifEmpty([])
+            ch_deseq2_clustering_replicate_multiqc.collect().ifEmpty([]),
+
+            ch_library_genrich_joint_frip_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_library_genrich_joint_peak_count_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_library_genrich_joint_plot_homer_annotatepeaks_tsv.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }

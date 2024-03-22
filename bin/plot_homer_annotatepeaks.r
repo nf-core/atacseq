@@ -90,6 +90,7 @@ for (idx in 1:length(HomerFiles)) {
     dist.freq[which(unique.gene.dat$Distance.to.TSS < 10000)] <- "< 10kb"
     dist.freq[which(unique.gene.dat$Distance.to.TSS < 5000)] <- "< 5kb"
     dist.freq[which(unique.gene.dat$Distance.to.TSS < 2000)] <- "< 2kb"
+    dist.freq[which(unique.gene.dat$Distance.to.TSS < 1000)] <- "< 1kb"
     dist.freq <- as.data.frame(table(dist.freq))
     colnames(dist.freq) <- c("distance",sampleid)
     dist.melt <- melt(dist.freq)

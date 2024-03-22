@@ -40,6 +40,10 @@ process MULTIQC {
     path ('macs2/merged_library/annotation/*')
     path ('macs2/merged_library/featurecounts/*')
 
+    path ('genrich/merged_library/sep/peaks/*')
+    path ('genrich/merged_library/sep/peaks/*')
+    path ('genrich/merged_library/sep/annotation/*')
+
     path ('alignment/merged_replicate/*')
     path ('alignment/merged_replicate/*')
     path ('alignment/merged_replicate/*')
@@ -54,6 +58,10 @@ process MULTIQC {
     path ('deseq2_library/*')
     path ('deseq2_replicate/*')
     path ('deseq2_replicate/*')
+
+    path ('genrich/merged_library/joint/peaks/*')
+    path ('genrich/merged_library/joint/peaks/*')
+    path ('genrich/merged_library/joint/annotation/*')
 
     output:
     path "*multiqc_report.html", emit: report

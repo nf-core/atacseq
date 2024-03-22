@@ -143,13 +143,15 @@ workflow PREPARE_GENOME {
     // Prepare genome intervals for filtering by removing regions in blacklist file
     //
     ch_genome_filtered_bed = Channel.empty()
+    ch_genome_blacklist_bed = Channel.empty()
     GENOME_BLACKLIST_REGIONS (
         ch_chrom_sizes,
         ch_blacklist.ifEmpty([]),
         params.mito_name ?: '',
         params.keep_mito
     )
-    ch_genome_filtered_bed = GENOME_BLACKLIST_REGIONS.out.bed
+    ch_genome_filtered_bed = GENOME_BLACKLIST_REGIONS.out.whitelist_bed
+    ch_genome_blacklist_bed = GENOME_BLACKLIST_REGIONS.out.blacklist_bed
     ch_versions = ch_versions.mix(GENOME_BLACKLIST_REGIONS.out.versions)
 
     //
@@ -244,7 +246,8 @@ workflow PREPARE_GENOME {
     gene_bed      = ch_gene_bed                   //    path: gene.bed
     tss_bed       = ch_tss_bed                    //    path: tss.bed
     chrom_sizes   = ch_chrom_sizes                //    path: genome.sizes
-    filtered_bed  = ch_genome_filtered_bed        //    path: *.include_regions.bed
+    filtered_bed  = ch_genome_filtered_bed        //    path: *.whitelist_regions.bed
+    blacklist_bed = ch_genome_blacklist_bed       //    path: *.blacklist_regions.bed
     bwa_index     = ch_bwa_index                  //    path: bwa/index/
     bowtie2_index = ch_bowtie2_index              //    path: bowtie2/index/
     chromap_index = ch_chromap_index              //    path: genome.index
