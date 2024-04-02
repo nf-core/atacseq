@@ -1,74 +1,23 @@
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    PRINT PARAMS SUMMARY
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-include { paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-validation'
-
-def logo = NfcoreTemplate.logo(workflow, params.monochrome_logs)
-def citation = '\n' + WorkflowMain.citation(workflow) + '\n'
-def summary_params = paramsSummaryMap(workflow)
-
-// Print parameter summary log to screen
-log.info logo + paramsSummaryLog(workflow) + citation
-
-// Validate input parameters
-WorkflowAtacseq.initialise(params, log)
-
-// Check mandatory parameters
-ch_input = file(params.input)
-
-// Check ataqv_mito_reference parameter
-ataqv_mito_reference = params.ataqv_mito_reference
-if (!params.ataqv_mito_reference && params.mito_name) {
-    ataqv_mito_reference = params.mito_name
-}
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    CONFIG FILES
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-ch_multiqc_config        = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
-ch_multiqc_logo          = params.multiqc_logo   ? Channel.fromPath(params.multiqc_logo)   : Channel.empty()
-ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
-
-
-// JSON files required by BAMTools for alignment filtering
-ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config)
-ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
-
-// Header files for MultiQC
-ch_multiqc_merged_library_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_peak_count_header.txt", checkIfExists: true)
-ch_multiqc_merged_library_frip_score_header        = file("$projectDir/assets/multiqc/merged_library_frip_score_header.txt", checkIfExists: true)
-ch_multiqc_merged_library_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_library_peak_annotation_header.txt", checkIfExists: true)
-ch_multiqc_merged_library_deseq2_pca_header        = file("$projectDir/assets/multiqc/merged_library_deseq2_pca_header.txt", checkIfExists: true)
-ch_multiqc_merged_library_deseq2_clustering_header = file("$projectDir/assets/multiqc/merged_library_deseq2_clustering_header.txt", checkIfExists: true)
-
-ch_multiqc_merged_replicate_peak_count_header        = file("$projectDir/assets/multiqc/merged_replicate_peak_count_header.txt", checkIfExists: true)
-ch_multiqc_merged_replicate_frip_score_header        = file("$projectDir/assets/multiqc/merged_replicate_frip_score_header.txt", checkIfExists: true)
-ch_multiqc_merged_replicate_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_replicate_peak_annotation_header.txt", checkIfExists: true)
-ch_multiqc_merged_replicate_deseq2_pca_header        = file("$projectDir/assets/multiqc/merged_replicate_deseq2_pca_header.txt", checkIfExists: true)
-ch_multiqc_merged_replicate_deseq2_clustering_header = file("$projectDir/assets/multiqc/merged_replicate_deseq2_clustering_header.txt", checkIfExists: true)
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT LOCAL MODULES/SUBWORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+//
+// MODULE: Loaded from modules/local/
+//
 include { IGV     } from '../modules/local/igv'
 include { MULTIQC } from '../modules/local/multiqc'
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK    } from '../subworkflows/local/input_check'
-include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome'
-include { ALIGN_STAR     } from '../subworkflows/local/align_star'
+include { paramsSummaryMap       } from 'plugin/nf-validation'
+include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { INPUT_CHECK            } from '../subworkflows/local/input_check'
+include { ALIGN_STAR             } from '../subworkflows/local/align_star'
 include { BIGWIG_PLOT_DEEPTOOLS as MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS       } from '../subworkflows/local/bigwig_plot_deeptools'
 include { BAM_FILTER_BAMTOOLS as MERGED_LIBRARY_FILTER_BAM                    } from '../subworkflows/local/bam_filter_bamtools'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_LIBRARY_BAM_TO_BIGWIG   } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
@@ -115,24 +64,55 @@ include { BAM_MARKDUPLICATES_PICARD as MERGED_REPLICATE_MARKDUPLICATES_PICARD } 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// Info required for completion email and summary
-def multiqc_report = []
+// JSON files required by BAMTools for alignment filtering
+ch_bamtools_filter_se_config = file(params.bamtools_filter_se_config)
+ch_bamtools_filter_pe_config = file(params.bamtools_filter_pe_config)
+
+// Header files for MultiQC
+ch_multiqc_merged_library_peak_count_header        = file("$projectDir/assets/multiqc/merged_library_peak_count_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_frip_score_header        = file("$projectDir/assets/multiqc/merged_library_frip_score_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_library_peak_annotation_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_deseq2_pca_header        = file("$projectDir/assets/multiqc/merged_library_deseq2_pca_header.txt", checkIfExists: true)
+ch_multiqc_merged_library_deseq2_clustering_header = file("$projectDir/assets/multiqc/merged_library_deseq2_clustering_header.txt", checkIfExists: true)
+
+ch_multiqc_merged_replicate_peak_count_header        = file("$projectDir/assets/multiqc/merged_replicate_peak_count_header.txt", checkIfExists: true)
+ch_multiqc_merged_replicate_frip_score_header        = file("$projectDir/assets/multiqc/merged_replicate_frip_score_header.txt", checkIfExists: true)
+ch_multiqc_merged_replicate_peak_annotation_header   = file("$projectDir/assets/multiqc/merged_replicate_peak_annotation_header.txt", checkIfExists: true)
+ch_multiqc_merged_replicate_deseq2_pca_header        = file("$projectDir/assets/multiqc/merged_replicate_deseq2_pca_header.txt", checkIfExists: true)
+ch_multiqc_merged_replicate_deseq2_clustering_header = file("$projectDir/assets/multiqc/merged_replicate_deseq2_clustering_header.txt", checkIfExists: true)
+
+// Check ataqv_mito_reference parameter
+ataqv_mito_reference = params.ataqv_mito_reference
+if (!params.ataqv_mito_reference && params.mito_name) {
+    ataqv_mito_reference = params.mito_name
+}
 
 workflow ATACSEQ {
 
-    ch_versions = Channel.empty()
+    take:
+    ch_samplesheet   // channel: path(sample_sheet.csv)
+    ch_versions      // channel: [ path(versions.yml) ]
+    ch_fasta         // channel: path(genome.fa)
+    ch_fai           // channel: path(genome.fai)
+    ch_gtf           // channel: path(genome.gtf)
+    ch_gene_bed      // channel: path(gene.beds)
+    ch_tss_bed       // channel: path(genome.tss.bed)
+    ch_chrom_sizes   // channel: path(chrom.sizes)
+    ch_filtered_bed  // channel: path(filtered.bed)
+    ch_bwa_index     // channel: path(bwa/index/)
+    ch_bowtie2_index // channel: path(bowtie2/index)
+    ch_chromap_index // channel: path(chromap.index)
+    ch_star_index    // channel: path(star/index/)
+    ch_autosomes     // channel: path(autosomes.txt)
+    ch_macs_gsize    // channel: integer
 
-    //
-    // SUBWORKFLOW: Uncompress and prepare reference genome files
-    //
-    PREPARE_GENOME (
-        params.aligner
-    )
-    ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
+    main:
+    ch_multiqc_files = Channel.empty()
 
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
+    ch_input = file(ch_samplesheet)
     INPUT_CHECK (
         ch_input,
         params.seq_center,
@@ -167,9 +147,9 @@ workflow ATACSEQ {
     if (params.aligner == 'bwa') {
         FASTQ_ALIGN_BWA (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
-            PREPARE_GENOME.out.bwa_index,
+            ch_bwa_index,
             false,
-            PREPARE_GENOME.out.fasta
+            ch_fasta
                 .map {
                         [ [:], it ]
                 }
@@ -187,10 +167,10 @@ workflow ATACSEQ {
     if (params.aligner == 'bowtie2') {
         FASTQ_ALIGN_BOWTIE2 (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
-            PREPARE_GENOME.out.bowtie2_index,
+            ch_bowtie2_index,
             params.save_unaligned,
             false,
-            PREPARE_GENOME.out.fasta
+            ch_fasta
                 .map {
                     [ [:], it ]
                 }
@@ -208,8 +188,8 @@ workflow ATACSEQ {
     if (params.aligner == 'chromap') {
         FASTQ_ALIGN_CHROMAP (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
-            PREPARE_GENOME.out.chromap_index,
-            PREPARE_GENOME.out.fasta
+            ch_chromap_index,
+            ch_fasta
                 .map {
                     [ [:], it ]
                 },
@@ -232,8 +212,8 @@ workflow ATACSEQ {
     if (params.aligner == 'star') {
         ALIGN_STAR (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
-            PREPARE_GENOME.out.star_index,
-            PREPARE_GENOME.out.fasta
+            ch_star_index,
+            ch_fasta
                 .map {
                     [ [:], it ]
                 },
@@ -276,13 +256,11 @@ workflow ATACSEQ {
     //
     MERGED_LIBRARY_MARKDUPLICATES_PICARD (
         PICARD_MERGESAMFILES_LIBRARY.out.bam,
-        PREPARE_GENOME
-            .out
-            .fasta
+        ch_fasta
             .map {
                 [ [:], it ]
             },
-        PREPARE_GENOME.out.fai
+        ch_fai
             .map {
                 [ [:], it ]
             }
@@ -304,10 +282,8 @@ workflow ATACSEQ {
                         [ meta, bam, csi ]
                     }
             },
-        PREPARE_GENOME.out.filtered_bed.first(),
-        PREPARE_GENOME
-            .out
-            .fasta
+        ch_filtered_bed.first(),
+        ch_fasta
             .map {
                 [ [:], it ]
             },
@@ -340,15 +316,11 @@ workflow ATACSEQ {
                 .map {
                     [ it[0], it[1], [] ]
                 },
-            PREPARE_GENOME
-                .out
-                .fasta
+            ch_fasta
                 .map {
                     [ [:], it ]
                 },
-            PREPARE_GENOME
-                .out
-                .fai
+            ch_fai
                 .map {
                     [ [:], it ]
                 }
@@ -362,7 +334,7 @@ workflow ATACSEQ {
     //
     MERGED_LIBRARY_BAM_TO_BIGWIG (
         MERGED_LIBRARY_FILTER_BAM.out.bam.join(MERGED_LIBRARY_FILTER_BAM.out.flagstat, by: [0]),
-        PREPARE_GENOME.out.chrom_sizes
+        ch_chrom_sizes
     )
     ch_versions = ch_versions.mix(MERGED_LIBRARY_BAM_TO_BIGWIG.out.versions)
 
@@ -373,8 +345,8 @@ workflow ATACSEQ {
     if (!params.skip_plot_profile) {
         MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS (
             MERGED_LIBRARY_BAM_TO_BIGWIG.out.bigwig,
-            PREPARE_GENOME.out.gene_bed,
-            PREPARE_GENOME.out.tss_bed
+            ch_gene_bed,
+            ch_tss_bed
         )
         ch_deeptoolsplotprofile_multiqc = MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS.out.plotprofile_table
         ch_versions = ch_versions.mix(MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS.out.versions)
@@ -448,9 +420,9 @@ workflow ATACSEQ {
     //
     MERGED_LIBRARY_CALL_ANNOTATE_PEAKS (
         ch_bam_library,
-        PREPARE_GENOME.out.fasta,
-        PREPARE_GENOME.out.gtf,
-        PREPARE_GENOME.out.macs_gsize,
+        ch_fasta,
+        ch_gtf,
+        ch_macs_gsize,
         ".mLb.clN_peaks.annotatePeaks.txt",
         ch_multiqc_merged_library_peak_count_header,
         ch_multiqc_merged_library_frip_score_header,
@@ -472,8 +444,8 @@ workflow ATACSEQ {
         MERGED_LIBRARY_CONSENSUS_PEAKS (
             MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks,
             ch_bam_library,
-            PREPARE_GENOME.out.fasta,
-            PREPARE_GENOME.out.gtf,
+            ch_fasta,
+            ch_gtf,
             ch_multiqc_merged_library_deseq2_pca_header,
             ch_multiqc_merged_library_deseq2_clustering_header,
             params.narrow_peak,
@@ -512,9 +484,9 @@ workflow ATACSEQ {
             ch_bam_peaks,
             'NA',
             ataqv_mito_reference ?: '',
-            PREPARE_GENOME.out.tss_bed,
+            ch_tss_bed,
             [],
-            PREPARE_GENOME.out.autosomes
+            ch_autosomes
         )
         ch_versions = ch_versions.mix(MERGED_LIBRARY_ATAQV_ATAQV.out.versions.first())
 
@@ -575,13 +547,11 @@ workflow ATACSEQ {
         //
         MERGED_REPLICATE_MARKDUPLICATES_PICARD (
             PICARD_MERGESAMFILES_REPLICATE.out.bam,
-            PREPARE_GENOME
-                .out
-                .fasta
+            ch_fasta
                 .map {
                     [ [:], it ]
                 },
-            PREPARE_GENOME.out.fai
+            ch_fai
                 .map {
                     [ [:], it ]
                 }
@@ -596,7 +566,7 @@ workflow ATACSEQ {
         //
         MERGED_REPLICATE_BAM_TO_BIGWIG (
             MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bam.join(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat, by: [0]),
-            PREPARE_GENOME.out.chrom_sizes
+            ch_chrom_sizes
         )
         ch_ucsc_bedgraphtobigwig_replicate_bigwig = MERGED_REPLICATE_BAM_TO_BIGWIG.out.bigwig
         ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_TO_BIGWIG.out.versions)
@@ -637,9 +607,9 @@ workflow ATACSEQ {
         //
         MERGED_REPLICATE_CALL_ANNOTATE_PEAKS (
             ch_bam_replicate,
-            PREPARE_GENOME.out.fasta,
-            PREPARE_GENOME.out.gtf,
-            PREPARE_GENOME.out.macs_gsize,
+            ch_fasta,
+            ch_gtf,
+            ch_macs_gsize,
             ".mRp.clN_peaks.annotatePeaks.txt",
             ch_multiqc_merged_replicate_peak_count_header,
             ch_multiqc_merged_replicate_frip_score_header,
@@ -661,8 +631,8 @@ workflow ATACSEQ {
             MERGED_REPLICATE_CONSENSUS_PEAKS (
                 MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.peaks,
                 ch_merged_library_replicate_bam,
-                PREPARE_GENOME.out.fasta,
-                PREPARE_GENOME.out.gtf,
+                ch_fasta,
+                ch_gtf,
                 ch_multiqc_merged_replicate_deseq2_pca_header,
                 ch_multiqc_merged_replicate_deseq2_clustering_header,
                 params.narrow_peak,
@@ -682,8 +652,8 @@ workflow ATACSEQ {
     //
     if (!params.skip_igv) {
         IGV (
-            PREPARE_GENOME.out.fasta,
-            PREPARE_GENOME.out.fai,
+            ch_fasta,
+            ch_fai,
             MERGED_LIBRARY_BAM_TO_BIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
             MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks.collect{it[1]}.ifEmpty([]),
             ch_macs2_consensus_library_bed.collect{it[1]}.ifEmpty([]),
@@ -711,27 +681,29 @@ workflow ATACSEQ {
     }
 
     //
-    // MODULE: Pipeline reporting
+    // Collate and save software versions
     //
-    CUSTOM_DUMPSOFTWAREVERSIONS (
-        ch_versions.unique().collectFile(name: 'collated_versions.yml')
-    )
+    softwareVersionsToYAML(ch_versions)
+        .collectFile(storeDir: "${params.outdir}/pipeline_info", name: 'nf_core_atacseq_software_mqc_versions.yml', sort: true, newLine: true)
+        .set { ch_collated_versions }
 
     //
     // MODULE: MultiQC
     //
     if (!params.skip_multiqc) {
-        workflow_summary    = WorkflowAtacseq.paramsSummaryMultiqc(workflow, summary_params)
-        ch_workflow_summary = Channel.value(workflow_summary)
-
-    methods_description    = WorkflowAtacseq.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description, params)
-    ch_methods_description = Channel.value(methods_description)
+        ch_multiqc_config        = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+        ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
+        ch_multiqc_logo          = params.multiqc_logo   ? Channel.fromPath(params.multiqc_logo)   : Channel.empty()
+        summary_params           = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
+        ch_workflow_summary      = Channel.value(paramsSummaryMultiqc(summary_params))
+        ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+        ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
 
         MULTIQC (
-            ch_multiqc_config,
-            ch_multiqc_custom_config.collect().ifEmpty([]),
-            CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
-            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
+            ch_multiqc_files.collect(),
+            ch_multiqc_config.toList(),
+            ch_multiqc_custom_config.toList(),
+            ch_multiqc_logo.toList(),
 
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
@@ -776,34 +748,12 @@ workflow ATACSEQ {
             ch_deseq2_pca_replicate_multiqc.collect().ifEmpty([]),
             ch_deseq2_clustering_replicate_multiqc.collect().ifEmpty([])
         )
-        multiqc_report = MULTIQC.out.report.toList()
-    }
-}
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    COMPLETION EMAIL AND SUMMARY
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-workflow.onComplete {
-    if (params.email || params.email_on_fail) {
-        NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report)
-    }
-    NfcoreTemplate.dump_parameters(workflow, params)
-    NfcoreTemplate.summary(workflow, params, log)
-    if (params.hook_url) {
-        NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)
+        ch_multiqc_report = MULTIQC.out.report
     }
 
-    NfcoreTemplate.summary(workflow, params, log)
-}
-
-workflow.onError {
-    if (workflow.errorReport.contains("Process requirement exceeds available memory")) {
-        println("🛑 Default resources exceed availability 🛑 ")
-        println("💡 See here on how to configure pipeline: https://nf-co.re/docs/usage/configuration#tuning-workflow-resources 💡")
-    }
+    emit:
+    multiqc_report = ch_multiqc_report  // channel: /path/to/multiqc_report.html
+    versions       = ch_versions       // channel: [ path(versions.yml) ]
 }
 
 /*
