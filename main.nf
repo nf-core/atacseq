@@ -80,7 +80,7 @@ workflow NFCORE_ATACSEQ {
     ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     //
-    // WORKFLOW: Run nf-core/rnaseq workflow
+    // WORKFLOW: Run nf-core/atacseq workflow
     //
     ch_samplesheet = Channel.value(file(params.input, checkIfExists: true))
 

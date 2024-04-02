@@ -111,6 +111,10 @@ workflow PIPELINE_COMPLETION {
             imNotification(summary_params, hook_url)
         }
     }
+
+    workflow.onError {
+        log.error "Pipeline failed. Please refer to troubleshooting docs: https://nf-co.re/docs/usage/troubleshooting"
+    }
 }
 
 /*
@@ -118,27 +122,6 @@ workflow PIPELINE_COMPLETION {
     FUNCTIONS
 ========================================================================================
 */
-
-//
-// Function to validate channels from input samplesheet
-//
-def validateInputSamplesheet(input) {
-    def (metas, fastqs) = input[1..2]
-
-    // Check that multiple runs of the same sample are of the same strandedness
-    def strandedness_ok = metas.collect{ it.strandedness }.unique().size == 1
-    if (!strandedness_ok) {
-        error("Please check input samplesheet -> Multiple runs of a sample must have the same strandedness!: ${metas[0].id}")
-    }
-
-    // Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
-    def endedness_ok = metas.collect{ it.single_end }.unique().size == 1
-    if (!endedness_ok) {
-        error("Please check input samplesheet -> Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end: ${metas[0].id}")
-    }
-
-    return [ metas[0], fastqs ]
-}
 
 //
 // Check and validate pipeline parameters
@@ -157,6 +140,14 @@ def validateInputParameters() {
 
     if (params.gtf && params.gff) {
         gtfGffWarn(log)
+    }
+
+    if (!params.macs_gsize) {
+        macsGsizeWarn(log)
+    }
+
+    if (!params.read_length && !params.macs_gsize) {
+        error ("Both '--read_length' and '--macs_gsize' not specified! Please specify either to infer MACS2 genome size for peak calling.")
     }
 }
 
