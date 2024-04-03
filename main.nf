@@ -107,22 +107,6 @@ workflow NFCORE_ATACSEQ {
     versions       = ch_versions                // channel: [version1, version2, ...]
 }
 
-    take:
-    samplesheet // channel: samplesheet read in from --input
-
-    main:
-
-    //
-    // WORKFLOW: Run pipeline
-    //
-    ATACSEQ (
-        samplesheet
-    )
-
-    emit:
-    multiqc_report = ATACSEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
-
-}
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
