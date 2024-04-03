@@ -160,3 +160,7 @@ sp:
     fn: "*plotFingerprint*"
   deeptools/plotProfile:
     fn: "*plotProfile*"
+
+export_plots: true
+
+disable_version_detection: true
