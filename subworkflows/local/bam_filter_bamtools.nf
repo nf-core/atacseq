@@ -75,7 +75,7 @@ workflow BAM_FILTER_BAMTOOLS {
     //
     SAMTOOLS_SORT (
         ch_bam.paired_end,
-        []
+        ch_fasta
     )
     ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
 
