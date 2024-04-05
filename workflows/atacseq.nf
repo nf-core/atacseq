@@ -707,7 +707,7 @@ workflow ATACSEQ {
             ch_multiqc_config.toList(),
             ch_multiqc_custom_config.toList(),
             ch_multiqc_logo.toList(),
-            
+
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
