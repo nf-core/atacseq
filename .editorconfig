@@ -35,6 +35,6 @@ trim_trailing_whitespace = unset
 [README.md]
 indent_style = unset
 
-# ignore python
+# ignore python and markdown
 [*.{py,md}]
 indent_style = unset
