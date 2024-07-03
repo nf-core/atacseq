@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [[#327](https://github.com/nf-core/atacseq/issues/327)] - Consistently support `.csi` indices as alternative to `.bai` to allow SAMTOOLS_INDEX to be used with the `-c` flag.
 - [[#356](https://github.com/nf-core/atacseq/issues/356)] - Get rid of the `lib` folder and rearrange the pipeline accordingly.
-- Updated pipeline template to [nf-core/tools 2.13.1](https://github.com/nf-core/tools/releases/tag/2.13.1)
 - Updated pipeline template to [nf-core/tools 2.14.1](https://github.com/nf-core/tools/releases/tag/2.14.1)
 - [[#359](https://github.com/nf-core/atacseq/issues/359)] - Fix `--save_unaligned` description in schema.
+- [[#344](https://github.com/nf-core/atacseq/issues/344)] - Fix memory issues when sorting merged replicates after `bedtools genomecov`.
 
 ## [[2.1.2](https://github.com/nf-core/atacseq/releases/tag/2.1.2)] - 2022-08-07
 
