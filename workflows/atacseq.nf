@@ -562,14 +562,17 @@ workflow ATACSEQ {
         ch_markduplicates_replicate_metrics  = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.metrics
         ch_versions = ch_versions.mix(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.versions)
 
-        // SUBWORKFLOW: Normalised bigWig coverage tracks
-        //
-        MERGED_REPLICATE_BAM_TO_BIGWIG (
-            MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bam.join(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat, by: [0]),
-            ch_chrom_sizes
-        )
-        ch_ucsc_bedgraphtobigwig_replicate_bigwig = MERGED_REPLICATE_BAM_TO_BIGWIG.out.bigwig
-        ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_TO_BIGWIG.out.versions)
+        if (!params.skip_merged_replicate_bigwig) {
+            //
+            // SUBWORKFLOW: Normalised bigWig coverage tracks
+            //
+            MERGED_REPLICATE_BAM_TO_BIGWIG (
+                MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bam.join(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat, by: [0]),
+                ch_chrom_sizes
+            )
+            ch_ucsc_bedgraphtobigwig_replicate_bigwig = MERGED_REPLICATE_BAM_TO_BIGWIG.out.bigwig
+            ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_TO_BIGWIG.out.versions)
+        }
 
         // Create channels: [ meta, bam, ([] for control_bam) ]
         if (params.with_control) {

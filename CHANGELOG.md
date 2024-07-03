@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#359](https://github.com/nf-core/atacseq/issues/359)] - Fix `--save_unaligned` description in schema.
 - [[#344](https://github.com/nf-core/atacseq/issues/344)] - Fix memory issues when sorting merged replicates after `bedtools genomecov`.
 
+### Parameters
+
+| Old parameter | New parameter                    |
+| ------------- | -------------------------------- |
+|               | `--skip_merged_replicate_bigwig` |
+
+> **NB:** Parameter has been **updated** if both old and new parameter information is present.
+> **NB:** Parameter has been **added** if just the new parameter information is present.
+> **NB:** Parameter has been **removed** if parameter information isn't present.
+
 ## [[2.1.2](https://github.com/nf-core/atacseq/releases/tag/2.1.2)] - 2022-08-07
 
 ### Enhancements & fixes
