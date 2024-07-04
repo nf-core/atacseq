@@ -85,7 +85,7 @@ def check_samplesheet(file_in, file_out, with_control=False):
                 sample, fastq_1, fastq_2, replicate = lspl[: len(HEADER) - 2 if with_control else len(HEADER)]
                 control = lspl[len(HEADER) - 2] if with_control else ""
                 control_replicate = lspl[len(HEADER) - 1] if with_control else ""
-                
+
                 if sample.find(" ") != -1:
                     print(f"WARNING: Spaces have been replaced by underscores for sample: {sample}")
                     sample = sample.replace(" ", "_")
