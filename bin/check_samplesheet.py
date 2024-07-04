@@ -3,7 +3,7 @@
 import os
 import sys
 import argparse
-
+import re
 
 def parse_args(args=None):
     Description = "Reformat nf-core/atacseq samplesheet file and check its contents."
@@ -62,22 +62,22 @@ def check_samplesheet(file_in, file_out, with_control=False):
             sys.exit(1)
 
         ## Check sample entries
-        for line in fin:
+        for line_number, line in enumerate(fin, start=1):
             if line.strip():
                 lspl = [x.strip().strip('"') for x in line.strip().split(",")]
 
                 # Check valid number of columns per row
                 if len(lspl) < len(HEADER):
                     print_error(
-                        "Invalid number of columns (minimum = {})!".format(len(HEADER)),
-                        "Line",
+                        "Invalid number of columns (found = {}, minimum = {})!".format(len(lspl),len(HEADER)),
+                        "Line {}".format(line_number),
                         line,
                     )
                 num_cols = len([x for x in lspl[: len(HEADER)] if x])
                 if num_cols < MIN_COLS:
                     print_error(
-                        "Invalid number of populated columns (minimum = {})!".format(MIN_COLS),
-                        "Line",
+                        "Invalid number of populated columns (found = {}, minimum = {})!".format(num_cols,MIN_COLS),
+                        "Line {}".format(line_number),
                         line,
                     )
 
@@ -85,27 +85,34 @@ def check_samplesheet(file_in, file_out, with_control=False):
                 sample, fastq_1, fastq_2, replicate = lspl[: len(HEADER) - 2 if with_control else len(HEADER)]
                 control = lspl[len(HEADER) - 2] if with_control else ""
                 control_replicate = lspl[len(HEADER) - 1] if with_control else ""
+
                 if sample.find(" ") != -1:
                     print(f"WARNING: Spaces have been replaced by underscores for sample: {sample}")
                     sample = sample.replace(" ", "_")
                 if not sample:
-                    print_error("Sample entry has not been specified!", "Line", line)
+                    print_error("Sample entry has not been specified!", "Line {}".format(line_number), line)
+                if not re.match(r"^[a-zA-Z0-9_.-]+$", sample):
+                    print_error(
+                        "Sample name contains invalid characters! Only alphanumeric characters, underscores, dots and dashes are allowed.",
+                        "Line {}".format(line_number),
+                        line,
+                    )
 
                 ## Check FastQ file extension
                 for fastq in [fastq_1, fastq_2]:
                     if fastq:
                         if fastq.find(" ") != -1:
-                            print_error("FastQ file contains spaces!", "Line", line)
+                            print_error("FastQ file contains spaces!", "Line {}".format(line_number), line)
                         if not fastq.endswith(".fastq.gz") and not fastq.endswith(".fq.gz"):
                             print_error(
                                 "FastQ file does not have extension '.fastq.gz' or '.fq.gz'!",
-                                "Line",
+                                "Line {}".format(line_number),
                                 line,
                             )
 
                 ## Check replicate column is integer
                 if not replicate.isdecimal():
-                    print_error("Replicate id not an integer!", "Line", line)
+                    print_error("Replicate id not an integer!", "Line {}".format(line_number), line)
                     sys.exit(1)
 
                 if with_control and control:
@@ -113,7 +120,7 @@ def check_samplesheet(file_in, file_out, with_control=False):
                         print(f"WARNING: Spaces have been replaced by underscores for control: {control}")
                         control = control.replace(" ", "_")
                     if not control_replicate.isdecimal():
-                        print_error("Control replicate id not an integer!", "Line", line)
+                        print_error("Replicate id not an integer!", "Line {}".format(line_number), line)
                         sys.exit(1)
                     control = "{}_REP{}".format(control, control_replicate)
 
@@ -126,7 +133,7 @@ def check_samplesheet(file_in, file_out, with_control=False):
                 elif sample and fastq_1 and not fastq_2:
                     sample_info = [fastq_1, fastq_2, replicate, "1", control]
                 else:
-                    print_error("Invalid combination of columns provided!", "Line", line)
+                    print_error("Invalid combination of columns provided!", "Line {}".format(line_number), line)
 
                 ## Create sample mapping dictionary = {sample: {replicate: [[ fastq_1, fastq_2, replicate, control, single_end ]]}}
                 replicate = int(replicate)
@@ -137,7 +144,7 @@ def check_samplesheet(file_in, file_out, with_control=False):
                     sample_mapping_dict[sample][replicate] = [sample_info]
                 else:
                     if sample_info in sample_mapping_dict[sample][replicate]:
-                        print_error("Samplesheet contains duplicate rows!", "Line", line)
+                        print_error("Samplesheet contains duplicate rows!", "Line {}".format(line_number), line)
                     else:
                         sample_mapping_dict[sample][replicate].append(sample_info)
 
