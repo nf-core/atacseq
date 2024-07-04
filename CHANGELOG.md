@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated pipeline template to [nf-core/tools 2.14.1](https://github.com/nf-core/tools/releases/tag/2.14.1)
 - [[#359](https://github.com/nf-core/atacseq/issues/359)] - Fix `--save_unaligned` description in schema.
 - [[#344](https://github.com/nf-core/atacseq/issues/344)] - Fix memory issues when sorting merged replicates after `bedtools genomecov`.
+- [[#338](https://github.com/nf-core/atacseq/issues/338)] - Check that samplesheet samples IDs do only have alphanumeric characters, dots, dashes or underscores.
+- [[#370](https://github.com/nf-core/atacseq/issues/370)] - Adding line numbers to errors messages in `bin/check_samplesheet.py`
 
 ### Parameters
 
