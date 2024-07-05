@@ -2,10 +2,10 @@ process BEDTOOLS_GENOMECOV {
     tag "$meta.id"
     label 'process_medium'
 
-    conda "bioconda::bedtools=2.30.0"
+    conda "bioconda::bedtools=2.31.1 conda-forge::coreutils=9.5"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0':
-        'biocontainers/bedtools:2.30.0--hc088bd4_0' }"
+        'oras://community.wave.seqera.io/library/bedtools_coreutils:ba273c06a3909a15':
+        'community.wave.seqera.io/library/bedtools_coreutils:a623c13f66d5262b' }"
 
     input:
     tuple val(meta), path(bam), path(flagstat)
@@ -35,7 +35,7 @@ process BEDTOOLS_GENOMECOV {
         $args \\
     > tmp.bg
 
-    sort -k1,1 -k2,2n tmp.bg > ${prefix}.bedGraph
+    sort -T '.' -k1,1 -k2,2n tmp.bg > ${prefix}.bedGraph
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
