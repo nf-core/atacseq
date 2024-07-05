@@ -19,9 +19,11 @@ process BEDTOOLS_GENOMECOV {
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
+    def args   = task.ext.args ?: ''
+    def args2  = task.ext.args2 ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     def pe     = meta.single_end ? '' : '-pc'
+    def buffer = task.memory.toGiga().intdiv(2)
     """
     SCALE_FACTOR=\$(grep '[0-9] mapped (' $flagstat | awk '{print 1000000/\$1}')
     echo \$SCALE_FACTOR > ${prefix}.scale_factor.txt
@@ -35,11 +37,20 @@ process BEDTOOLS_GENOMECOV {
         $args \\
     > tmp.bg
 
-    sort -T '.' -k1,1 -k2,2n tmp.bg > ${prefix}.bedGraph
+    ## ref: https://www.biostars.org/p/66927/
+    ## ref in nf-core: https://github.com/nf-core/hicar/blob/d2d17a924e42d6f88640b79d48d8b332f33a953f/modules/local/atacreads/bedsort.nf#L23-L29
+    LC_ALL=C sort \\
+        --parallel=$task.cpus \\
+        --buffer-size=${buffer}G \\
+        -k1,1 -k2,2n \\
+        $args2 \\
+        tmp.bg \\
+    > ${prefix}.bedGraph
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
+        sort: \$(sort --version | head -n 1 | awk '{print \$4;}')
     END_VERSIONS
     """
 }
