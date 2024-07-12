@@ -326,6 +326,13 @@
                     "hidden": true,
                     "description": "BAMTools JSON file with custom filters for single-end data.",
                     "fa_icon": "fas fa-cog"
+                },
+                "shift_reads": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-chart-area",
+                    "default": true,
+                    "help_text": "Shift aligned reads as commonly done for ATACseq, +4bp for reads on the + strand, -5 bp for reads on the - strand. This can only be applied if all samples are paired-end.",
+                    "description": "Shift aligned reads (+4bp and -5bp)."
                 }
             }
         },

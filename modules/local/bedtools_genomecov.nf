@@ -33,7 +33,6 @@ process BEDTOOLS_GENOMECOV {
         -ibam $bam \\
         -bg \\
         -scale \$SCALE_FACTOR \\
-        $pe \\
         $args \\
     > tmp.bg
 

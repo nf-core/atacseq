@@ -2,6 +2,7 @@
 // Call peaks with MACS2, annotate with HOMER and perform downstream QC
 //
 
+include { BEDTOOLS_BAMTOBED        } from '../../modules/nf-core/bedtools/bamtobed/main'
 include { MACS2_CALLPEAK           } from '../../modules/nf-core/macs2/callpeak/main'
 include { HOMER_ANNOTATEPEAKS      } from '../../modules/nf-core/homer/annotatepeaks/main'
 
@@ -29,10 +30,28 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
     ch_versions = Channel.empty()
 
     //
+    // Convert bam to bed
+    //
+    BEDTOOLS_BAMTOBED (
+      ch_bam.map { meta, ip_bam, control_bam -> [ meta, ip_bam ] }
+    )
+    ch_versions = ch_versions.mix(BEDTOOLS_BAMTOBED.out.versions.first())
+
+    // Create channels: [meta, ip_bed, []]
+    BEDTOOLS_BAMTOBED
+        .out
+        .bed
+        .map {
+            meta, ip_bed -> 
+                [ meta, ip_bed, [] ] 
+        }
+        .set { ch_bed }
+    
+    //
     // Call peaks with MACS2
     //
     MACS2_CALLPEAK (
-        ch_bam,
+        ch_bed,
         macs_gsize
     )
     ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions.first())
