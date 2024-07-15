@@ -17,10 +17,7 @@ include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_atacseq_pipeline'
-// include { INPUT_CHECK            } from '../subworkflows/local/input_check'
-// include { ALIGN_STAR             } from '../subworkflows/local/align_star'
 include { INPUT_CHECK     } from '../subworkflows/local/input_check'
-include { PREPARE_GENOME  } from '../subworkflows/local/prepare_genome'
 include { ALIGN_STAR      } from '../subworkflows/local/align_star'
 include { BAM_SHIFT_READS as MERGED_LIBRARY_BAM_SHIFT_READS } from '../subworkflows/local/bam_shift_reads'
 include { BAM_SHIFT_READS as MERGED_REPLICATE_BAM_SHIFT_READS } from '../subworkflows/local/bam_shift_reads'
@@ -360,16 +357,23 @@ workflow ATACSEQ {
     ch_merged_library_filter_bam = MERGED_LIBRARY_FILTER_BAM.out.bam
     ch_merged_library_filter_bai = MERGED_LIBRARY_FILTER_BAM.out.bai
     ch_merged_library_filter_flagstat = MERGED_LIBRARY_FILTER_BAM.out.flagstat
+    ch_merged_library_filter_csi = MERGED_LIBRARY_FILTER_BAM.out.csi
 
     if (params.shift_reads && params.aligner != 'chromap' ) {
         MERGED_LIBRARY_BAM_SHIFT_READS (
             ch_merged_library_filter_bam.join(ch_merged_library_filter_bai, by: [0]),
+            ch_fasta
+            .map {
+                [ [:], it ]
+            }
         )
         ch_versions = ch_versions.mix(MERGED_LIBRARY_BAM_SHIFT_READS.out.versions)
 
         ch_merged_library_filter_bam = MERGED_LIBRARY_BAM_SHIFT_READS.out.bam
         ch_merged_library_filter_bai = MERGED_LIBRARY_BAM_SHIFT_READS.out.bai
         ch_merged_library_filter_flagstat = MERGED_LIBRARY_BAM_SHIFT_READS.out.flagstat
+        ch_merged_library_filter_csi = MERGED_LIBRARY_BAM_SHIFT_READS.out.csi
+
     }
 
     //
@@ -379,7 +383,7 @@ workflow ATACSEQ {
         // MERGED_LIBRARY_FILTER_BAM.out.bam.join(MERGED_LIBRARY_FILTER_BAM.out.flagstat, by: [0]),
         // ch_chrom_sizes
         ch_merged_library_filter_bam.join(ch_merged_library_filter_flagstat, by: [0]),
-        PREPARE_GENOME.out.chrom_sizes
+        ch_chrom_sizes
     )
     ch_versions = ch_versions.mix(MERGED_LIBRARY_BAM_TO_BIGWIG.out.versions)
 
@@ -398,11 +402,9 @@ workflow ATACSEQ {
     }
 
     // Create channels: [ meta, [bam], [bai] ] or [ meta, [ bam, control_bam ] [ bai, control_bai ] ]
-    MERGED_LIBRARY_FILTER_BAM
-        .out
-        .bam
-        .join(MERGED_LIBRARY_FILTER_BAM.out.bai, by: [0], remainder: true)
-        .join(MERGED_LIBRARY_FILTER_BAM.out.csi, by: [0], remainder: true)
+    ch_merged_library_filter_bam
+        .join(ch_merged_library_filter_bai, by: [0], remainder: true)
+        .join(ch_merged_library_filter_csi, by: [0], remainder: true)
         .map {
             meta, bam, bai, csi ->
                 if (bai) {
@@ -607,17 +609,6 @@ workflow ATACSEQ {
         ch_markduplicates_replicate_metrics  = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.metrics
         ch_versions = ch_versions.mix(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.versions)
 
-        // if (!params.skip_merged_replicate_bigwig) {
-        //     //
-        //     // SUBWORKFLOW: Normalised bigWig coverage tracks
-        //     //
-        //     MERGED_REPLICATE_BAM_TO_BIGWIG (
-        //         MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bam.join(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat, by: [0]),
-        //         ch_chrom_sizes
-        //     )
-        //     ch_ucsc_bedgraphtobigwig_replicate_bigwig = MERGED_REPLICATE_BAM_TO_BIGWIG.out.bigwig
-        //     ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_TO_BIGWIG.out.versions)
-        // }
         //
         // SUBWORKFLOW: Shift paired-end reads
         // Shift again, as ch_merged_library_replicate_bam is generated out of unshifted reads
@@ -625,29 +616,35 @@ workflow ATACSEQ {
         ch_merged_replicate_markduplicate_bam = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bam
         ch_merged_replicate_markduplicate_bai = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bai
         ch_merged_replicate_markduplicate_flagstat = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat
+        ch_merged_replicate_markduplicate_csi = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.csi
 
         if (params.shift_reads && params.aligner != 'chromap' ) {
             MERGED_REPLICATE_BAM_SHIFT_READS (
                 ch_merged_replicate_markduplicate_bam.join(ch_merged_replicate_markduplicate_bai, by: [0]),
+                ch_fasta
+                .map {
+                    [ [:], it ]
+                }
             )
             ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_SHIFT_READS.out.versions)
 
             ch_merged_replicate_markduplicate_bam = MERGED_REPLICATE_BAM_SHIFT_READS.out.bam
             ch_merged_replicate_markduplicate_bai = MERGED_REPLICATE_BAM_SHIFT_READS.out.bai
             ch_merged_replicate_markduplicate_flagstat = MERGED_REPLICATE_BAM_SHIFT_READS.out.flagstat
+            ch_merged_replicate_markduplicate_csi = MERGED_REPLICATE_BAM_SHIFT_READS.out.csi
         }
-
         if (!params.skip_merged_replicate_bigwig) {
+            //
             // SUBWORKFLOW: Normalised bigWig coverage tracks
             //
             MERGED_REPLICATE_BAM_TO_BIGWIG (
                 ch_merged_replicate_markduplicate_bam.join(ch_merged_replicate_markduplicate_flagstat, by: [0]),
-                PREPARE_GENOME.out.chrom_sizes
+                ch_chrom_sizes
             )
             ch_ucsc_bedgraphtobigwig_replicate_bigwig = MERGED_REPLICATE_BAM_TO_BIGWIG.out.bigwig
             ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_TO_BIGWIG.out.versions)
         }
-        // Create channels: [ meta, bam, ([] for control_bam) ]
+       // Create channels: [ meta, bam, ([] for control_bam) ]
         if (params.with_control) {
             ch_merged_replicate_markduplicate_bam
                 .map {

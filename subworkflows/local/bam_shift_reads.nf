@@ -6,6 +6,7 @@ include { DEEPTOOLS_ALIGNMENTSIEVE } from '../../modules/local/deeptools_alignme
 workflow BAM_SHIFT_READS {
     take:
     ch_bam_bai                   // channel: [ val(meta), [ bam ], [bai] ]
+    ch_fasta                     // channel: [ fasta ]
 
     main:
     ch_versions = Channel.empty()
@@ -22,7 +23,8 @@ workflow BAM_SHIFT_READS {
     // Sort reads
     //
     SAMTOOLS_SORT (
-        DEEPTOOLS_ALIGNMENTSIEVE.out.bam
+        DEEPTOOLS_ALIGNMENTSIEVE.out.bam,
+        ch_fasta
     )
     ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
 
