@@ -643,7 +643,7 @@ workflow ATACSEQ {
             ch_ucsc_bedgraphtobigwig_replicate_bigwig = MERGED_REPLICATE_BAM_TO_BIGWIG.out.bigwig
             ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_TO_BIGWIG.out.versions)
         }
-       // Create channels: [ meta, bam, ([] for control_bam) ]
+        // Create channels: [ meta, bam, ([] for control_bam) ]
         if (params.with_control) {
             ch_merged_replicate_markduplicate_bam
                 .map {
