@@ -1,0 +1,112 @@
+Step 1/16 : from 812206152185.dkr.ecr.us-west-2.amazonaws.com/latch-base-nextflow:v1.1.5
+
+
+ ---> a7ebb447d94e
+
+Step 2/16 : workdir /tmp/docker-build/work/
+
+
+ ---> Using cache
+
+ ---> 416ded9895d6
+
+Step 3/16 : shell [     "/usr/bin/env", "bash",     "-o", "errexit",     "-o", "pipefail",     "-o", "nounset",     "-o", "verbose",     "-o", "errtrace",     "-O", "inherit_errexit",     "-O", "shift_verbose",     "-c" ]
+
+
+ ---> Using cache
+
+ ---> 5b24c39f1846
+
+Step 4/16 : env TZ='Etc/UTC'
+
+
+ ---> Using cache
+
+ ---> 27dd55b8d338
+
+Step 5/16 : env LANG='en_US.UTF-8'
+
+
+ ---> Using cache
+
+ ---> a4c213f3d20d
+
+Step 6/16 : arg DEBIAN_FRONTEND=noninteractive
+
+
+ ---> Using cache
+
+ ---> 7eed5569a303
+
+Step 7/16 : RUN apt-get update -y && apt-get install -y autoconf curl zip unzip wget gcc git make libbz2-dev zlib1g-dev libncurses5-dev libncursesw5-dev liblzma-dev libtool autoconf build-essential pkg-config automake tcsh
+
+
+ ---> Using cache
+
+ ---> 7cbdbbbfae0d
+
+Step 8/16 : RUN wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh &&     bash Mambaforge-Linux-x86_64.sh -b -p /mambaforge &&     rm Mambaforge-Linux-x86_64.sh
+
+
+ ---> Using cache
+
+ ---> 72699987ea8c
+
+Step 9/16 : ENV PATH="/mambaforge/bin:$PATH"
+
+
+ ---> Using cache
+
+ ---> e51d6b6d95b1
+
+Step 10/16 : RUN mamba create -n atacseqqc -c conda-forge -c bioconda bioconductor-atacseqqc bioconductor-bsgenome.hsapiens.ucsc.hg19 bioconductor-txdb.hsapiens.ucsc.hg19.knowngene bioconductor-bsgenome.hsapiens.ucsc.hg38 bioconductor-txdb.hsapiens.ucsc.hg38.knowngene bioconductor-motifdb r-cairo
+
+
+ ---> Using cache
+
+ ---> a867ffd8a7bb
+
+Step 11/16 : run pip install latch==2.49.6
+
+
+ ---> Using cache
+
+ ---> 5008269e92c9
+
+Step 12/16 : run mkdir /opt/latch
+
+
+ ---> Using cache
+
+ ---> 6dae1856e24b
+
+Step 13/16 : copy . /root/
+
+
+ ---> 2f38208e4019
+
+Step 14/16 : arg tag
+
+
+ ---> Running in 17fe186bffdb
+
+ ---> 4d63f6350cbc
+
+Step 15/16 : env FLYTE_INTERNAL_IMAGE $tag
+
+
+ ---> Running in 322835ee007f
+
+ ---> 26bab0eee9e6
+
+Step 16/16 : workdir /root
+
+
+ ---> Running in 906a81908671
+
+ ---> bf24eac5f2fe
+
+Successfully built bf24eac5f2fe
+
+Successfully tagged 812206152185.dkr.ecr.us-west-2.amazonaws.com/35929_nf_nf_core_atacseq:0.1.0-2e95ba
+

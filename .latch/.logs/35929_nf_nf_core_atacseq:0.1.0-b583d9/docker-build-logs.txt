@@ -1,0 +1,50 @@
+Step 1/15 : from 812206152185.dkr.ecr.us-west-2.amazonaws.com/latch-base-nextflow:v1.1.5
+
+
+ ---> a7ebb447d94e
+
+Step 2/15 : workdir /tmp/docker-build/work/
+
+
+ ---> Using cache
+
+ ---> 416ded9895d6
+
+Step 3/15 : shell [     "/usr/bin/env", "bash",     "-o", "errexit",     "-o", "pipefail",     "-o", "nounset",     "-o", "verbose",     "-o", "errtrace",     "-O", "inherit_errexit",     "-O", "shift_verbose",     "-c" ]
+
+
+ ---> Using cache
+
+ ---> 5b24c39f1846
+
+Step 4/15 : env TZ='Etc/UTC'
+
+
+ ---> Using cache
+
+ ---> 27dd55b8d338
+
+Step 5/15 : env LANG='en_US.UTF-8'
+
+
+ ---> Using cache
+
+ ---> a4c213f3d20d
+
+Step 6/15 : arg DEBIAN_FRONTEND=noninteractive
+
+
+ ---> Using cache
+
+ ---> 7eed5569a303
+
+Step 7/15 : RUN wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh &&     bash Mambaforge-Linux-x86_64.sh -b -p /mambaforge &&     rm Mambaforge-Linux-x86_64.sh
+
+
+ ---> Running in 413722dceef3
+
+[91mwget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh &&     bash Mambaforge-Linux-x86_64.sh -b -p /mambaforge &&     rm Mambaforge-Linux-x86_64.sh
+[0m
+[91mbash: line 1: wget: command not found
+[0m
+The command '/usr/bin/env bash -o errexit -o pipefail -o nounset -o verbose -o errtrace -O inherit_errexit -O shift_verbose -c wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh &&     bash Mambaforge-Linux-x86_64.sh -b -p /mambaforge &&     rm Mambaforge-Linux-x86_64.sh' returned a non-zero code: 127

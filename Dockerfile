@@ -1,5 +1,5 @@
 # DO NOT CHANGE
-from 812206152185.dkr.ecr.us-west-2.amazonaws.com/latch-base:fe0b-main
+from 812206152185.dkr.ecr.us-west-2.amazonaws.com/latch-base-nextflow:v1.1.5
 
 workdir /tmp/docker-build/work/
 
@@ -19,22 +19,35 @@ env LANG='en_US.UTF-8'
 
 arg DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get update -y && \
+apt-get install -y autoconf curl zip unzip wget gcc git make libbz2-dev zlib1g-dev \
+libncurses5-dev libncursesw5-dev liblzma-dev libtool autoconf build-essential pkg-config automake tcsh
+
+#Install Mamba
+RUN wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh && \
+    bash Mambaforge-Linux-x86_64.sh -b -p /mambaforge && \
+    rm Mambaforge-Linux-x86_64.sh
+ENV PATH="/mambaforge/bin:$PATH"
+
+#Install ATCseqQC
+RUN mamba create -n atacseqqc -c conda-forge -c bioconda bioconductor-atacseqqc \
+bioconductor-bsgenome.hsapiens.ucsc.hg19 \
+bioconductor-txdb.hsapiens.ucsc.hg19.knowngene \
+bioconductor-bsgenome.hsapiens.ucsc.hg38 \
+bioconductor-txdb.hsapiens.ucsc.hg38.knowngene \
+bioconductor-motifdb r-cairo
+
+RUN pip install numpy pandas pyarrow pyBigWig
+
 # Latch SDK
 # DO NOT REMOVE
-run pip install latch==2.46.6
+run pip install latch
 run mkdir /opt/latch
-run apt-get update && apt-get install -y default-jre-headless
 
 
 # Copy workflow data (use .dockerignore to skip files)
 
 copy . /root/
-
-# Latch nextflow workflow entrypoint
-# DO NOT CHANGE
-
-run ln -s /root/.latch/bin/nextflow /root/nextflow
-run ln -s /root/.latch/.nextflow /root/.nextflow
 
 
 # Latch workflow registration metadata
