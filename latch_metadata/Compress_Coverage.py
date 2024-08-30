@@ -1,3 +1,4 @@
+import os
 from os import listdir
 
 import numpy as np
@@ -17,7 +18,20 @@ def Return_Chromosome_Level_Coverages(bigwig, chromosome, chr_len, batch=1000000
     return pa.array(cov_vec)
 
 
-def Compute_Coverage_Across_Samples(data_path, outPath):
+def Compress_Coverage(data_path, outPath, s):
+    fp = bw.open(data_path)
+    chrom = fp.chroms()
+    chroms_list = list(chrom.keys())
+
+    for c in chroms_list[0:]:
+        fp = bw.open(data_path)
+        cov = Return_Chromosome_Level_Coverages(fp, c, chrom[c])
+        pq.write_table(
+            pa.table({"data": cov}), os.path.join(outPath, c + "." + s + ".parquet")
+        )
+
+
+"""def Compute_Coverage_Across_Samples(data_path, outPath):
     samples = listdir(data_path)
     chroms_list = []
     for s in samples:
@@ -26,7 +40,7 @@ def Compute_Coverage_Across_Samples(data_path, outPath):
             chrom = fp.chroms()
             break
     chroms_list = list(chrom.keys())
-
+    pq.write_table(pa.table(d), outPath + "/" + c + ".parquet")
     for c in chroms_list[0:]:
         d = {}
         for s in samples:
@@ -37,3 +51,4 @@ def Compute_Coverage_Across_Samples(data_path, outPath):
                 d[s.replace(".mLb.clN.bigWig", "")] = cov
         pq.write_table(pa.table(d), outPath + "/" + c + ".parquet")
     return outPath
+"""

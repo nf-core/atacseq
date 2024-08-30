@@ -32,7 +32,7 @@ from latch.types.metadata import (
 from .parameters import generated_parameters
 
 flow = [
-    Section("Input/Output", Params("input", "outdir", "email")),
+    Section("Input/Output", Params("input", "outdir", "run_name")),
     Section(
         "Reference Genome Options",
         Fork(

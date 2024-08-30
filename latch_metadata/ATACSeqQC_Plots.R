@@ -82,11 +82,11 @@ out <- featureAlignedDistribution(sigs, reCenterPeaks(TSS, width=ups+dws),
                                   ylab = "Averaged coverage")
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
 out <- apply(out, 2, range01)
-write.table(out, paste(outPath,"featurealignment_coverage.txt"), sep = "\t")
+write.table(out, paste(outPath,"featurealignment_coverage.txt", sep = ""), sep = "\t")
 
 s <- estimateLibComplexity(readsDupFreq(merged_bam_file))
 while (!is.null(dev.list()))  dev.off()
-write.table(s, paste(outPath, "Saturation_Plots.txt"), sep = "\t")
+write.table(s, paste(outPath, "Saturation_Plots.txt", sep = ""), sep = "\t")
 
 #CTCF <- query(MotifDb, c("CTCF"))
 #CTCF <- as.list(CTCF)

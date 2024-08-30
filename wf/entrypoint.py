@@ -12,8 +12,11 @@ import typing_extensions
 from dataclasses_json import dataclass_json
 from flytekit.core.annotation import FlyteAnnotation
 from latch import map_task, medium_task, small_task
+from latch.account import Account
 from latch.executions import report_nextflow_used_storage
 from latch.ldata.path import LPath
+from latch.registry.project import Project
+from latch.registry.table import Table
 from latch.resources.tasks import custom_task, nextflow_runtime_task
 from latch.resources.workflow import workflow
 from latch.types import metadata
@@ -34,7 +37,7 @@ import latch_metadata.Compress_Coverage
 
 @dataclass_json
 @dataclass
-class InputMap:
+class InputMap_ATACQC:
     run_flag: str
     sample: str
     bamfile: LatchFile
@@ -48,6 +51,15 @@ class SampleSheet:
     fastq_1: LatchFile
     fastq_2: LatchFile
     replicate: int
+
+
+@dataclass
+class Registry_Obj:
+    sample: str
+    frag_file: LatchFile
+    feat_alignment: LatchFile
+    sat_curves: LatchFile
+    cov_parquet: LatchDir
 
 
 class Reference(Enum):
@@ -72,7 +84,7 @@ class ReadLength(Enum):
 
 def latch_listdir(data_directory):
     files = []
-    for x in LPath(data_directory).iterdir():
+    for x in data_directory.iterdir():
         files.append(x.path)
     return files
 
@@ -86,28 +98,135 @@ def get_flag_defaults(
         return get_flag(name=name, val=val)
 
 
+@dataclass_json
+@dataclass
+class InputMap_Compress_Coverages:
+    data_path: LatchFile
+    outPath: LatchDir
+    sample: str
+
+
 @custom_task(cpu=4, memory=48, storage_gib=50)
-def Calculate_Plotting_Data(
-    input_dir: LatchDir, aligner: typing.Optional[Aligner], output_dir: LatchDir
-) -> LatchDir:
-    data_dir = os.path.join(
-        input_dir.local_path, aligner.name, "merged_library/bigwig/"
+def Prepare_Inputs_Coverages(
+    run_flag: str, input_dir: LatchDir, aligner: typing.Optional[Aligner] = Aligner.bwa
+) -> (typing.List[InputMap_Compress_Coverages], LatchDir):
+    bigwig_files = LPath(
+        os.path.join(
+            input_dir.remote_path, run_flag, aligner.name, "merged_library/bigwig/"
+        )
     )
     local_dir = "cov_parquet/"
     if not os.path.isdir(local_dir):
         os.mkdir(local_dir)
-    local_dir = latch_metadata.Compress_Coverage.Compute_Coverage_Across_Samples(
-        data_dir, local_dir
+    outdir_cov_plots = LatchDir(
+        local_dir, f"{input_dir.remote_directory}/{run_flag}/{local_dir}"
     )
-    print(local_dir)
-    print(os.listdir(local_dir))
-    print(os.path.join(output_dir.remote_directory, local_dir))
 
-    return LatchDir(local_dir, os.path.join(output_dir.remote_directory, local_dir))
+    input_objects = []
+    for b in latch_listdir(bigwig_files):
+        if b.endswith("bigWig"):
+            sample = Path(b).name
+            print(sample)
+            o = InputMap_Compress_Coverages(
+                LatchFile(b), outdir_cov_plots, sample.replace(".mLb.clN.bigWig", "")
+            )
+            input_objects.append(o)
+    return input_objects, outdir_cov_plots
 
 
 @custom_task(cpu=4, memory=48, storage_gib=50)
-def Run_Rscript(map_input: InputMap) -> LatchDir:
+def Merge_pq_files(
+    cov_parquet_path: typing.List[LatchDir], outPath: LatchDir
+) -> LatchDir:
+    chromosomes = {}
+    for cov in cov_parquet_path:
+        files = latch_listdir(cov)
+        for s in files:
+            print(s)
+            splits = Path(s).name.split(".")
+            print(splits[0])
+            try:
+                chromosomes[splits[0]].append(LatchFile(s))
+            except KeyError:
+                chromosomes[splits[0]] = [LatchFile(s)]
+
+    out_dir = "merged_parquet_files"
+    if not os.path.isdir(out_dir):
+        os.mkdir(out_dir)
+
+    for c in chromosomes:
+        d = {}
+        keys = chromosomes[c]
+        for k in keys:
+            table = latch_metadata.Compress_Coverage.pq.read_table(k.local_path)
+            sample = Path(k.local_path).name.replace(".parquet", "")
+            print(c, sample)
+            d[sample] = table["data"]
+        latch_metadata.Compress_Coverage.pq.write_table(
+            latch_metadata.Compress_Coverage.pa.table(d),
+            os.path.join(out_dir, c + ".parquet"),
+        )
+    return LatchDir(out_dir, os.path.join(outPath.remote_directory, out_dir))
+
+
+@custom_task(cpu=4, memory=48, storage_gib=50)
+def Compress_Coverages_Sample(IM: InputMap_Compress_Coverages) -> LatchDir:
+    bigWig_file = IM.data_path
+    sample = IM.sample
+    outPath = IM.outPath
+
+    local_dir = sample
+
+    print(bigWig_file, outPath, sample)
+    if not os.path.isdir(local_dir):
+        os.mkdir(local_dir)
+
+    latch_metadata.Compress_Coverage.Compress_Coverage(
+        bigWig_file.local_path, local_dir, sample
+    )
+
+    return LatchDir(local_dir, os.path.join(outPath.remote_directory, local_dir))
+
+
+@small_task
+def Calculate_Plotting_Data(
+    rplots: typing.List[LatchDir], cov_plots: typing.List[LatchDir]
+) -> typing.List[Registry_Obj]:
+    d = {}
+    for f in rplots:
+        files = latch_listdir(f)
+        sample = Path(f.remote_path).name
+        plots = {}
+        for i in files:
+            if Path(i).name in [
+                "Frag_Sizes.txt",
+                "featurealignment_coverage.txt",
+                "Saturation_Plots.txt",
+            ]:
+                plots[Path(i).name] = LatchFile(i)
+        d[sample] = plots
+
+    for f in cov_plots:
+        sample = Path(f.remote_path).name
+        d[sample]["Cov_Plots"] = f
+
+    obj_list = []
+    for k in d:
+        print(k)
+        o = Registry_Obj(
+            k,
+            d[k]["Frag_Sizes.txt"],
+            d[k]["featurealignment_coverage.txt"],
+            d[k]["Saturation_Plots.txt"],
+            d[k]["Cov_Plots"],
+        )
+        obj_list.append(o)
+
+    return obj_list
+
+
+@custom_task(cpu=4, memory=48, storage_gib=50)
+def Run_Rscript(map_input: InputMap_ATACQC) -> LatchDir:
     run_flag = map_input.run_flag
     sample = map_input.sample
     bamfile = map_input.bamfile
@@ -139,24 +258,100 @@ def Run_Rscript(map_input: InputMap) -> LatchDir:
 
 
 @small_task
-def Prepare_Inputs(
+def UpdateRegistry(d: typing.List[Registry_Obj], run_name: str) -> str:
+    target_project_name = "ATAC_Seq_Results"
+    target_table_name = f"{run_name}_Results"
+
+    account = Account.current()
+    target_project = next(
+        (
+            project
+            for project in account.list_registry_projects()
+            if project.get_display_name() == target_project_name
+        ),
+        None,
+    )
+
+    if target_project is None:
+        with account.update() as account_updater:
+            account_updater.upsert_registry_project(target_project_name)
+        target_project = next(
+            project
+            for project in account.list_registry_projects()
+            if project.get_display_name() == target_project_name
+        )
+        print("Upserted project")
+
+    target_table = next(
+        (
+            table
+            for table in target_project.list_tables()
+            if table.get_display_name() == target_table_name
+        ),
+        None,
+    )
+
+    columns = [
+        "sample",
+        "Fragment_Size_Distribution",
+        "Feature_Alignment_Coverage",
+        "Saturation_Curves",
+        "Cov_Parquet_Files",
+    ]
+    col_types = [str, LatchFile, LatchFile, LatchFile, LatchDir]
+    if target_table == None:
+        ### Upsert_Table
+        with target_project.update() as project_updater:
+            project_updater.upsert_table(target_table_name)
+        target_table = next(
+            table
+            for table in target_project.list_tables()
+            if table.get_display_name() == target_table_name
+        )
+        print("Upserted table")
+
+        with target_table.update() as updater:
+            for i in range(0, len(columns)):
+                updater.upsert_column(columns[i], type=col_types[i])
+        print("Upserted columns")
+    ctr = len(target_table.get_dataframe())
+    with target_table.update() as updater:
+        for v in d:
+            updater.upsert_record(
+                name=str(ctr),
+                sample=v.sample,
+                Fragment_Size_Distribution=v.frag_file,
+                Feature_Alignment_Coverage=v.feat_alignment,
+                Saturation_Curves=v.sat_curves,
+                Cov_Parquet_Files=v.cov_parquet,
+            )
+            ctr += 1
+
+    return target_table.id
+
+
+@small_task
+def Prepare_Inputs_ATACQC(
     run_flag: str, outdir: LatchDir, aligner: typing.Optional[Aligner] = Aligner.bwa
-) -> (typing.List[InputMap], LatchDir):
-    input_path = os.path.join(outdir.remote_directory, aligner.name, "merged_library")
+) -> (typing.List[InputMap_ATACQC], LatchDir):
+    input_path = LPath(
+        os.path.join(outdir.remote_directory, run_flag, aligner.name, "merged_library")
+    )
     files = latch_listdir(input_path)
     if not os.path.isdir("R_Plots/"):
         os.mkdir("R_Plots/")
     outdir_r_plots = LatchDir(
-        "R_Plots", os.path.join(outdir.remote_directory, "R_Plots")
+        "R_Plots", os.path.join(f"{outdir.remote_directory}/{run_flag}/R_Plots")
     )
     object_list = []
     for f in files:
+        print(f)
         if f.endswith(".mLb.mkD.sorted.bam"):
             bamfile = f
             baifile = f + ".bai"
             assert baifile in files, "Missing bai file for " + baifile
             sample = f.split("/")[-1].replace(".mLb.mkD.sorted.bam", "")
-            o = InputMap(run_flag, sample, bamfile, baifile, outdir_r_plots)
+            o = InputMap_ATACQC(run_flag, sample, bamfile, baifile, outdir_r_plots)
             object_list.append(o)
     return object_list, outdir_r_plots
 
@@ -192,8 +387,9 @@ input_construct_samplesheet = metadata._nextflow_metadata.parameters[
 def nextflow_runtime(
     pvc_name: str,
     input: typing.List[SampleSheet],
+    run_name: str,
     seq_center: typing.Optional[str],
-    read_length: typing.Optional[ReadLength],
+    read_length: typing.Optional[int],
     with_control: typing.Optional[bool],
     outdir: typing_extensions.Annotated[LatchDir, FlyteAnnotation({"output": True})],
     email: typing.Optional[str],
@@ -224,9 +420,9 @@ def nextflow_runtime(
     keep_dups: typing.Optional[bool],
     keep_multi_map: typing.Optional[bool],
     bwa_min_score: typing.Optional[int],
-    save_align_intermeds: typing.Optional[bool],
+    save_align_intermeds: bool,
     save_unaligned: typing.Optional[bool],
-    narrow_peak: typing.Optional[bool],
+    narrow_peak: bool,
     macs_fdr: typing.Optional[float],
     macs_pvalue: typing.Optional[float],
     save_macs_pileup: typing.Optional[bool],
@@ -242,16 +438,16 @@ def nextflow_runtime(
     skip_multiqc: typing.Optional[bool],
     skip_qc: typing.Optional[bool],
     multiqc_methods_description: typing.Optional[LatchFile],
-    fragment_size: typing.Optional[int],
-    keep_mito: typing.Optional[bool],
-    min_trimmed_reads: typing.Optional[int],
-    aligner: typing.Optional[Aligner],
-    skip_merge_replicates: typing.Optional[bool],
-    broad_cutoff: typing.Optional[float],
-    min_reps_consensus: typing.Optional[int],
-    deseq2_vst: typing.Optional[bool],
-    skip_preseq: typing.Optional[bool],
-    skip_ataqv: typing.Optional[bool],
+    fragment_size: int,
+    keep_mito: bool,
+    min_trimmed_reads: int,
+    aligner: Aligner,
+    skip_merge_replicates: bool,
+    broad_cutoff: float,
+    min_reps_consensus: int,
+    deseq2_vst: bool,
+    skip_preseq: bool,
+    skip_ataqv: bool,
 ) -> str:
     shared_dir = Path("/nf-workdir")
 
@@ -322,7 +518,9 @@ def nextflow_runtime(
         *get_flag_defaults("seq_center", seq_center, None),
         *get_flag_defaults("read_length", read_length, None),
         *get_flag_defaults("with_control", with_control, None),
-        *get_flag("outdir", outdir),
+        *get_flag_defaults(
+            "outdir", LatchOutputDir(outdir.remote_path + "/" + run_name), None
+        ),
         *get_flag_defaults("email", email, None),
         *get_flag_defaults("multiqc_title", multiqc_title, None),
         # *get_flag_defaults("genome", genome, None),
@@ -446,14 +644,15 @@ def nextflow_runtime(
 
     if failed:
         sys.exit(1)
-    return "Done"
+    return run_name
 
 
 @workflow(metadata._nextflow_metadata)
 def nf_nf_core_atacseq(
     input: typing.List[SampleSheet],
+    run_name: str,
     seq_center: typing.Optional[str],
-    read_length: typing.Optional[ReadLength],
+    read_length: typing.Optional[int],
     with_control: typing.Optional[bool],
     outdir: typing_extensions.Annotated[LatchDir, FlyteAnnotation({"output": True})],
     email: typing.Optional[str],
@@ -484,9 +683,7 @@ def nf_nf_core_atacseq(
     keep_dups: typing.Optional[bool],
     keep_multi_map: typing.Optional[bool],
     bwa_min_score: typing.Optional[int],
-    save_align_intermeds: typing.Optional[bool],
     save_unaligned: typing.Optional[bool],
-    narrow_peak: typing.Optional[bool],
     macs_fdr: typing.Optional[float],
     macs_pvalue: typing.Optional[float],
     save_macs_pileup: typing.Optional[bool],
@@ -502,27 +699,128 @@ def nf_nf_core_atacseq(
     skip_multiqc: typing.Optional[bool],
     skip_qc: typing.Optional[bool],
     multiqc_methods_description: typing.Optional[LatchFile],
-    fragment_size: typing.Optional[int] = 200,
-    keep_mito: typing.Optional[bool] = False,
-    min_trimmed_reads: typing.Optional[int] = 10000,
-    aligner: typing.Optional[Aligner] = Aligner.bwa,
-    skip_merge_replicates: typing.Optional[bool] = False,
-    broad_cutoff: typing.Optional[float] = 0.1,
-    min_reps_consensus: typing.Optional[int] = 1,
-    deseq2_vst: typing.Optional[bool] = True,
-    skip_preseq: typing.Optional[bool] = True,
-    skip_ataqv: typing.Optional[bool] = False,
+    fragment_size: int = 200,
+    narrow_peak: bool = False,
+    keep_mito: bool = False,
+    min_trimmed_reads: int = 10000,
+    aligner: Aligner = Aligner.bwa,
+    skip_merge_replicates: bool = False,
+    broad_cutoff: float = 0.1,
+    min_reps_consensus: int = 1,
+    deseq2_vst: bool = True,
+    skip_preseq: bool = True,
+    skip_ataqv: bool = False,
+    save_align_intermeds: bool = True,
 ) -> LatchDir:
     """
-    nf-core/atacseq
+    Latch Verified ATAC Seq
 
-    Sample Description
+    # Latch Verified ATAC Seq
+    **nfcore/atacseq** is a bioinformatics analysis pipeline used for ATAC-seq data.
+
+    The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies. Where possible, these processes have been submitted to and installed from [nf-core/modules](https://github.com/nf-core/modules) in order to make them available to all nf-core pipelines, and to everyone within the Nextflow community!
+    On release, automated continuous integration tests run the pipeline on a full-sized dataset on the AWS cloud infrastructure. This ensures that the pipeline runs on AWS, has sensible resource allocation defaults set to run on real-world datasets, and permits the persistent storage of results to benchmark between pipeline releases and other analysis sources.The results obtained from the full-sized test can be viewed on the [nf-core website](https://nf-co.re/atacseq/results).
+
+    1. Raw read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
+    2. Adapter trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
+    3. Choice of multiple aligners
+        1. [`BWA`](https://sourceforge.net/projects/bio-bwa/files/)
+        2. [`Chromap`](https://github.com/haowenz/chromap). **For paired-end reads only working until mapping steps, see [here](https://github.com/nf-core/chipseq/issues/291)**
+        3. [`Bowtie2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
+        4. [`STAR`](https://github.com/alexdobin/STAR)
+    4. Mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
+    5. Merge alignments from multiple libraries of the same sample ([`picard`](https://broadinstitute.github.io/picard/))
+        1. Re-mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
+        2. Filtering to remove:
+            - reads mapping to mitochondrial DNA ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+            - reads mapping to blacklisted regions ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/), [`BEDTools`](https://github.com/arq5x/bedtools2/))
+            - reads that are marked as duplicates ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+            - reads that are not marked as primary alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+            - reads that are unmapped ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+            - reads that map to multiple locations ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+            - reads containing > 4 mismatches ([`BAMTools`](https://github.com/pezmaster31/bamtools))
+            - reads that are soft-clipped ([`BAMTools`](https://github.com/pezmaster31/bamtools))
+            - reads that have an insert size > 2kb ([`BAMTools`](https://github.com/pezmaster31/bamtools); _paired-end only_)
+            - reads that map to different chromosomes ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); _paired-end only_)
+            - reads that arent in FR orientation ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); _paired-end only_)
+            - reads where only one read of the pair fails the above criteria ([`Pysam`](http://pysam.readthedocs.io/en/latest/installation.html); _paired-end only_)
+        3. Alignment-level QC and estimation of library complexity ([`picard`](https://broadinstitute.github.io/picard/), [`Preseq`](http://smithlabresearch.org/software/preseq/))
+        4. Create normalised bigWig files scaled to 1 million mapped reads ([`BEDTools`](https://github.com/arq5x/bedtools2/), [`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
+        5. Generate gene-body meta-profile from bigWig files ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotProfile.html))
+        6. Calculate genome-wide enrichment (optionally relative to control) ([`deepTools`](https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html))
+        7. Call broad/narrow peaks ([`MACS2`](https://github.com/macs3-project/MACS))
+        8. Annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
+        9. Create consensus peakset across all samples and create tabular file to aid in the filtering of the data ([`BEDTools`](https://github.com/arq5x/bedtools2/))
+        10. Count reads in consensus peaks ([`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/))
+        11. Differential accessibility analysis, PCA and clustering ([`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html))
+        12. Generate ATAC-seq specific QC html report ([`ataqv`](https://github.com/ParkerLab/ataqv))
+    6. Merge filtered alignments across replicates ([`picard`](https://broadinstitute.github.io/picard/))
+        1. Re-mark duplicates ([`picard`](https://broadinstitute.github.io/picard/))
+        2. Remove duplicate reads ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+        3. Create normalised bigWig files scaled to 1 million mapped reads ([`BEDTools`](https://github.com/arq5x/bedtools2/), [`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
+        4. Call broad/narrow peaks ([`MACS2`](https://github.com/macs3-project/MACS))
+        5. Annotate peaks relative to gene features ([`HOMER`](http://homer.ucsd.edu/homer/download.html))
+        6. Create consensus peakset across all samples and create tabular file to aid in the filtering of the data ([`BEDTools`](https://github.com/arq5x/bedtools2/))
+        7. Count reads in consensus peaks relative to merged library-level alignments ([`featureCounts`](http://bioinf.wehi.edu.au/featureCounts/))
+        8. Differential accessibility analysis, PCA and clustering ([`R`](https://www.r-project.org/), [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html))
+    7. Create IGV session file containing bigWig tracks, peaks and differential sites for data visualisation ([`IGV`](https://software.broadinstitute.org/software/igv/)).
+    8. Present QC for raw read, alignment, peak-calling and differential accessibility results ([`ataqv`](https://github.com/ParkerLab/ataqv), [`MultiQC`](http://multiqc.info/), [`R`](https://www.r-project.org/))
+
+    ## Usage
+
+    > **Note**
+    > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how
+    > to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline)
+    > with `-profile test` before running the workflow on actual data.
+
+    To run on your data, prepare a tab-separated samplesheet with your input data. Please follow the [documentation on samplesheets](https://nf-co.re/atacseq/usage#samplesheet-input) for more details. An example samplesheet for running the pipeline looks as follows:
+
+    sample,fastq_1,fastq_2,replicate
+    CONTROL,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,1
+    CONTROL,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz,2
+    CONTROL,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz,3
+
+    See [usage docs](https://nf-co.re/atacseq/usage) for all of the available options when running the pipeline.
+
+    > **Warning:**
+    > see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
+
+    For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/atacseq/usage) and the [parameter documentation](https://nf-co.re/atacseq/parameters).
+
+    ## Pipeline output
+
+    To see the results of an example test run with a full size dataset refer to the [results](https://nf-co.re/atacseq/results) tab on the nf-core website pipeline page.
+    For more details about the output files and reports, please refer to the
+    [output documentation](https://nf-co.re/atacseq/output).
+
+    ## Credits
+
+    The pipeline was originally written by Harshil Patel ([@drpatelh](https://github.com/drpatelh)) from [Seqera Labs, Spain](https://seqera.io/) and converted to Nextflow DSL2 by Björn Langer ([@bjlang](https://github.com/bjlang)) and Jose Espinosa-Carrasco ([@JoseEspinosa](https://github.com/JoseEspinosa)) from [The Comparative Bioinformatics Group](https://www.crg.eu/en/cedric_notredame) at [The Centre for Genomic Regulation, Spain](https://www.crg.eu/) under the umbrella of the [BovReg project](https://www.bovreg.eu/).
+    Many thanks to others who have helped out and contributed along the way too, including (but not limited to): [@ewels](https://github.com/ewels), [@apeltzer](https://github.com/apeltzer), [@crickbabs](https://github.com/crickbabs), [drewjbeh](https://github.com/drewjbeh), [@houghtos](https://github.com/houghtos), [@jinmingda](https://github.com/jinmingda), [@ktrns](https://github.com/ktrns), [@MaxUlysse](https://github.com/MaxUlysse), [@mashehu](https://github.com/mashehu), [@micans](https://github.com/micans), [@pditommaso](https://github.com/pditommaso) and [@sven1103](https://github.com/sven1103).
+
+    ## Contributions and Support
+
+    If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
+    For further information or help, don't hesitate to get in touch on the [Slack `#atacseq` channel](https://nfcore.slack.com/channels/atacseq) (you can join with [this invite](https://nf-co.re/join/slack)).
+
+    ## Citations
+
+    If you use nf-core/atacseq for your analysis, please cite it using the following doi: [10.5281/zenodo.2634132](https://doi.org/10.5281/zenodo.2634132)
+    An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
+    You can cite the `nf-core` publication as follows:
+
+    > **The nf-core framework for community-curated bioinformatics pipelines.**
+    >
+    > Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
+    >
+    > _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).
     """
 
     pvc_name: str = initialize()
     NF_Run_Flag = nextflow_runtime(
         pvc_name=pvc_name,
         input=input,
+        run_name=run_name,
         fragment_size=fragment_size,
         seq_center=seq_center,
         read_length=read_length,
@@ -584,15 +882,25 @@ def nf_nf_core_atacseq(
         skip_ataqv=skip_ataqv,
         multiqc_methods_description=multiqc_methods_description,
     )
-    input_obj_list, outdir_r_plots = Prepare_Inputs(
+
+    # NF_Run_Flag = run_name
+
+    input_obj_list, outdir_r_plots = Prepare_Inputs_ATACQC(
         run_flag=NF_Run_Flag, outdir=outdir, aligner=aligner
     )
 
-    map_task_op = map_task(Run_Rscript)(map_input=input_obj_list)
-
-    outdir_cov = Calculate_Plotting_Data(
-        input_dir=outdir, aligner=aligner, output_dir=outdir_r_plots
+    input_obj_cov_list, outdir_cov_plots = Prepare_Inputs_Coverages(
+        run_flag=NF_Run_Flag, input_dir=outdir, aligner=aligner
     )
-    # print(outdir_cov)
+    print("Here...")
+
+    map_tasks_cov = map_task(Compress_Coverages_Sample)(IM=input_obj_cov_list)
+
+    map_task_op = map_task(Run_Rscript)(map_input=input_obj_list)
+    print(outdir_cov_plots)
+
+    Plotting_Data = Calculate_Plotting_Data(rplots=map_task_op, cov_plots=map_tasks_cov)
+
+    registry_table = UpdateRegistry(d=Plotting_Data, run_name=run_name)
 
     return outdir
