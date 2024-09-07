@@ -85,7 +85,7 @@ generated_parameters = {
         description="Use controls.",
     ),
     "outdir": NextflowParameter(
-        type=typing_extensions.Annotated[LatchDir, FlyteAnnotation({"output": True})],
+        type=LatchOutputDir,
         default=None,
         section_title=None,
         display_name="Output Directory",
@@ -110,7 +110,7 @@ generated_parameters = {
         display_name="Reference Genome",
         description="Choose Reference Genome",
     ),
-    "genome": NextflowParameter(
+    "latch_genome": NextflowParameter(
         type=typing.Optional[Reference],
         default=None,
         section_title="Reference genome options",

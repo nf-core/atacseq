@@ -18,7 +18,7 @@ def Return_Chromosome_Level_Coverages(bigwig, chromosome, chr_len, batch=1000000
     return pa.array(cov_vec)
 
 
-def Compress_Coverage(data_path, outPath, s):
+def Compress_Coverages(data_path, outPath, s):
     fp = bw.open(data_path)
     chrom = fp.chroms()
     chroms_list = list(chrom.keys())

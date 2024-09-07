@@ -1,18 +1,8 @@
 import sys
-from os import mkdir
-from os.path import isdir
-from pathlib import Path
-from shutil import copy, copytree
-from subprocess import run
 
 import typing_extensions
 from flytekit.core.annotation import FlyteAnnotation
-from latch import custom_task, map_task, medium_task, small_task
 from latch.ldata.path import LPath
-from latch.resources.tasks import nextflow_runtime_task
-
-# from latch.resources.tasks import map_task
-from latch.resources.workflow import workflow
 from latch.types import metadata
 from latch.types.directory import LatchDir, LatchOutputDir
 from latch.types.file import LatchFile
@@ -39,7 +29,7 @@ flow = [
             "genome_source",
             "",
             latch_genome_source=ForkBranch(
-                "Latch Certified Reference Genome", Params("genome")
+                "Latch Certified Reference Genome", Params("latch_genome")
             ),
             input_ref=ForkBranch(
                 "Custom Reference Genome",
@@ -141,7 +131,7 @@ flow = [
 NextflowMetadata(
     display_name="nf-core/atacseq",
     author=LatchAuthor(
-        name="Your Name",
+        name="nf-core",
     ),
     parameters=generated_parameters,
     runtime_resources=NextflowRuntimeResources(

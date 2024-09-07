@@ -9,14 +9,11 @@ from pathlib import Path
 
 import requests
 import typing_extensions
-from dataclasses_json import dataclass_json
 from flytekit.core.annotation import FlyteAnnotation
-from latch import map_task, medium_task, small_task
-from latch.account import Account
+from latch import custom_task, map_task, medium_task, small_task
 from latch.executions import report_nextflow_used_storage
 from latch.ldata.path import LPath
-from latch.registry.project import Project
-from latch.registry.table import Table
+from latch.resources.launch_plan import LaunchPlan
 from latch.resources.tasks import custom_task, nextflow_runtime_task
 from latch.resources.workflow import workflow
 from latch.types import metadata
@@ -27,22 +24,30 @@ from latch_cli.nextflow.workflow import get_flag
 from latch_cli.services.register.utils import import_module_by_path
 from latch_cli.utils import urljoins
 
+import wf.Post_Process_Tasks as pp
+from latch_metadata.parameters import (
+    Aligner,
+    Reference,
+    SampleSheet,
+    generated_parameters,
+)
+
+sys.stdout.reconfigure(line_buffering=True)
+
 # import latch_metadata.Compress_Coverage
 # from latch_metadata.Compress_Coverage import Compute_Coverage_Across_Samples, Return_Chromosome_Level_Coverages
 meta = Path("latch_metadata") / "__init__.py"
 import_module_by_path(meta)
 import latch_metadata
-import latch_metadata.Compress_Coverage
 
 
-@dataclass_json
-@dataclass
-class InputMap_ATACQC:
-    run_flag: str
-    sample: str
-    bamfile: LatchFile
-    baifile: LatchFile
-    outdir: LatchDir
+def get_flag_defaults(
+    name: str, val: typing.Any, default_val: typing.Optional[typing.Any]
+):
+    if val == default_val or val is None:
+        return ""
+    else:
+        return get_flag(name=name, val=val)
 
 
 @dataclass
@@ -51,15 +56,6 @@ class SampleSheet:
     fastq_1: LatchFile
     fastq_2: LatchFile
     replicate: int
-
-
-@dataclass
-class Registry_Obj:
-    sample: str
-    frag_file: LatchFile
-    feat_alignment: LatchFile
-    sat_curves: LatchFile
-    cov_parquet: LatchDir
 
 
 class Reference(Enum):
@@ -80,280 +76,6 @@ class ReadLength(Enum):
     r_100 = "100"
     r_150 = "150"
     r_200 = "200"
-
-
-def latch_listdir(data_directory):
-    files = []
-    for x in data_directory.iterdir():
-        files.append(x.path)
-    return files
-
-
-def get_flag_defaults(
-    name: str, val: typing.Any, default_val: typing.Optional[typing.Any]
-):
-    if val == default_val or val is None:
-        return ""
-    else:
-        return get_flag(name=name, val=val)
-
-
-@dataclass_json
-@dataclass
-class InputMap_Compress_Coverages:
-    data_path: LatchFile
-    outPath: LatchDir
-    sample: str
-
-
-@custom_task(cpu=4, memory=48, storage_gib=50)
-def Prepare_Inputs_Coverages(
-    run_flag: str, input_dir: LatchDir, aligner: typing.Optional[Aligner] = Aligner.bwa
-) -> (typing.List[InputMap_Compress_Coverages], LatchDir):
-    bigwig_files = LPath(
-        os.path.join(
-            input_dir.remote_path, run_flag, aligner.name, "merged_library/bigwig/"
-        )
-    )
-    local_dir = "cov_parquet/"
-    if not os.path.isdir(local_dir):
-        os.mkdir(local_dir)
-    outdir_cov_plots = LatchDir(
-        local_dir, f"{input_dir.remote_directory}/{run_flag}/{local_dir}"
-    )
-
-    input_objects = []
-    for b in latch_listdir(bigwig_files):
-        if b.endswith("bigWig"):
-            sample = Path(b).name
-            print(sample)
-            o = InputMap_Compress_Coverages(
-                LatchFile(b), outdir_cov_plots, sample.replace(".mLb.clN.bigWig", "")
-            )
-            input_objects.append(o)
-    return input_objects, outdir_cov_plots
-
-
-@custom_task(cpu=4, memory=48, storage_gib=50)
-def Merge_pq_files(
-    cov_parquet_path: typing.List[LatchDir], outPath: LatchDir
-) -> LatchDir:
-    chromosomes = {}
-    for cov in cov_parquet_path:
-        files = latch_listdir(cov)
-        for s in files:
-            print(s)
-            splits = Path(s).name.split(".")
-            print(splits[0])
-            try:
-                chromosomes[splits[0]].append(LatchFile(s))
-            except KeyError:
-                chromosomes[splits[0]] = [LatchFile(s)]
-
-    out_dir = "merged_parquet_files"
-    if not os.path.isdir(out_dir):
-        os.mkdir(out_dir)
-
-    for c in chromosomes:
-        d = {}
-        keys = chromosomes[c]
-        for k in keys:
-            table = latch_metadata.Compress_Coverage.pq.read_table(k.local_path)
-            sample = Path(k.local_path).name.replace(".parquet", "")
-            print(c, sample)
-            d[sample] = table["data"]
-        latch_metadata.Compress_Coverage.pq.write_table(
-            latch_metadata.Compress_Coverage.pa.table(d),
-            os.path.join(out_dir, c + ".parquet"),
-        )
-    return LatchDir(out_dir, os.path.join(outPath.remote_directory, out_dir))
-
-
-@custom_task(cpu=4, memory=48, storage_gib=50)
-def Compress_Coverages_Sample(IM: InputMap_Compress_Coverages) -> LatchDir:
-    bigWig_file = IM.data_path
-    sample = IM.sample
-    outPath = IM.outPath
-
-    local_dir = sample
-
-    print(bigWig_file, outPath, sample)
-    if not os.path.isdir(local_dir):
-        os.mkdir(local_dir)
-
-    latch_metadata.Compress_Coverage.Compress_Coverage(
-        bigWig_file.local_path, local_dir, sample
-    )
-
-    return LatchDir(local_dir, os.path.join(outPath.remote_directory, local_dir))
-
-
-@small_task
-def Calculate_Plotting_Data(
-    rplots: typing.List[LatchDir], cov_plots: typing.List[LatchDir]
-) -> typing.List[Registry_Obj]:
-    d = {}
-    for f in rplots:
-        files = latch_listdir(f)
-        sample = Path(f.remote_path).name
-        plots = {}
-        for i in files:
-            if Path(i).name in [
-                "Frag_Sizes.txt",
-                "featurealignment_coverage.txt",
-                "Saturation_Plots.txt",
-            ]:
-                plots[Path(i).name] = LatchFile(i)
-        d[sample] = plots
-
-    for f in cov_plots:
-        sample = Path(f.remote_path).name
-        d[sample]["Cov_Plots"] = f
-
-    obj_list = []
-    for k in d:
-        print(k)
-        o = Registry_Obj(
-            k,
-            d[k]["Frag_Sizes.txt"],
-            d[k]["featurealignment_coverage.txt"],
-            d[k]["Saturation_Plots.txt"],
-            d[k]["Cov_Plots"],
-        )
-        obj_list.append(o)
-
-    return obj_list
-
-
-@custom_task(cpu=4, memory=48, storage_gib=50)
-def Run_Rscript(map_input: InputMap_ATACQC) -> LatchDir:
-    run_flag = map_input.run_flag
-    sample = map_input.sample
-    bamfile = map_input.bamfile
-    baifile = map_input.baifile
-    outdir = map_input.outdir
-
-    local_dir = sample + "/"
-    shutil.copy(bamfile.local_path, str(Path().resolve()))
-    shutil.copy(baifile.local_path, str(Path().resolve()))
-
-    if not os.path.isdir(local_dir):
-        os.mkdir(local_dir)
-    bamfile.download()
-    baifile.download()
-
-    cmd_RunRscript = [
-        "mamba",
-        "run",
-        "-n",
-        "atacseqqc",
-        "Rscript",
-        "/root/latch_metadata/ATACSeqQC_Plots.R",
-        Path(bamfile.local_path).name,
-        local_dir,
-    ]
-    print(" ".join(cmd_RunRscript))
-    subprocess.run(" ".join(cmd_RunRscript), shell=True, check=True)
-    return LatchDir(local_dir, os.path.join(outdir.remote_directory, sample))
-
-
-@small_task
-def UpdateRegistry(d: typing.List[Registry_Obj], run_name: str) -> str:
-    target_project_name = "ATAC_Seq_Results"
-    target_table_name = f"{run_name}_Results"
-
-    account = Account.current()
-    target_project = next(
-        (
-            project
-            for project in account.list_registry_projects()
-            if project.get_display_name() == target_project_name
-        ),
-        None,
-    )
-
-    if target_project is None:
-        with account.update() as account_updater:
-            account_updater.upsert_registry_project(target_project_name)
-        target_project = next(
-            project
-            for project in account.list_registry_projects()
-            if project.get_display_name() == target_project_name
-        )
-        print("Upserted project")
-
-    target_table = next(
-        (
-            table
-            for table in target_project.list_tables()
-            if table.get_display_name() == target_table_name
-        ),
-        None,
-    )
-
-    columns = [
-        "sample",
-        "Fragment_Size_Distribution",
-        "Feature_Alignment_Coverage",
-        "Saturation_Curves",
-        "Cov_Parquet_Files",
-    ]
-    col_types = [str, LatchFile, LatchFile, LatchFile, LatchDir]
-    if target_table == None:
-        ### Upsert_Table
-        with target_project.update() as project_updater:
-            project_updater.upsert_table(target_table_name)
-        target_table = next(
-            table
-            for table in target_project.list_tables()
-            if table.get_display_name() == target_table_name
-        )
-        print("Upserted table")
-
-        with target_table.update() as updater:
-            for i in range(0, len(columns)):
-                updater.upsert_column(columns[i], type=col_types[i])
-        print("Upserted columns")
-    ctr = len(target_table.get_dataframe())
-    with target_table.update() as updater:
-        for v in d:
-            updater.upsert_record(
-                name=str(ctr),
-                sample=v.sample,
-                Fragment_Size_Distribution=v.frag_file,
-                Feature_Alignment_Coverage=v.feat_alignment,
-                Saturation_Curves=v.sat_curves,
-                Cov_Parquet_Files=v.cov_parquet,
-            )
-            ctr += 1
-
-    return target_table.id
-
-
-@small_task
-def Prepare_Inputs_ATACQC(
-    run_flag: str, outdir: LatchDir, aligner: typing.Optional[Aligner] = Aligner.bwa
-) -> (typing.List[InputMap_ATACQC], LatchDir):
-    input_path = LPath(
-        os.path.join(outdir.remote_directory, run_flag, aligner.name, "merged_library")
-    )
-    files = latch_listdir(input_path)
-    if not os.path.isdir("R_Plots/"):
-        os.mkdir("R_Plots/")
-    outdir_r_plots = LatchDir(
-        "R_Plots", os.path.join(f"{outdir.remote_directory}/{run_flag}/R_Plots")
-    )
-    object_list = []
-    for f in files:
-        print(f)
-        if f.endswith(".mLb.mkD.sorted.bam"):
-            bamfile = f
-            baifile = f + ".bai"
-            assert baifile in files, "Missing bai file for " + baifile
-            sample = f.split("/")[-1].replace(".mLb.mkD.sorted.bam", "")
-            o = InputMap_ATACQC(run_flag, sample, bamfile, baifile, outdir_r_plots)
-            object_list.append(o)
-    return object_list, outdir_r_plots
 
 
 @custom_task(cpu=0.25, memory=0.5, storage_gib=1)
@@ -391,11 +113,11 @@ def nextflow_runtime(
     seq_center: typing.Optional[str],
     read_length: typing.Optional[int],
     with_control: typing.Optional[bool],
-    outdir: typing_extensions.Annotated[LatchDir, FlyteAnnotation({"output": True})],
+    outdir: LatchOutputDir,
     email: typing.Optional[str],
     multiqc_title: typing.Optional[str],
     genome_source: str,
-    genome: typing.Optional[Reference],
+    latch_genome: typing.Optional[Reference],
     fasta: typing.Optional[LatchFile],
     gtf: typing.Optional[LatchFile],
     gff: typing.Optional[LatchFile],
@@ -485,22 +207,27 @@ def nextflow_runtime(
 
     if genome_source == "latch_genome_source":
         fasta = os.path.join(
-            "s3://latch-public/test-data/35929/", genome.name, genome.name + ".fa"
+            "s3://latch-public/test-data/35929/",
+            latch_genome.name,
+            latch_genome.name + ".fa",
         )
         gtf = os.path.join(
             "s3://latch-public/test-data/35929/",
-            genome.name,
-            genome.name + ".refGene.gtf",
+            latch_genome.name,
+            latch_genome.name + ".refGene.gtf",
         )
         if aligner.name == "bowtie2":
             bowtie2_index = os.path.join(
-                "s3://latch-public/test-data/35929/", genome.name, "bowtie2"
+                "s3://latch-public/test-data/35929/", latch_genome.name, "bowtie2"
             )
         elif aligner.name == "bwa":
             bwa_index = os.path.join(
-                "s3://latch-public/test-data/35929/", genome.name, "bwa"
+                "s3://latch-public/test-data/35929/", latch_genome.name, "bwa"
             )
-    print(aligner.name, genome, fasta, bowtie2_index)
+        elif aligner.name == "star":
+            star_index = os.path.join(
+                "s3://latch-public/test-data/35929/", latch_genome.name, "bwa"
+            )
 
     cmd = [
         "/root/nextflow",
@@ -654,11 +381,11 @@ def nf_nf_core_atacseq(
     seq_center: typing.Optional[str],
     read_length: typing.Optional[int],
     with_control: typing.Optional[bool],
-    outdir: typing_extensions.Annotated[LatchDir, FlyteAnnotation({"output": True})],
+    outdir: LatchOutputDir,  # typing_extensions.Annotated[LatchDir, FlyteAnnotation({"output": True})],
     email: typing.Optional[str],
     multiqc_title: typing.Optional[str],
     genome_source: str,
-    genome: typing.Optional[Reference],
+    latch_genome: typing.Optional[Reference],
     fasta: typing.Optional[LatchFile],
     gtf: typing.Optional[LatchFile],
     gff: typing.Optional[LatchFile],
@@ -829,7 +556,7 @@ def nf_nf_core_atacseq(
         email=email,
         multiqc_title=multiqc_title,
         genome_source=genome_source,
-        genome=genome,
+        latch_genome=latch_genome,
         fasta=fasta,
         gtf=gtf,
         gff=gff,
@@ -883,24 +610,161 @@ def nf_nf_core_atacseq(
         multiqc_methods_description=multiqc_methods_description,
     )
 
-    # NF_Run_Flag = run_name
-
-    input_obj_list, outdir_r_plots = Prepare_Inputs_ATACQC(
+    input_obj_list, outdir_r_plots = pp.Prepare_Inputs_ATACQC(
         run_flag=NF_Run_Flag, outdir=outdir, aligner=aligner
     )
 
-    input_obj_cov_list, outdir_cov_plots = Prepare_Inputs_Coverages(
+    input_obj_cov_list, outdir_cov_plots = pp.Prepare_Inputs_Coverages(
         run_flag=NF_Run_Flag, input_dir=outdir, aligner=aligner
     )
     print("Here...")
 
-    map_tasks_cov = map_task(Compress_Coverages_Sample)(IM=input_obj_cov_list)
+    map_tasks_cov = map_task(pp.Compress_Coverages_Sample)(IM=input_obj_cov_list)
 
-    map_task_op = map_task(Run_Rscript)(map_input=input_obj_list)
+    map_task_op = map_task(pp.Run_Rscript)(map_input=input_obj_list)
     print(outdir_cov_plots)
 
-    Plotting_Data = Calculate_Plotting_Data(rplots=map_task_op, cov_plots=map_tasks_cov)
+    Plotting_Data = pp.Calculate_Plotting_Data(
+        rplots=map_task_op, cov_plots=map_tasks_cov
+    )
 
-    registry_table = UpdateRegistry(d=Plotting_Data, run_name=run_name)
+    registry_table = pp.UpdateRegistry(d=Plotting_Data, run_name=run_name)
 
     return outdir
+
+
+LaunchPlan(
+    nf_nf_core_atacseq,
+    "test_data",
+    {
+        "input": [
+            SampleSheet(
+                sample="Sample_6",
+                fastq_1=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_6/Sample_6.Rep_1.R1.fastq.gz"
+                ),
+                fastq_2=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_6/Sample_6.Rep_1.R2.fastq.gz"
+                ),
+                replicate=1,
+            ),
+            SampleSheet(
+                sample="Sample_6",
+                fastq_1=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_6/Sample_6.Rep_2.R1.fastq.gz"
+                ),
+                fastq_2=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_6/Sample_6.Rep_2.R2.fastq.gz"
+                ),
+                replicate=2,
+            ),
+            SampleSheet(
+                sample="Sample_1",
+                fastq_1=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_1/Sample_1.Rep_1.R1.fastq.gz"
+                ),
+                fastq_2=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_1/Sample_1.Rep_1.R2.fastq.gz"
+                ),
+                replicate=1,
+            ),
+            SampleSheet(
+                sample="Sample_1",
+                fastq_1=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_1/Sample_1.Rep_2.R1.fastq.gz"
+                ),
+                fastq_2=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_1/Sample_1.Rep_2.R2.fastq.gz"
+                ),
+                replicate=2,
+            ),
+            SampleSheet(
+                sample="Sample_2",
+                fastq_1=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_2/Sample_2.Rep_1.R1.fastq.gz"
+                ),
+                fastq_2=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_2/Sample_2.Rep_1.R2.fastq.gz"
+                ),
+                replicate=1,
+            ),
+            SampleSheet(
+                sample="Sample_2",
+                fastq_1=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_2/Sample_2.Rep_2.R1.fastq.gz"
+                ),
+                fastq_2=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_2/Sample_2.Rep_2.R2.fastq.gz"
+                ),
+                replicate=2,
+            ),
+            SampleSheet(
+                sample="Sample_3",
+                fastq_1=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_3/Sample_3.Rep_1.R1.fastq.gz"
+                ),
+                fastq_2=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_3/Sample_3.Rep_1.R2.fastq.gz"
+                ),
+                replicate=1,
+            ),
+            SampleSheet(
+                sample="Sample_3",
+                fastq_1=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_3/Sample_3.Rep_2.R1.fastq.gz"
+                ),
+                fastq_2=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_3/Sample_3.Rep_2.R2.fastq.gz"
+                ),
+                replicate=2,
+            ),
+            SampleSheet(
+                sample="Sample_4",
+                fastq_1=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_4/Sample_4.Rep_1.R1.fastq.gz"
+                ),
+                fastq_2=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_4/Sample_4.Rep_1.R2.fastq.gz"
+                ),
+                replicate=1,
+            ),
+            SampleSheet(
+                sample="Sample_4",
+                fastq_1=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_4/Sample_4.Rep_2.R1.fastq.gz"
+                ),
+                fastq_2=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_4/Sample_4.Rep_2.R2.fastq.gz"
+                ),
+                replicate=2,
+            ),
+            SampleSheet(
+                sample="Sample_5",
+                fastq_1=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_5/Sample_5.Rep_1.R1.fastq.gz"
+                ),
+                fastq_2=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_5/Sample_5.Rep_1.R2.fastq.gz"
+                ),
+                replicate=1,
+            ),
+            SampleSheet(
+                sample="Sample_5",
+                fastq_1=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_5/Sample_5.Rep_2.R1.fastq.gz"
+                ),
+                fastq_2=LatchFile(
+                    "s3://latch-public/test-data/35929/Test_Dataset_Verified/Sample_5/Sample_5.Rep_2.R2.fastq.gz"
+                ),
+                replicate=2,
+            ),
+        ],
+        "genome_source": "input_ref",
+        "run_name": "Test-1",
+        "read_length": 50,
+        "aligner": "bowtie2",
+        "fasta": LatchFile("s3://latch-public/test-data/35929/hg19/hg19.fa"),
+        "gtf": LatchFile("s3://latch-public/test-data/35929/hg19/hg19.refGene.gtf"),
+        "outdir": LatchOutputDir("latch://35929.account/"),
+    },
+)
