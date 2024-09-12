@@ -1,18 +1,12 @@
-import csv
 import typing
 from dataclasses import dataclass
 from enum import Enum
 
-import typing_extensions
-from flytekit.core.annotation import FlyteAnnotation
 from latch.types.directory import LatchDir, LatchOutputDir
 from latch.types.file import LatchFile
 from latch.types.metadata import Multiselect, NextflowParameter
 
 
-# Import these into your `__init__.py` file:
-#
-# from .parameters import generated_parameters
 class Aligner(Enum):
     bwa = "bwa"
     bowtie2 = "bowtie2"
