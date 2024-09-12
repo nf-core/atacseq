@@ -61,6 +61,7 @@ class SampleSheet:
 class Reference(Enum):
     hg19 = "GRCh37 (Homo Sapiens hg19)"
     hg38 = "GRCh38 (Homo Sapiens hg38)"
+    mm10 = "GRCm39 (Mus Musculus)"
 
 
 class Aligner(Enum):
@@ -92,6 +93,7 @@ def initialize() -> str:
         headers=headers,
         json={
             "storage_expiration_hours": 0,
+            "version": 2,
         },
     )
     resp.raise_for_status()

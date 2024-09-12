@@ -1,0 +1,295 @@
+Step 1/17 : from 812206152185.dkr.ecr.us-west-2.amazonaws.com/latch-base-nextflow:v2.0.0
+
+
+ ---> 98d9cd0f2a3a
+
+Step 2/17 : workdir /tmp/docker-build/work/
+
+
+ ---> Using cache
+
+ ---> 8f95defb9629
+
+Step 3/17 : shell [     "/usr/bin/env", "bash",     "-o", "errexit",     "-o", "pipefail",     "-o", "nounset",     "-o", "verbose",     "-o", "errtrace",     "-O", "inherit_errexit",     "-O", "shift_verbose",     "-c" ]
+
+
+ ---> Using cache
+
+ ---> b2b2f8c4e3df
+
+Step 4/17 : env TZ='Etc/UTC'
+
+
+ ---> Using cache
+
+ ---> ee07cb31686a
+
+Step 5/17 : env LANG='en_US.UTF-8'
+
+
+ ---> Using cache
+
+ ---> b133cffabb9a
+
+Step 6/17 : arg DEBIAN_FRONTEND=noninteractive
+
+
+ ---> Using cache
+
+ ---> 7f1ec8bb956e
+
+Step 7/17 : RUN apt-get update -y && apt-get install -y autoconf curl zip unzip wget gcc git make libbz2-dev zlib1g-dev libncurses5-dev libncursesw5-dev liblzma-dev libtool autoconf build-essential pkg-config automake tcsh
+
+
+ ---> Using cache
+
+ ---> 8dcd56679e9f
+
+Step 8/17 : RUN wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh &&     bash Mambaforge-Linux-x86_64.sh -b -p /mambaforge &&     rm Mambaforge-Linux-x86_64.sh
+
+
+ ---> Using cache
+
+ ---> 15c88753019d
+
+Step 9/17 : ENV PATH="/mambaforge/bin:$PATH"
+
+
+ ---> Using cache
+
+ ---> 7e407ea96b7e
+
+Step 10/17 : RUN mamba create -n atacseqqc -c conda-forge -c bioconda bioconductor-atacseqqc bioconductor-bsgenome.hsapiens.ucsc.hg19 bioconductor-txdb.hsapiens.ucsc.hg19.knowngene bioconductor-bsgenome.hsapiens.ucsc.hg38 bioconductor-txdb.hsapiens.ucsc.hg38.knowngene bioconductor-motifdb r-cairo
+
+
+ ---> Using cache
+
+ ---> 0bb34ec8a115
+
+Step 11/17 : RUN pip install numpy pandas pyarrow pyBigWig
+
+
+ ---> Using cache
+
+ ---> 902524f000e1
+
+Step 12/17 : run pip install latch --upgrade
+
+
+ ---> Running in d5f19daa1ffa
+
+[91mpip install latch --upgrade
+[0m
+Collecting latch
+
+  Downloading latch-2.22.4-py3-none-any.whl.metadata (1.2 kB)
+
+Collecting awscli==1.25.22 (from latch)
+
+  Downloading awscli-1.25.22-py3-none-any.whl.metadata (11 kB)
+
+Collecting asyncssh==2.12.0 (from latch)
+
+  Downloading asyncssh-2.12.0-py3-none-any.whl.metadata (9.5 kB)
+
+Collecting aioconsole==0.5.1 (from latch)
+
+  Downloading aioconsole-0.5.1-py3-none-any.whl.metadata (5.2 kB)
+
+Collecting kubernetes>=24.2.0 (from latch)
+
+  Downloading kubernetes-30.1.0-py2.py3-none-any.whl.metadata (1.5 kB)
+
+Collecting pyjwt>=0.2.0 (from latch)
+
+  Downloading PyJWT-2.9.0-py3-none-any.whl.metadata (3.0 kB)
+
+Requirement already satisfied: requests>=2.28.1 in /mambaforge/lib/python3.12/site-packages (from latch) (2.32.3)
+
+Collecting click>=8.0 (from latch)
+
+  Downloading click-8.1.7-py3-none-any.whl.metadata (3.0 kB)
+
+Collecting docker>=5.0 (from latch)
+
+  Downloading docker-7.1.0-py3-none-any.whl.metadata (3.8 kB)
+
+Collecting paramiko>=2.11.0 (from latch)
+
+  Downloading paramiko-3.4.1-py3-none-any.whl.metadata (4.4 kB)
+
+Collecting scp>=0.14.0 (from latch)
+
+  Downloading scp-0.15.0-py2.py3-none-any.whl.metadata (4.3 kB)
+
+Collecting boto3>=1.24.22 (from latch)
+
+  Downloading boto3-1.35.17-py3-none-any.whl.metadata (6.6 kB)
+
+Requirement already satisfied: tqdm>=4.63.0 in /mambaforge/lib/python3.12/site-packages (from latch) (4.66.5)
+
+Collecting lytekit==0.14.11 (from latch)
+
+  Downloading lytekit-0.14.11-py3-none-any.whl.metadata (5.8 kB)
+
+Collecting lytekitplugins-pods==0.4.0 (from latch)
+
+  Downloading lytekitplugins_pods-0.4.0-py3-none-any.whl.metadata (914 bytes)
+
+Collecting typing-extensions==4.5.0 (from latch)
+
+  Downloading typing_extensions-4.5.0-py3-none-any.whl.metadata (8.5 kB)
+
+Collecting apscheduler==3.9.1 (from latch)
+
+  Downloading APScheduler-3.9.1-py2.py3-none-any.whl.metadata (6.2 kB)
+
+Collecting uvloop==0.17.0 (from latch)
+
+  Downloading uvloop-0.17.0.tar.gz (2.3 MB)
+
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 30.1 MB/s eta 0:00:00
+
+
+  Preparing metadata (setup.py): started
+
+  Preparing metadata (setup.py): finished with status 'done'
+
+Collecting websockets==10.3 (from latch)
+
+  Downloading websockets-10.3.tar.gz (84 kB)
+
+  Preparing metadata (setup.py): started
+
+  Preparing metadata (setup.py): finished with status 'done'
+
+Collecting prompt-toolkit==3.0.33 (from latch)
+
+  Downloading prompt_toolkit-3.0.33-py3-none-any.whl.metadata (7.0 kB)
+
+Collecting watchfiles==0.18.1 (from latch)
+
+  Downloading watchfiles-0.18.1-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.9 kB)
+
+Collecting gql==3.4.0 (from latch)
+
+  Downloading gql-3.4.0-py2.py3-none-any.whl.metadata (9.2 kB)
+
+Collecting graphql-core==3.2.3 (from latch)
+
+  Downloading graphql_core-3.2.3-py3-none-any.whl.metadata (10 kB)
+
+Collecting requests-toolbelt==0.10.1 (from latch)
+
+  Downloading requests_toolbelt-0.10.1-py2.py3-none-any.whl.metadata (14 kB)
+
+Requirement already satisfied: setuptools>=0.7 in /mambaforge/lib/python3.12/site-packages (from apscheduler==3.9.1->latch) (73.0.1)
+
+Requirement already satisfied: six>=1.4.0 in /mambaforge/lib/python3.12/site-packages (from apscheduler==3.9.1->latch) (1.16.0)
+
+Requirement already satisfied: pytz in /mambaforge/lib/python3.12/site-packages (from apscheduler==3.9.1->latch) (2024.2)
+
+Collecting tzlocal!=3.*,>=2.0 (from apscheduler==3.9.1->latch)
+
+  Downloading tzlocal-5.2-py3-none-any.whl.metadata (7.8 kB)
+
+Collecting cryptography>=3.1 (from asyncssh==2.12.0->latch)
+
+  Downloading cryptography-43.0.1-cp39-abi3-manylinux_2_28_x86_64.whl.metadata (5.4 kB)
+
+Collecting botocore==1.27.22 (from awscli==1.25.22->latch)
+
+  Downloading botocore-1.27.22-py3-none-any.whl.metadata (5.9 kB)
+
+Collecting docutils<0.17,>=0.10 (from awscli==1.25.22->latch)
+
+  Using cached docutils-0.16-py2.py3-none-any.whl.metadata (2.7 kB)
+
+Collecting s3transfer<0.7.0,>=0.6.0 (from awscli==1.25.22->latch)
+
+  Downloading s3transfer-0.6.2-py3-none-any.whl.metadata (1.8 kB)
+
+Collecting PyYAML<5.5,>=3.10 (from awscli==1.25.22->latch)
+
+  Downloading PyYAML-5.4.1.tar.gz (175 kB)
+
+  Installing build dependencies: started
+
+  Installing build dependencies: finished with status 'done'
+
+  Getting requirements to build wheel: started
+
+  Getting requirements to build wheel: finished with status 'error'
+
+[91m  error: subprocess-exited-with-error
+  
+  × Getting requirements to build wheel did not run successfully.
+  │ exit code: 1
+  ╰─> [54 lines of output]
+      running egg_info
+      writing lib3/PyYAML.egg-info/PKG-INFO
+      writing dependency_links to lib3/PyYAML.egg-info/dependency_links.txt
+      writing top-level names to lib3/PyYAML.egg-info/top_level.txt
+      Traceback (most recent call last):
+        File "/mambaforge/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py", line 353, in <module>
+          main()
+        File "/mambaforge/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py", line 335, in main
+          json_out['return_val'] = hook(**hook_input['kwargs'])
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        File "/mambaforge/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py", line 118, in get_requires_for_build_wheel
+          return hook(config_settings)
+                 ^^^^^^^^^^^^^^^^^^^^^
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/build_meta.py", line 332, in get_requires_for_build_wheel
+          return self._get_build_requires(config_settings, requirements=[])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/build_meta.py", line 302, in _get_build_requires
+          self.run_setup()
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/build_meta.py", line 318, in run_setup
+          exec(code, locals())
+        File "<string>", line 271, in <module>
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/__init__.py", line 117, in setup
+          return distutils.core.setup(**attrs)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/_distutils/core.py", line 184, in setup
+          return run_commands(dist)
+                 ^^^^^^^^^^^^^^^^^^
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/_distutils/core.py", line 200, in run_commands
+          dist.run_commands()
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/_distutils/dist.py", line 954, in run_commands
+          self.run_command(cmd)
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/dist.py", line 950, in run_command
+          super().run_command(command)
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/_distutils/dist.py", line 973, in run_command
+          cmd_obj.run()
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/command/egg_info.py", line 311, in run
+          self.find_sources()
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/command/egg_info.py", line 319, in find_sources
+          mm.run()
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/command/egg_info.py", line 540, in run
+          self.add_defaults()
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/command/egg_info.py", line 578, in add_defaults
+          sdist.add_defaults(self)
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/command/sdist.py", line 108, in add_defaults
+          super().add_defaults()
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/_distutils/command/sdist.py", line 250, in add_defaults
+          self._add_defaults_ext()
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/_distutils/command/sdist.py", line 335, in _add_defaults_ext
+          self.filelist.extend(build_ext.get_source_files())
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        File "<string>", line 201, in get_source_files
+        File "/tmp/pip-build-env-aawt0xvo/overlay/lib/python3.12/site-packages/setuptools/_distutils/cmd.py", line 107, in __getattr__
+          raise AttributeError(attr)
+      AttributeError: cython_sources
+      [end of output]
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+[0m
+[91merror: subprocess-exited-with-error
+
+× Getting requirements to build wheel did not run successfully.
+│ exit code: 1
+╰─> See above for output.
+
+note: This error originates from a subprocess, and is likely not a problem with pip.
+[0m
+The command '/usr/bin/env bash -o errexit -o pipefail -o nounset -o verbose -o errtrace -O inherit_errexit -O shift_verbose -c pip install latch --upgrade' returned a non-zero code: 1

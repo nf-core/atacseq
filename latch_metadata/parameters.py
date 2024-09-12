@@ -23,6 +23,7 @@ class Aligner(Enum):
 class Reference(Enum):
     hg19 = "GRCh37 (Homo Sapiens hg19)"
     hg38 = "GRCh38 (Homo Sapiens hg38)"
+    mm10 = "GRCm39 (Mus Musculus)"
 
 
 class ReadLength(Enum):

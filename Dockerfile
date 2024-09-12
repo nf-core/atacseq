@@ -1,5 +1,5 @@
 # DO NOT CHANGE
-from 812206152185.dkr.ecr.us-west-2.amazonaws.com/latch-base-nextflow:v1.1.5
+from 812206152185.dkr.ecr.us-west-2.amazonaws.com/latch-base-nextflow:v2.0.0
 
 workdir /tmp/docker-build/work/
 
@@ -19,11 +19,20 @@ env LANG='en_US.UTF-8'
 
 arg DEBIAN_FRONTEND=noninteractive
 
+# Latch SDK
+# DO NOT REMOVE
+run pip install latch==2.52.1
+run mkdir /opt/latch
+
+
+# Copy workflow data (use .dockerignore to skip files)
+#Install Mamba
 RUN apt-get update -y && \
 apt-get install -y autoconf curl zip unzip wget gcc git make libbz2-dev zlib1g-dev \
 libncurses5-dev libncursesw5-dev liblzma-dev libtool autoconf build-essential pkg-config automake tcsh
 
-#Install Mamba
+RUN pip install numpy pandas pyarrow pyBigWig
+
 RUN wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh && \
     bash Mambaforge-Linux-x86_64.sh -b -p /mambaforge && \
     rm Mambaforge-Linux-x86_64.sh
@@ -37,15 +46,6 @@ bioconductor-bsgenome.hsapiens.ucsc.hg38 \
 bioconductor-txdb.hsapiens.ucsc.hg38.knowngene \
 bioconductor-motifdb r-cairo
 
-RUN pip install numpy pandas pyarrow pyBigWig
-
-# Latch SDK
-# DO NOT REMOVE
-run pip install latch
-run mkdir /opt/latch
-
-
-# Copy workflow data (use .dockerignore to skip files)
 
 copy . /root/
 
