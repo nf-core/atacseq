@@ -112,6 +112,13 @@ generated_parameters = {
         display_name="Genome",
         description="Name of the Latch Verfied Reference Genome",
     ),
+    "genome": NextflowParameter(
+        type=typing.Optional[str],
+        default=None,
+        section_title=None,
+        display_name="genome",
+        description="Name of the iGenome",
+    ),
     "fasta": NextflowParameter(
         type=typing.Optional[LatchFile],
         default=None,

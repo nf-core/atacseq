@@ -21,6 +21,7 @@ def nf_nf_core_atacseq(
     email: Optional[str],
     multiqc_title: Optional[str],
     genome_source: str,
+    genome: Optional[str],
     latch_genome: Optional[Reference],
     fasta: Optional[LatchFile],
     gtf: Optional[LatchFile],
@@ -202,6 +203,7 @@ def nf_nf_core_atacseq(
         email=email,
         multiqc_title=multiqc_title,
         genome_source=genome_source,
+        genome=genome,
         latch_genome=latch_genome,
         fasta=fasta,
         gtf=gtf,
@@ -409,6 +411,6 @@ LaunchPlan(
         "aligner": Aligner.bowtie2,
         "fasta": LatchFile("s3://latch-public/test-data/35929/hg19/hg19.fa"),
         "gtf": LatchFile("s3://latch-public/test-data/35929/hg19/hg19.refGene.gtf"),
-        "outdir": LatchOutputDir("latch://35929.account/"),
+        "outdir": LatchOutputDir("latch:///ATAC_Seq_Test"),
     },
 )

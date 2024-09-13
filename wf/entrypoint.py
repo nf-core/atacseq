@@ -104,6 +104,7 @@ def nextflow_runtime(
     email: Optional[str],
     multiqc_title: Optional[str],
     genome_source: str,
+    genome: Optional[str],
     latch_genome: Optional[Reference],
     fasta: Optional[LatchFile],
     gtf: Optional[LatchFile],
@@ -185,26 +186,26 @@ def nextflow_runtime(
 
     if genome_source == "latch_genome_source":
         fasta = os.path.join(
-            "s3://latch-public/test-data/35929/",
+            "s3://latch-public/nf-core/atacseq/",
             latch_genome.name,
             latch_genome.name + ".fa",
         )
         gtf = os.path.join(
-            "s3://latch-public/test-data/35929/",
+            "s3://latch-public/nf-core/atacseq/",
             latch_genome.name,
             latch_genome.name + ".refGene.gtf",
         )
         if aligner.name == "bowtie2":
             bowtie2_index = os.path.join(
-                "s3://latch-public/test-data/35929/", latch_genome.name, "bowtie2"
+                "s3://latch-public/nf-core/atacseq/", latch_genome.name, "bowtie2"
             )
         elif aligner.name == "bwa":
             bwa_index = os.path.join(
-                "s3://latch-public/test-data/35929/", latch_genome.name, "bwa"
+                "s3://latch-public/nf-core/atacseq/", latch_genome.name, "bwa"
             )
         elif aligner.name == "star":
             star_index = os.path.join(
-                "s3://latch-public/test-data/35929/", latch_genome.name, "bwa"
+                "s3://latch-public/nf-core/atacseq/", latch_genome.name, "star"
             )
 
     cmd = [
@@ -228,7 +229,7 @@ def nextflow_runtime(
         ),
         *get_flag_defaults("email", email, None),
         *get_flag_defaults("multiqc_title", multiqc_title, None),
-        # *get_flag_defaults("genome", genome, None),
+        *get_flag_defaults("genome", genome, None),
         *get_flag_defaults("fasta", fasta, None),
         *get_flag_defaults("gtf", gtf, None),
         *get_flag_defaults("gff", gff, None),

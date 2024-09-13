@@ -29,6 +29,10 @@ flow = [
                 Spoiler(
                     "Reference Options",
                     Params("gff", "gene_bed", "tss_bed", "save_reference"),
+                    Text(
+                        "The transcriptome and GTF files in iGenomes are vastly out of date with respect to current annotations from Ensembl e.g. human iGenomes annotations are from Ensembl release 75, while the current Ensembl release is 108. Please consider downloading and using a more updated version of your reference genome."
+                    ),
+                    Params("genome"),
                 ),
             ),
         ),
@@ -62,6 +66,7 @@ flow = [
     ),
     Section(
         "MACS2 Options",
+        Text("Either the genome size or the read length has to be provided."),
         Params("macs_gsize", "read_length"),
         Spoiler(
             "MACS2 Optional Parameters",
