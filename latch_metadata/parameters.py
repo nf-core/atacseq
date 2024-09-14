@@ -4,7 +4,7 @@ from enum import Enum
 
 from latch.types.directory import LatchDir, LatchOutputDir
 from latch.types.file import LatchFile
-from latch.types.metadata import Multiselect, NextflowParameter
+from latch.types.metadata import LatchRule, Multiselect, NextflowParameter
 
 
 class Aligner(Enum):
@@ -48,7 +48,14 @@ generated_parameters = {
     "run_name": NextflowParameter(
         type=str,
         display_name="Run Name",
-        description="Run Name",
+        description="Name of run",
+        batch_table_column=True,
+        rules=[
+            LatchRule(
+                regex=r"^[a-zA-Z0-9_-]+$",
+                message="Run name must contain only letters, digits, underscores, and dashes. No spaces are allowed.",
+            )
+        ],
     ),
     "fragment_size": NextflowParameter(
         type=int,
