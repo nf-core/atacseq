@@ -138,6 +138,7 @@ NextflowMetadata(
     author=LatchAuthor(
         name="nf-core",
     ),
+    repository="https://github.com/latchbio-nfcore/atacseq",
     parameters=generated_parameters,
     runtime_resources=NextflowRuntimeResources(
         cpus=4,
