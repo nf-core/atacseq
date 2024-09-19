@@ -8,16 +8,12 @@
                     "ataqv/ataqv": {
                         "branch": "master",
                         "git_sha": "11c7e5b3073845889060c793786bf3177275d62e",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "ataqv/mkarv": {
                         "branch": "master",
                         "git_sha": "11c7e5b3073845889060c793786bf3177275d62e",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "bowtie2/align": {
                         "branch": "master",
@@ -27,16 +23,12 @@
                     "bowtie2/build": {
                         "branch": "master",
                         "git_sha": "6a24fbe314bb2e6fe6306c29a63076ea87e8eb3c",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "bwa/index": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "bwa/mem": {
                         "branch": "master",
@@ -46,51 +38,37 @@
                     "chromap/chromap": {
                         "branch": "master",
                         "git_sha": "603ecbd9f45300c9788f197d2a15a005685b4220",
-                        "installed_by": [
-                            "fastq_align_chromap"
-                        ]
+                        "installed_by": ["fastq_align_chromap"]
                     },
                     "chromap/index": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "custom/getchromsizes": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "deeptools/computematrix": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "deeptools/plotfingerprint": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "deeptools/plotheatmap": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "deeptools/plotprofile": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "fastqc": {
                         "branch": "master",
@@ -100,44 +78,32 @@
                     "gffread": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "gunzip": {
                         "branch": "master",
                         "git_sha": "e06548bfa36ee31869b81041879dd6b3a83b1d57",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "homer/annotatepeaks": {
                         "branch": "master",
                         "git_sha": "ffc27c68870f5f67e541bb67d94e03c597f75257",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "khmer/uniquekmers": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "macs3/callpeak": {
                         "branch": "master",
                         "git_sha": "06c8865e36741e05ad32ef70ab3fac127486af48",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "picard/collectmultiplemetrics": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "picard/markduplicates": {
                         "branch": "master",
@@ -147,16 +113,12 @@
                     "picard/mergesamfiles": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "preseq/lcextrap": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "samtools/flagstat": {
                         "branch": "master",
@@ -186,37 +148,27 @@
                     "subread/featurecounts": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "trimgalore": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "fastq_fastqc_umitools_trimgalore"
-                        ]
+                        "installed_by": ["fastq_fastqc_umitools_trimgalore"]
                     },
                     "ucsc/bedgraphtobigwig": {
                         "branch": "master",
                         "git_sha": "66290981ab6038ea86177ade40b9449bc790b0ce",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     },
                     "umitools/extract": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
-                        "installed_by": [
-                            "fastq_fastqc_umitools_trimgalore"
-                        ]
+                        "installed_by": ["fastq_fastqc_umitools_trimgalore"]
                     },
                     "untar": {
                         "branch": "master",
                         "git_sha": "5c460c5a4736974abde2843294f35307ee2b0e5e",
-                        "installed_by": [
-                            "modules"
-                        ]
+                        "installed_by": ["modules"]
                     }
                 }
             },
@@ -250,23 +202,17 @@
                     "fastq_align_chromap": {
                         "branch": "master",
                         "git_sha": "cfd937a668919d948f6fcbf4218e79de50c2f36f",
-                        "installed_by": [
-                            "subworkflows"
-                        ]
+                        "installed_by": ["subworkflows"]
                     },
                     "fastq_fastqc_umitools_trimgalore": {
                         "branch": "master",
                         "git_sha": "cfd937a668919d948f6fcbf4218e79de50c2f36f",
-                        "installed_by": [
-                            "subworkflows"
-                        ]
+                        "installed_by": ["subworkflows"]
                     },
                     "utils_nextflow_pipeline": {
                         "branch": "master",
                         "git_sha": "5caf7640a9ef1d18d765d55339be751bb0969dfa",
-                        "installed_by": [
-                            "subworkflows"
-                        ]
+                        "installed_by": ["subworkflows"]
                     },
                     "utils_nfcore_pipeline": {
                         "branch": "master",
@@ -276,9 +222,7 @@
                     "utils_nfvalidation_plugin": {
                         "branch": "master",
                         "git_sha": "5caf7640a9ef1d18d765d55339be751bb0969dfa",
-                        "installed_by": [
-                            "subworkflows"
-                        ]
+                        "installed_by": ["subworkflows"]
                     }
                 }
             }
