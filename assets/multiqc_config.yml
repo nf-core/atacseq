@@ -71,7 +71,7 @@ module_order:
       anchor: "mlib_featurecounts"
       info: "This section of the report shows featureCounts results for the number of reads assigned to merged library consensus peaks."
       path_filters:
-        - "./macs2/merged_library/featurecounts/*.summary"
+        - "./macs3/merged_library/featurecounts/*.summary"
   - samtools:
       name: "MERGED REP: SAMTools"
       info: "This section of the report shows SAMTools results after merging replicates and filtering."
@@ -88,7 +88,7 @@ module_order:
       anchor: "mrep_featurecounts"
       info: "This section of the report shows featureCounts results for the number of reads assigned to merged replicate consensus peaks."
       path_filters:
-        - "./macs2/merged_replicate/featurecounts/*.summary"
+        - "./macs3/merged_replicate/featurecounts/*.summary"
 
 report_section_order:
   mlib_peak_count:

@@ -35,20 +35,20 @@ process MULTIQC {
     path ('deeptools/*')
     path ('deeptools/*')
 
-    path ('macs2/merged_library/peaks/*')
-    path ('macs2/merged_library/peaks/*')
-    path ('macs2/merged_library/annotation/*')
-    path ('macs2/merged_library/featurecounts/*')
+    path ('macs3/merged_library/peaks/*')
+    path ('macs3/merged_library/peaks/*')
+    path ('macs3/merged_library/annotation/*')
+    path ('macs3/merged_library/featurecounts/*')
 
     path ('alignment/merged_replicate/*')
     path ('alignment/merged_replicate/*')
     path ('alignment/merged_replicate/*')
     path ('alignment/merged_replicate/picard_metrics/*')
 
-    path ('macs2/merged_replicate/peaks/*')
-    path ('macs2/merged_replicate/peaks/*')
-    path ('macs2/merged_replicate/annotation/*')
-    path ('macs2/merged_replicate/featurecounts/*')
+    path ('macs3/merged_replicate/peaks/*')
+    path ('macs3/merged_replicate/peaks/*')
+    path ('macs3/merged_replicate/annotation/*')
+    path ('macs3/merged_replicate/featurecounts/*')
 
     path ('deseq2_library/*')
     path ('deseq2_library/*')
