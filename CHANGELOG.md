@@ -8,16 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Enhancements & fixes
 
 - [[#327](https://github.com/nf-core/atacseq/issues/327)] - Consistently support `.csi` indices as alternative to `.bai` to allow SAMTOOLS_INDEX to be used with the `-c` flag.
-- Updated pipeline template to [nf-core/tools 2.10](https://github.com/nf-core/tools/releases/tag/2.10)
 - [[#356](https://github.com/nf-core/atacseq/issues/356)] - Get rid of the `lib` folder and rearrange the pipeline accordingly.
 - [[#379](https://github.com/nf-core/atacseq/pull/356)] - Use macs3 instead of macs2.
+- Updated pipeline template to [nf-core/tools 2.14.1](https://github.com/nf-core/tools/releases/tag/2.14.1)
+- [[#359](https://github.com/nf-core/atacseq/issues/359)] - Fix `--save_unaligned` description in schema.
+- [[#344](https://github.com/nf-core/atacseq/issues/344)] - Fix memory issues when sorting merged replicates after `bedtools genomecov`.
+- [[#338](https://github.com/nf-core/atacseq/issues/338)] - Check that samplesheet samples IDs do only have alphanumeric characters, dots, dashes or underscores.
+- [[#370](https://github.com/nf-core/atacseq/issues/370)] - Adding line numbers to errors messages in `bin/check_samplesheet.py`
 
-## [[2.1.2](https://github.com/nf-core/atacseq/releases/tag/2.1.2)] - 2022-08-07
+### Parameters
 
-### Enhancements & fixes
+| Old parameter | New parameter                    |
+| ------------- | -------------------------------- |
+|               | `--skip_merged_replicate_bigwig` |
 
-- [[#322](https://github.com/nf-core/atacseq/issues/322)]Remove fasta from required schema parameters so that when launching from tools it is not required.
-- Updates `homer_annotatepeaks` module.
+> **NB:** Parameter has been **updated** if both old and new parameter information is present.
+> **NB:** Parameter has been **added** if just the new parameter information is present.
+> **NB:** Parameter has been **removed** if parameter information isn't present.
 
 ### Software dependencies
 
@@ -27,6 +34,13 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | ---------- | ----------- | ----------- |
 | `macs2`    | 2.2.7.1     |             |
 | `macs3`    |             | 3.0.1       |
+
+## [[2.1.2](https://github.com/nf-core/atacseq/releases/tag/2.1.2)] - 2022-08-07
+
+### Enhancements & fixes
+
+- [[#322](https://github.com/nf-core/atacseq/issues/322)]Remove fasta from required schema parameters so that when launching from tools it is not required.
+- Updates `homer_annotatepeaks` module.
 
 ## [[2.1.1](https://github.com/nf-core/atacseq/releases/tag/2.1.1)] - 2022-07-21
 
