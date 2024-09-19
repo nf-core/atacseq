@@ -1,4 +1,4 @@
-process MACS2_CONSENSUS {
+process MACS3_CONSENSUS {
     tag "$meta.id"
     label 'process_long'
 
@@ -33,7 +33,7 @@ process MACS2_CONSENSUS {
     sort -T '.' -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
 
-    macs2_merged_expand.py \\
+    macs3_merged_expand.py \\
         ${prefix}.txt \\
         ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${peak_type}","")} \\
         ${prefix}.boolean.txt \\

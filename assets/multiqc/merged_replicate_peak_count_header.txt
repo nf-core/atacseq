@@ -1,7 +1,7 @@
 #id: 'mrep_peak_count'
-#section_name: 'MERGED REP: MACS2 Peak count'
+#section_name: 'MERGED REP: MACS3 Peak count'
 #description: "is calculated from total number of peaks called by
-#	       <a href='https://github.com/taoliu/MACS' target='_blank'>MACS2</a>"
+#	       <a href='https://github.com/taoliu/MACS' target='_blank'>MACS3</a>"
 #plot_type: 'bargraph'
 #anchor: 'mrep_peak_count'
 #pconfig:

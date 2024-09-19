@@ -24,8 +24,8 @@ include { BAM_FILTER_BAMTOOLS as MERGED_LIBRARY_FILTER_BAM                    } 
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_LIBRARY_BAM_TO_BIGWIG   } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
 include { BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC as MERGED_REPLICATE_BAM_TO_BIGWIG } from '../subworkflows/local/bam_bedgraph_bigwig_bedtools_ucsc'
 
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_LIBRARY_CALL_ANNOTATE_PEAKS   } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
-include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER as MERGED_REPLICATE_CALL_ANNOTATE_PEAKS } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs2_homer.nf'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER as MERGED_LIBRARY_CALL_ANNOTATE_PEAKS   } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs3_homer.nf'
+include { BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER as MERGED_REPLICATE_CALL_ANNOTATE_PEAKS } from '../subworkflows/local/bam_peaks_call_qc_annotate_macs3_homer.nf'
 include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 as MERGED_LIBRARY_CONSENSUS_PEAKS   } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
 include { BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 as MERGED_REPLICATE_CONSENSUS_PEAKS } from '../subworkflows/local/bed_consensus_quantify_qc_bedtools_featurecounts_deseq2.nf'
 
@@ -416,7 +416,7 @@ workflow ATACSEQ {
     }
 
     //
-    // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
+    // SUBWORKFLOW: Call peaks with MACS3, annotate with HOMER and perform downstream QC
     //
     MERGED_LIBRARY_CALL_ANNOTATE_PEAKS (
         ch_bam_library,
@@ -436,7 +436,7 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Consensus peaks analysis
     //
-    ch_macs2_consensus_library_bed       = Channel.empty()
+    ch_macs3_consensus_library_bed       = Channel.empty()
     ch_featurecounts_library_multiqc     = Channel.empty()
     ch_deseq2_pca_library_multiqc        = Channel.empty()
     ch_deseq2_clustering_library_multiqc = Channel.empty()
@@ -452,7 +452,7 @@ workflow ATACSEQ {
             params.skip_peak_annotation,
             params.skip_deseq2_qc
         )
-        ch_macs2_consensus_library_bed       = MERGED_LIBRARY_CONSENSUS_PEAKS.out.consensus_bed
+        ch_macs3_consensus_library_bed       = MERGED_LIBRARY_CONSENSUS_PEAKS.out.consensus_bed
         ch_featurecounts_library_multiqc     = MERGED_LIBRARY_CONSENSUS_PEAKS.out.featurecounts_summary
         ch_deseq2_pca_library_multiqc        = MERGED_LIBRARY_CONSENSUS_PEAKS.out.deseq2_qc_pca_multiqc
         ch_deseq2_clustering_library_multiqc = MERGED_LIBRARY_CONSENSUS_PEAKS.out.deseq2_qc_dists_multiqc
@@ -504,11 +504,11 @@ workflow ATACSEQ {
     ch_markduplicates_replicate_idxstats                = Channel.empty()
     ch_markduplicates_replicate_metrics                 = Channel.empty()
     ch_ucsc_bedgraphtobigwig_replicate_bigwig           = Channel.empty()
-    ch_macs2_replicate_peaks                            = Channel.empty()
-    ch_macs2_frip_replicate_multiqc                     = Channel.empty()
-    ch_macs2_peak_count_replicate_multiqc               = Channel.empty()
-    ch_macs2_plot_homer_annotatepeaks_replicate_multiqc = Channel.empty()
-    ch_macs2_consensus_replicate_bed                    = Channel.empty()
+    ch_macs3_replicate_peaks                            = Channel.empty()
+    ch_macs3_frip_replicate_multiqc                     = Channel.empty()
+    ch_macs3_peak_count_replicate_multiqc               = Channel.empty()
+    ch_macs3_plot_homer_annotatepeaks_replicate_multiqc = Channel.empty()
+    ch_macs3_consensus_replicate_bed                    = Channel.empty()
     ch_featurecounts_replicate_multiqc                  = Channel.empty()
     ch_deseq2_pca_replicate_multiqc                     = Channel.empty()
     ch_deseq2_clustering_replicate_multiqc              = Channel.empty()
@@ -606,7 +606,7 @@ workflow ATACSEQ {
                 .set { ch_bam_replicate }
         }
         //
-        // SUBWORKFLOW: Call peaks with MACS2, annotate with HOMER and perform downstream QC
+        // SUBWORKFLOW: Call peaks with MACS3, annotate with HOMER and perform downstream QC
         //
         MERGED_REPLICATE_CALL_ANNOTATE_PEAKS (
             ch_bam_replicate,
@@ -621,10 +621,10 @@ workflow ATACSEQ {
             params.skip_peak_annotation,
             params.skip_peak_qc
         )
-        ch_macs2_replicate_peaks                            = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.peaks
-        ch_macs2_frip_replicate_multiqc                     = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.frip_multiqc
-        ch_macs2_peak_count_replicate_multiqc               = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.peak_count_multiqc
-        ch_macs2_plot_homer_annotatepeaks_replicate_multiqc = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.plot_homer_annotatepeaks_tsv
+        ch_macs3_replicate_peaks                            = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.peaks
+        ch_macs3_frip_replicate_multiqc                     = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.frip_multiqc
+        ch_macs3_peak_count_replicate_multiqc               = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.peak_count_multiqc
+        ch_macs3_plot_homer_annotatepeaks_replicate_multiqc = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.plot_homer_annotatepeaks_tsv
         ch_versions = ch_versions.mix(MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.versions)
 
         //
@@ -642,7 +642,7 @@ workflow ATACSEQ {
                 params.skip_peak_annotation,
                 params.skip_deseq2_qc
             )
-            ch_macs2_consensus_replicate_bed       = MERGED_REPLICATE_CONSENSUS_PEAKS.out.consensus_bed
+            ch_macs3_consensus_replicate_bed       = MERGED_REPLICATE_CONSENSUS_PEAKS.out.consensus_bed
             ch_featurecounts_replicate_multiqc     = MERGED_REPLICATE_CONSENSUS_PEAKS.out.featurecounts_summary
             ch_deseq2_pca_replicate_multiqc        = MERGED_REPLICATE_CONSENSUS_PEAKS.out.deseq2_qc_pca_multiqc
             ch_deseq2_clustering_replicate_multiqc = MERGED_REPLICATE_CONSENSUS_PEAKS.out.deseq2_qc_dists_multiqc
@@ -659,23 +659,23 @@ workflow ATACSEQ {
             ch_fai,
             MERGED_LIBRARY_BAM_TO_BIGWIG.out.bigwig.collect{it[1]}.ifEmpty([]),
             MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks.collect{it[1]}.ifEmpty([]),
-            ch_macs2_consensus_library_bed.collect{it[1]}.ifEmpty([]),
+            ch_macs3_consensus_library_bed.collect{it[1]}.ifEmpty([]),
             ch_ucsc_bedgraphtobigwig_replicate_bigwig.collect{it[1]}.ifEmpty([]),
-            ch_macs2_replicate_peaks.collect{it[1]}.ifEmpty([]),
-            ch_macs2_consensus_replicate_bed.collect{it[1]}.ifEmpty([]),
+            ch_macs3_replicate_peaks.collect{it[1]}.ifEmpty([]),
+            ch_macs3_consensus_replicate_bed.collect{it[1]}.ifEmpty([]),
             "${params.aligner}/merged_library/bigwig",
-            { ["${params.aligner}/merged_library/macs2",
+            { ["${params.aligner}/merged_library/macs3",
                 params.narrow_peak? '/narrow_peak' : '/broad_peak'
                 ].join('') },
-            { ["${params.aligner}/merged_library/macs2",
+            { ["${params.aligner}/merged_library/macs3",
                 params.narrow_peak? '/narrow_peak' : '/broad_peak',
                 "/consensus"
                 ].join('') },
             "${params.aligner}/merged_replicate/bigwig",
-            { ["${params.aligner}/merged_replicate/macs2",
+            { ["${params.aligner}/merged_replicate/macs3",
                 params.narrow_peak? '/narrow_peak' : '/broad_peak'
                 ].join('') },
-            { ["${params.aligner}/merged_replicate/macs2",
+            { ["${params.aligner}/merged_replicate/macs3",
                 params.narrow_peak? '/narrow_peak' : '/broad_peak',
                 "/consensus"
                 ].join('') },
@@ -748,9 +748,9 @@ workflow ATACSEQ {
             ch_markduplicates_replicate_idxstats.collect{it[1]}.ifEmpty([]),
             ch_markduplicates_replicate_metrics.collect{it[1]}.ifEmpty([]),
 
-            ch_macs2_frip_replicate_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_macs2_peak_count_replicate_multiqc.collect{it[1]}.ifEmpty([]),
-            ch_macs2_plot_homer_annotatepeaks_replicate_multiqc.collect().ifEmpty([]),
+            ch_macs3_frip_replicate_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_macs3_peak_count_replicate_multiqc.collect{it[1]}.ifEmpty([]),
+            ch_macs3_plot_homer_annotatepeaks_replicate_multiqc.collect().ifEmpty([]),
             ch_featurecounts_replicate_multiqc.collect{it[1]}.ifEmpty([]),
 
             ch_deseq2_pca_library_multiqc.collect().ifEmpty([]),

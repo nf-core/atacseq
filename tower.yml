@@ -3,13 +3,13 @@ reports:
     display: "MultiQC HTML report"
   samplesheet.csv:
     display: "Auto-created samplesheet with collated metadata and FASTQ paths"
-  macs2_peak.mLb.clN.plots.pdf:
-    display: "Merged library all samples MACS2 peak QC PDF plots"
-  macs2_peak.mRp.clN.plots.pdf:
-    display: "Merged replicate all samples MACS2 peak QC PDF plots"
-  macs2_annotatePeaks.mLb.clN.plots.pdf:
+  macs3_peak.mLb.clN.plots.pdf:
+    display: "Merged library all samples MACS3 peak QC PDF plots"
+  macs3_peak.mRp.clN.plots.pdf:
+    display: "Merged replicate all samples MACS3 peak QC PDF plots"
+  macs3_annotatePeaks.mLb.clN.plots.pdf:
     display: "Merged library all samples HOMER annotatePeaks.pl QC PDF plots"
-  macs2_annotatePeaks.mRp.clN.plots.pdf:
+  macs3_annotatePeaks.mRp.clN.plots.pdf:
     display: "Merged replicate all samples HOMER annotatePeaks.pl QC PDF plots"
   consensus_peaks.mLb.clN.plots.pdf:
     display: "Merged library consensus peaks DESeq2 QC PDF plots"
@@ -26,10 +26,10 @@ reports:
   "*.plotHeatmap.pdf":
     display: "Merged library per-sample deepTools plotHeatmap PDF plots"
   "*mLb.clN_peaks.broadPeak":
-    display: "Merged library per-sample MACS2 broadPeak file"
+    display: "Merged library per-sample MACS3 broadPeak file"
   "*mRp.clN_peaks.broadPeak":
-    display: "Merged replicate per-sample MACS2 broadPeak file"
+    display: "Merged replicate per-sample MACS3 broadPeak file"
   "*mLb.clN_peaks.narrowPeak":
-    display: "Merged library per-sample MACS2 narrowPeak file"
+    display: "Merged library per-sample MACS3 narrowPeak file"
   "*mRp.clN_peaks.narrowPeak":
-    display: "Merged replicate per-sample MACS2 narrowPeak file"
+    display: "Merged replicate per-sample MACS3 narrowPeak file"

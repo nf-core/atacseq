@@ -145,7 +145,7 @@ def validateInputParameters() {
     }
 
     if (!params.read_length && !params.macs_gsize) {
-        error ("Both '--read_length' and '--macs_gsize' not specified! Please specify either to infer MACS2 genome size for peak calling.")
+        error ("Both '--read_length' and '--macs_gsize' not specified! Please specify either to infer MACS3 genome size for peak calling.")
     }
 }
 
