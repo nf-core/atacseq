@@ -2,7 +2,7 @@
 // Call peaks with MACS2, annotate with HOMER and perform downstream QC
 //
 
-include { MACS2_CALLPEAK           } from '../../modules/nf-core/macs2/callpeak/main'
+include { MACS3_CALLPEAK           } from '../../modules/nf-core/macs2/callpeak/main'
 include { HOMER_ANNOTATEPEAKS      } from '../../modules/nf-core/homer/annotatepeaks/main'
 
 include { FRIP_SCORE               } from '../../modules/local/frip_score'
@@ -31,16 +31,16 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
     //
     // Call peaks with MACS2
     //
-    MACS2_CALLPEAK (
+    MACS3_CALLPEAK (
         ch_bam,
         macs_gsize
     )
-    ch_versions = ch_versions.mix(MACS2_CALLPEAK.out.versions.first())
+    ch_versions = ch_versions.mix(MACS3_CALLPEAK.out.versions.first())
 
     //
     // Filter out samples with 0 MACS2 peaks called
     //
-    MACS2_CALLPEAK
+    MACS3_CALLPEAK
         .out
         .peak
         .filter {
@@ -132,10 +132,10 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS2_HOMER {
 
     emit:
     peaks                        = ch_macs2_peaks                   // channel: [ val(meta), [ peaks ] ]
-    xls                          = MACS2_CALLPEAK.out.xls           // channel: [ val(meta), [ xls ] ]
-    gapped_peaks                 = MACS2_CALLPEAK.out.gapped        // channel: [ val(meta), [ gapped_peak ] ]
-    bed                          = MACS2_CALLPEAK.out.bed           // channel: [ val(meta), [ bed ] ]
-    bedgraph                     = MACS2_CALLPEAK.out.bdg           // channel: [ val(meta), [ bedgraph ] ]
+    xls                          = MACS3_CALLPEAK.out.xls           // channel: [ val(meta), [ xls ] ]
+    gapped_peaks                 = MACS3_CALLPEAK.out.gapped        // channel: [ val(meta), [ gapped_peak ] ]
+    bed                          = MACS3_CALLPEAK.out.bed           // channel: [ val(meta), [ bed ] ]
+    bedgraph                     = MACS3_CALLPEAK.out.bdg           // channel: [ val(meta), [ bedgraph ] ]
 
     frip_txt                     = FRIP_SCORE.out.txt               // channel: [ val(meta), [ txt ] ]
 
