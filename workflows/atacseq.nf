@@ -627,10 +627,10 @@ workflow ATACSEQ {
             )
             ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_SHIFT_READS.out.versions)
 
-            ch_merged_replicate_markduplicate_bam = MERGED_REPLICATE_BAM_SHIFT_READS.out.bam
-            ch_merged_replicate_markduplicate_bai = MERGED_REPLICATE_BAM_SHIFT_READS.out.bai
+            ch_merged_replicate_markduplicate_bam      = MERGED_REPLICATE_BAM_SHIFT_READS.out.bam
+            ch_merged_replicate_markduplicate_bai      = MERGED_REPLICATE_BAM_SHIFT_READS.out.bai
             ch_merged_replicate_markduplicate_flagstat = MERGED_REPLICATE_BAM_SHIFT_READS.out.flagstat
-            ch_merged_replicate_markduplicate_csi = MERGED_REPLICATE_BAM_SHIFT_READS.out.csi
+            ch_merged_replicate_markduplicate_csi      = MERGED_REPLICATE_BAM_SHIFT_READS.out.csi
         }
         if (!params.skip_merged_replicate_bigwig) {
             //
