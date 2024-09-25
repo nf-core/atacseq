@@ -368,10 +368,10 @@ workflow ATACSEQ {
         )
         ch_versions = ch_versions.mix(MERGED_LIBRARY_BAM_SHIFT_READS.out.versions)
 
-        ch_merged_library_filter_bam = MERGED_LIBRARY_BAM_SHIFT_READS.out.bam
-        ch_merged_library_filter_bai = MERGED_LIBRARY_BAM_SHIFT_READS.out.bai
+        ch_merged_library_filter_bam      = MERGED_LIBRARY_BAM_SHIFT_READS.out.bam
+        ch_merged_library_filter_bai      = MERGED_LIBRARY_BAM_SHIFT_READS.out.bai
         ch_merged_library_filter_flagstat = MERGED_LIBRARY_BAM_SHIFT_READS.out.flagstat
-        ch_merged_library_filter_csi = MERGED_LIBRARY_BAM_SHIFT_READS.out.csi
+        ch_merged_library_filter_csi      = MERGED_LIBRARY_BAM_SHIFT_READS.out.csi
 
     }
 
