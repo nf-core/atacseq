@@ -1,6 +1,6 @@
 include { SAMTOOLS_SORT            } from '../../modules/nf-core/samtools/sort/main'
 include { SAMTOOLS_INDEX           } from '../../modules/nf-core/samtools/index/main'
-include { SAMTOOLS_FLAGSTAT           } from '../../modules/nf-core/samtools/flagstat/main'
+include { SAMTOOLS_FLAGSTAT        } from '../../modules/nf-core/samtools/flagstat/main'
 include { DEEPTOOLS_ALIGNMENTSIEVE } from '../../modules/local/deeptools_alignmentsieve'
 
 workflow BAM_SHIFT_READS {
