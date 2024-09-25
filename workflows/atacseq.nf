@@ -612,10 +612,10 @@ workflow ATACSEQ {
         // SUBWORKFLOW: Shift paired-end reads
         // Shift again, as ch_merged_library_replicate_bam is generated out of unshifted reads
         //
-        ch_merged_replicate_markduplicate_bam = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bam
-        ch_merged_replicate_markduplicate_bai = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bai
+        ch_merged_replicate_markduplicate_bam      = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bam
+        ch_merged_replicate_markduplicate_bai      = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bai
         ch_merged_replicate_markduplicate_flagstat = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat
-        ch_merged_replicate_markduplicate_csi = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.csi
+        ch_merged_replicate_markduplicate_csi      = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.csi
 
         if (params.shift_reads && params.aligner != 'chromap' ) {
             MERGED_REPLICATE_BAM_SHIFT_READS (
