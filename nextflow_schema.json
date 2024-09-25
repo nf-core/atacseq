@@ -332,7 +332,7 @@
                     "fa_icon": "fas fa-chart-area",
                     "default": false,
                     "help_text": "Shift aligned reads as commonly done for ATACseq footprinting analysis, +4 bp for reads on the + strand, -5 bp for reads on the - strand. This can only be applied if all samples are paired-end.",
-                    "description": "Shift aligned reads (+4bp and -5bp)."
+                    "description": "Shift aligned reads (+4 bp and -5 bp)."
                 }
             }
         },
