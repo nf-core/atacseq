@@ -353,10 +353,10 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Shift paired-end reads
     //
-    ch_merged_library_filter_bam = MERGED_LIBRARY_FILTER_BAM.out.bam
-    ch_merged_library_filter_bai = MERGED_LIBRARY_FILTER_BAM.out.bai
+    ch_merged_library_filter_bam      = MERGED_LIBRARY_FILTER_BAM.out.bam
+    ch_merged_library_filter_bai      = MERGED_LIBRARY_FILTER_BAM.out.bai
     ch_merged_library_filter_flagstat = MERGED_LIBRARY_FILTER_BAM.out.flagstat
-    ch_merged_library_filter_csi = MERGED_LIBRARY_FILTER_BAM.out.csi
+    ch_merged_library_filter_csi      = MERGED_LIBRARY_FILTER_BAM.out.csi
 
     if (params.shift_reads && params.aligner != 'chromap' ) {
         MERGED_LIBRARY_BAM_SHIFT_READS (
