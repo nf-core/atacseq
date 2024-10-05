@@ -41,6 +41,12 @@ class Aligner(Enum):
     chromap = "chromap"
 
 
+class Reference(Enum):
+    hg19 = "GRCh37 (Homo Sapiens hg19)"
+    hg38 = "GRCh38 (Homo Sapiens hg38)"
+    mm10 = "GRCm39 (Mus Musculus)"
+
+
 @dataclass_json
 @dataclass
 class InputMap_Compress_Coverages:
@@ -54,6 +60,7 @@ class InputMap_Compress_Coverages:
 class InputMap_ATACQC:
     run_flag: str
     sample: str
+    genome: str
     bamfile: LatchFile
     baifile: LatchFile
     outdir: LatchDir
@@ -205,6 +212,12 @@ def Calculate_Plotting_Data(
                 "Saturation_Plots.txt",
             ]:
                 plots[Path(i).name] = LatchFile(i)
+        flag = False
+        for k in plots.keys():
+            if "featurealignment_coverage.txt" in k:
+                flag = True
+        if flag == False:
+            plots[Path(i).name] = LatchFile(Path())
         d[sample] = plots
 
     for f in cov_plots:
@@ -242,6 +255,7 @@ def Run_Rscript(map_input: InputMap_ATACQC) -> LatchDir:
     """
     run_flag = map_input.run_flag
     sample = map_input.sample
+    genome = map_input.genome
     bamfile = map_input.bamfile
     baifile = map_input.baifile
     outdir = map_input.outdir
@@ -264,6 +278,7 @@ def Run_Rscript(map_input: InputMap_ATACQC) -> LatchDir:
         "/root/latch_metadata/ATACSeqQC_Plots.R",
         Path(bamfile.local_path).name,
         local_dir,
+        genome,
     ]
     print(" ".join(cmd_RunRscript))
     subprocess.run(" ".join(cmd_RunRscript), shell=True, check=True)
@@ -359,6 +374,7 @@ def UpdateRegistry(d: typing.List[Registry_Obj], run_name: str) -> str:
 def Prepare_Inputs_ATACQC(
     run_flag: str,
     outdir: LatchOutputDir,
+    genome: typing.Optional[Reference] = Reference.hg19,
     aligner: typing.Optional[Aligner] = Aligner.bwa,
 ) -> (typing.List[InputMap_ATACQC], LatchDir):
     """
@@ -387,6 +403,12 @@ def Prepare_Inputs_ATACQC(
         "R_Plots", os.path.join(f"{outdir.remote_directory}/{run_flag}/R_Plots")
     )
     object_list = []
+    genome_str = ""
+    if genome == Reference.hg19:
+        genome_str = "hg19"
+    if genome == Reference.hg38:
+        genome_str = "hg38"
+
     for f in files:
         print(f)
         if f.endswith(".mLb.mkD.sorted.bam"):
@@ -394,6 +416,8 @@ def Prepare_Inputs_ATACQC(
             baifile = f + ".bai"
             assert baifile in files, "Missing bai file for " + baifile
             sample = f.split("/")[-1].replace(".mLb.mkD.sorted.bam", "")
-            o = InputMap_ATACQC(run_flag, sample, bamfile, baifile, outdir_r_plots)
+            o = InputMap_ATACQC(
+                run_flag, sample, genome_str, bamfile, baifile, outdir_r_plots
+            )
             object_list.append(o)
     return object_list, outdir_r_plots

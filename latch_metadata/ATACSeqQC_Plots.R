@@ -15,7 +15,7 @@ args <- commandArgs(trailingOnly=TRUE)
 
 merged_bam_file <- args[1]
 outPath <- args[2]
-
+genome_id <- args[3]
 
 if (dir.exists(outPath))
 {
@@ -48,41 +48,55 @@ gal <- readBamFile(merged_bam_file, tag=tags, which=which,
                    asMates=TRUE, bigFile=TRUE)
 shiftedBamFile <- file.path(outPath, "shifted.bam")
 gal1 <- shiftGAlignmentsList(gal, outbam=shiftedBamFile)
-txs <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene)
-txs <- txs[seqnames(txs) %in% seqlev]
-genome <- Hsapiens
-objs <- splitGAlignmentsByCut(gal1, txs=txs, genome=genome, outPath = outPath)
 
-bamFiles <- file.path(outPath,
+flag = 0
+if(genome_id == "hg19"){
+  txs <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene)
+  txs <- txs[seqnames(txs) %in% seqlev]
+  genome <- Hsapiens
+  objs <- splitGAlignmentsByCut(gal1, txs=txs, genome=genome, outPath = outPath)
+  flag = 1
+}
+if(genome_id == "hg38"){
+  txs <- transcripts(TxDb.Hsapiens.UCSC.hg38.knownGene)
+  txs <- txs[seqnames(txs) %in% seqlev]
+  genome <- Hsapiens
+  objs <- splitGAlignmentsByCut(gal1, txs=txs, genome=genome, outPath = outPath)
+  flag = 1
+}
+
+if(flag == 1){
+  bamFiles <- file.path(outPath,
                      c("NucleosomeFree.bam",
                      "mononucleosome.bam",
                      "dinucleosome.bam",
                      "trinucleosome.bam"))
-TSS <- promoters(txs, upstream=0, downstream=1)
-TSS <- unique(TSS)
-(librarySize <- estLibSize(bamFiles))
+  TSS <- promoters(txs, upstream=0, downstream=1)
+  TSS <- unique(TSS)
+  (librarySize <- estLibSize(bamFiles))
 
-NTILE <- 101
-dws <- ups <- 1010
-sigs <- enrichedFragments(gal=objs[c("NucleosomeFree",
-                                     "mononucleosome",
-                                     "dinucleosome",
-                                     "trinucleosome")],
-                          TSS=TSS,
-                          librarySize=librarySize,
-                          seqlev=seqlev,
-                          TSS.filter=0.5,
-                          n.tile = NTILE,
-                          upstream = ups,
-                          downstream = dws)
-sigs.log2 <- lapply(sigs, function(.ele) log2(.ele+1))
+  NTILE <- 101
+  dws <- ups <- 1010
+  sigs <- enrichedFragments(gal=objs[c("NucleosomeFree",
+                                      "mononucleosome",
+                                      "dinucleosome",
+                                      "trinucleosome")],
+                            TSS=TSS,
+                            librarySize=librarySize,
+                            seqlev=seqlev,
+                            TSS.filter=0.5,
+                            n.tile = NTILE,
+                            upstream = ups,
+                            downstream = dws)
+  sigs.log2 <- lapply(sigs, function(.ele) log2(.ele+1))
 
-out <- featureAlignedDistribution(sigs, reCenterPeaks(TSS, width=ups+dws),
-                                  zeroAt = .5, n.tile = NTILE, type = "l",
-                                  ylab = "Averaged coverage")
-range01 <- function(x){(x-min(x))/(max(x)-min(x))}
-out <- apply(out, 2, range01)
-write.table(out, paste(outPath,"featurealignment_coverage.txt", sep = ""), sep = "\t")
+  out <- featureAlignedDistribution(sigs, reCenterPeaks(TSS, width=ups+dws),
+                                    zeroAt = .5, n.tile = NTILE, type = "l",
+                                    ylab = "Averaged coverage")
+  range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+  out <- apply(out, 2, range01)
+  write.table(out, paste(outPath,"featurealignment_coverage.txt", sep = ""), sep = "\t")
+}
 
 s <- estimateLibComplexity(readsDupFreq(merged_bam_file))
 while (!is.null(dev.list()))  dev.off()

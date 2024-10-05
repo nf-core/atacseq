@@ -49,7 +49,6 @@ bioconductor-motifdb r-cairo
 
 copy . /root/
 
-
 # Latch workflow registration metadata
 # DO NOT CHANGE
 arg tag

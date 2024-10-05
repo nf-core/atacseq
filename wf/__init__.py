@@ -257,9 +257,9 @@ def nf_nf_core_atacseq(
         skip_ataqv=skip_ataqv,
         multiqc_methods_description=multiqc_methods_description,
     )
-
+    # NF_Run_Flag = run_name
     input_obj_list, outdir_r_plots = pp.Prepare_Inputs_ATACQC(
-        run_flag=NF_Run_Flag, outdir=outdir, aligner=aligner
+        run_flag=NF_Run_Flag, outdir=outdir, aligner=aligner, genome=latch_genome
     )
 
     input_obj_cov_list, outdir_cov_plots = pp.Prepare_Inputs_Coverages(
