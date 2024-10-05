@@ -239,7 +239,7 @@ def Calculate_Plotting_Data(
     return obj_list
 
 
-@custom_task(cpu=4, memory=48, storage_gib=50)
+@custom_task(cpu=4, memory=60, storage_gib=250)
 def Run_Rscript(map_input: InputMap_ATACQC) -> LatchDir:
     """
     The workflow calls the RScript that invokes the ATACSeqQC package and persists the data matrices
