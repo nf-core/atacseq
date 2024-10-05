@@ -217,7 +217,7 @@ def Calculate_Plotting_Data(
             if "featurealignment_coverage.txt" in k:
                 flag = True
         if flag == False:
-            plots[Path(i).name] = LatchFile(Path())
+            plots["featurealignment_coverage.txt"] = LatchFile(Path())
         d[sample] = plots
 
     for f in cov_plots:
