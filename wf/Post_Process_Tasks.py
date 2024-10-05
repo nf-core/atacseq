@@ -239,7 +239,7 @@ def Calculate_Plotting_Data(
     return obj_list
 
 
-@custom_task(cpu=4, memory=60, storage_gib=250)
+@custom_task(cpu=4, memory=250, storage_gib=250)
 def Run_Rscript(map_input: InputMap_ATACQC) -> LatchDir:
     """
     The workflow calls the RScript that invokes the ATACSeqQC package and persists the data matrices
@@ -403,7 +403,7 @@ def Prepare_Inputs_ATACQC(
         "R_Plots", os.path.join(f"{outdir.remote_directory}/{run_flag}/R_Plots")
     )
     object_list = []
-    genome_str = ""
+    genome_str = "custom"
     if genome == Reference.hg19:
         genome_str = "hg19"
     if genome == Reference.hg38:
