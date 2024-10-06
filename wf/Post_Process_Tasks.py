@@ -187,7 +187,7 @@ def Compress_Coverages_Sample(IM: InputMap_Compress_Coverages) -> LatchDir:
 @small_task
 def Calculate_Plotting_Data(
     rplots: typing.List[LatchDir], cov_plots: typing.List[LatchDir]
-) -> typing.List[Registry_Obj]:
+) -> (typing.List[Registry_Obj], typing.List[LatchFile]):
     """
     This task prepares an object of type 'Registry_Obj' for every sample. It takes the outputs from the Run_RScript and
     Compress_Covrages_Sample, and these obejcts are then written into a registry table.
@@ -217,7 +217,26 @@ def Calculate_Plotting_Data(
             if "featurealignment_coverage.txt" in k:
                 flag = True
         if flag == False:
-            plots["featurealignment_coverage.txt"] = LatchFile(Path())
+            cmd = [
+                "echo",
+                "NucleosomeFree\tmononucleosome",
+                ">",
+                "featurealignment_coverage.txt",
+            ]
+            subprocess.run(" ".join(cmd), shell=True, check=True)
+            print(os.listdir(Path()))
+
+            directory = str(Path(plots["Frag_Sizes.txt"].remote_path).parent)
+            directory = directory.replace("latch:/", "latch:///")
+            print(directory)
+
+            plots["featurealignment_coverage.txt"] = LatchFile(
+                "featurealignment_coverage.txt",
+                f"{directory}/featurealignment_coverage.txt",
+            )
+            print(plots)
+            print("\n")
+
         d[sample] = plots
 
     for f in cov_plots:
@@ -225,6 +244,7 @@ def Calculate_Plotting_Data(
         d[sample]["Cov_Plots"] = f
 
     obj_list = []
+    files = []
     for k in d:
         print(k)
         o = Registry_Obj(
@@ -235,8 +255,8 @@ def Calculate_Plotting_Data(
             d[k]["Cov_Plots"],
         )
         obj_list.append(o)
-
-    return obj_list
+        files.append(d[k]["featurealignment_coverage.txt"])
+    return obj_list, files
 
 
 @custom_task(cpu=4, memory=250, storage_gib=250)
@@ -355,6 +375,8 @@ def UpdateRegistry(d: typing.List[Registry_Obj], run_name: str) -> str:
                 updater.upsert_column(columns[i], type=col_types[i])
         print("Upserted columns")
     ctr = len(target_table.get_dataframe())
+    print(d)
+
     with target_table.update() as updater:
         for v in d:
             updater.upsert_record(

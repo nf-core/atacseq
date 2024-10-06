@@ -191,7 +191,7 @@ def nf_nf_core_atacseq(
     """
 
     pvc_name: str = initialize(run_name=run_name)
-    NF_Run_Flag = nextflow_runtime(
+    """NF_Run_Flag = nextflow_runtime(
         pvc_name=pvc_name,
         input=input,
         run_name=run_name,
@@ -256,8 +256,8 @@ def nf_nf_core_atacseq(
         skip_qc=skip_qc,
         skip_ataqv=skip_ataqv,
         multiqc_methods_description=multiqc_methods_description,
-    )
-    # NF_Run_Flag = run_name
+    )"""
+    NF_Run_Flag = run_name
     input_obj_list, outdir_r_plots = pp.Prepare_Inputs_ATACQC(
         run_flag=NF_Run_Flag, outdir=outdir, aligner=aligner, genome=latch_genome
     )
@@ -270,7 +270,7 @@ def nf_nf_core_atacseq(
 
     map_task_op = map_task(pp.Run_Rscript)(map_input=input_obj_list)
 
-    Plotting_Data = pp.Calculate_Plotting_Data(
+    Plotting_Data, feat_files = pp.Calculate_Plotting_Data(
         rplots=map_task_op, cov_plots=map_tasks_cov
     )
 
