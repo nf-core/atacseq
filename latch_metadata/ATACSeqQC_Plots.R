@@ -43,29 +43,25 @@ seqlev <- c("chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9",
 
 which <- as(GenomeInfoDb::seqinfo(Hsapiens)[seqlev], "GRanges")
 tags <- names(bamTop100)[lengths(bamTop100)>0]
-
-gal <- readBamFile(merged_bam_file, tag=tags, which=which,
-                   asMates=TRUE, bigFile=TRUE)
-shiftedBamFile <- file.path(outPath, "shifted.bam")
-gal1 <- shiftGAlignmentsList(gal, outbam=shiftedBamFile)
+genome <- Hsapiens
 
 flag = 0
 if(genome_id == "hg19"){
   txs <- transcripts(TxDb.Hsapiens.UCSC.hg19.knownGene)
   txs <- txs[seqnames(txs) %in% seqlev]
-  genome <- Hsapiens
-  objs <- splitGAlignmentsByCut(gal1, txs=txs, genome=genome, outPath = outPath)
   flag = 1
 }
+
 if(genome_id == "hg38"){
   txs <- transcripts(TxDb.Hsapiens.UCSC.hg38.knownGene)
   txs <- txs[seqnames(txs) %in% seqlev]
-  genome <- Hsapiens
-  objs <- splitGAlignmentsByCut(gal1, txs=txs, genome=genome, outPath = outPath)
   flag = 1
 }
 
 if(flag == 1){
+  gal <- readBamFile(merged_bam_file, tag=tags, which=which, asMates=FALSE)
+  names(gal) <- mcols(gal)$qname
+  objs <- splitGAlignmentsByCut(gal, txs=txs, genome=genome, outPath = outPath)
   bamFiles <- file.path(outPath,
                      c("NucleosomeFree.bam",
                      "mononucleosome.bam",
