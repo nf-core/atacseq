@@ -260,7 +260,7 @@ def Calculate_Plotting_Data(
             files.append(d[k]["featurealignment_coverage.txt"])
     except Exception as e:
         message(
-            "error",
+            "warning",
             {
                 "title": "Could not run Rscript for calculating ATAC seq QC metrics",
                 "body": f"Error: {str(e)}",
@@ -315,7 +315,7 @@ def Run_Rscript(map_input: InputMap_ATACQC) -> LatchDir:
         subprocess.run(" ".join(cmd_RunRscript), shell=True, check=True)
     except Exception as e:
         message(
-            "error",
+            "warning",
             {
                 "title": "Could not run Rscript for calculating ATAC seq QC metrics",
                 "body": f"Error: {str(e)}",
@@ -411,7 +411,7 @@ def UpdateRegistry(d: typing.List[Registry_Obj], run_name: str) -> str:
                 ctr += 1
     except Exception as e:
         message(
-            "error",
+            "warning",
             {
                 "title": "Could not update registry tables",
                 "body": f"Error: {str(e)}",
