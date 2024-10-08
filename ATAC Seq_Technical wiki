@@ -1,0 +1,35 @@
+ATAC (assay for transposase-accessible chromatin) Sequencing is a powerful sequencing tool that has been used to study the epigenetic signature of genomes. ATAC seq aims to capture the open chromatin parts of the genome and throws light on the effect of chromatin packaging on gene expression and gene regulation. ATAC sequencing uses a hyperactive mutant of the TN5 transposase, which inserts itself into the open chromatin regions of the genome. Further, this transposase, cleaves the double-stranded DNA and attaches adaptors to the fragments. These fragments are then purified, PCR-amplified, and sequenced using NGS. The workflow to process the raw ATAC sequencing reads is presented in the NFCore ATACseq workflow.  
+
+The workflow primarily aims at aligning reads against the genomes and computes a pile-up of reads at every base along the genome. The heart of the workflow is to clean up the alignments and compute “peaks”- more than expected pileup of reads along specific parts of the genome, likely to correspond to open chromatin portions of the genome. The workflow uses a series of tools and provides the user with various choices for every step in the process. 
+
+In this article, we present the steps in this pipeline and the set of software tools used to manipulate ATAC seq data.
+
+## Quality Control Analysis of Sequencing Reads
+The ATAC Seq pipeline relies upon a set of tools to ensure data quality and to remove any artifacts resulting from poor quality reads. 
+1. FastQC-FastQC performs read quality analysis byt aggregating per base quality scores across reads and plots key metrics. This can be used to filter out reads and trim portions of the read of poor quality.
+2. Trim Galore! - Trimgalore is used in this analysis to remove adapter sequences from the sequencing reads. 
+
+## Read Alignments
+
+In this part of the workflow, we aim to align reads against the reference genome. The outputs from this step is key in identifying segments of the genome enriched in chromatin accessible elements. The ATAC Seq pipelines offers 4 choices of short read aligners for aligning reads to the genome and the read alignment is one of the most compute-heavy portions of the workflow. 
+1. BWA- BWA uses Burrows Wheeler transform to align reads against the genome. It is efficient and has a low memory footprint compared to other methods and this is the default aligner used by the workflow.
+2. BowTie2- BowTie2 is one of the most commonly used short read aligners, which also uses Burrows Wheeler transform as an indexing kernel. 
+3. STAR- STAR is another method for performing read alignments and relies on a suffix array data structure to compute alignments of short reads against the genome. 
+4. ChromMap- 
+
+
+## Post processing read alignments
+
+### Filtering Alignments.
+Upon computing the alignments, the workflow uses PICARD to merge samples from the same library. The merged alignments obtained from the previous step is filtered to retain only alignments that are free of PCR duplicates, and klow quality alignments. To that end, the workflow relies upon SAMtools, PiCard, and bedtools. The workflow uses PICARD to mark duplicates that are often a result of PCR amplification biases and if not removed can artificically boost the signal confidence. The reads that are marked as duplicates are removed from further analysis. The number of duplicates also serve as a method to gauge the library complexity. Further, the worflow uses SAMtools to remove reads aligning to the mitochondrial DNA, black listed portions of the genome that tend to attract the TN5 transposase, read alignments that are norked as secondary aliugnments, unmaooed reads, reads containing over 4 mismatches, reads akignments that are soft-clipped, read pairs aligning to different chromosomes, and reads that do not align with concordant orientation. 
+
+
+The most important signal extracted from these filtered alignments is the ATAC Seq peak information. Since the library preparation step performs a targetted biased tagmentation of the open chromatin regions, the coverage of reads aligning to the genome will not be uniform. The coverage is expected to be spiky, with an increased percapita coverage to the chromatin accessible parts of the genome. These segments are often referred to as "peaks" in literature and rest of the workflow spins around computing, visualizing, and annotating the peaks. To that end, 
+1. The workflow relies upon Picard and preseq to estimate the library complexity, and study the effect of PCR duplication on the library size 
+2. BedTools to create bigWig files, that can be loaded with IGV to visualize coverage signals, 
+3. Deeptools to generate gene-body meta-profile from the bigWig files and compute genome-wide enrichement of tbe ATAC seq reads. Incase, the samples are annotated as case and controls, the enrichment is calculated with respecxt to the controls. 
+4. MACS2 is used to call peaks. MACS2 is a count based peak calling software, that identifies secions of the genome that have a significant pile up of reads compared to the background. MACS2 can either identify peaks that are broad, or narrow, and by default, the workflow identifies broad peaks. 
+5. HOMER is used to annotate the peaks relative to gene features. Since the chromatin acceissible regions are often present closer to the genebody, annotating the peaks with the nearest bene is often useful for downstream tasks. 
+6. The workflow also relies on BEDTools to merge peaks across all samples and creates consensus peaks, which retains only the peaks that is found in all samples and removes peaks that are present in sample-specific. The set of consensus peaks establishes a basis for studying peaks that are used to perform downstream tasks such as  differential expression analysis between cases and controls. To count reads in consensus peaks, the workflow uses the featureCounts package.  
+7. The matrix of of peak counts obtained previously is then used to perform a "differential accessibility analysis". Differential accessibility analysis is very similar in vein to differential abundance testing usually performed for gene counts. The same statistical machinery is extended to peaks in this context of ATAC Seq data. This is a powerful method to identify peaks that are differentially enriched between different samples and can also help detect potential batch effects, and ensure that biological replicates have similar peaks. The workflow uses DESeq2 to perform the differential accessibility analysis and projects the counts onto the top 2 PCs.
+8. ATAQV tool kit is used to make QC plots and renders the QC metrics as a HTML report. 

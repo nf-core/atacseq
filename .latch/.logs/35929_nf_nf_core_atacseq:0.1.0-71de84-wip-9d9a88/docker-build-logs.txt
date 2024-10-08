@@ -1,0 +1,119 @@
+Step 1/17 : from 812206152185.dkr.ecr.us-west-2.amazonaws.com/latch-base-nextflow:v1.1.5
+
+
+ ---> a7ebb447d94e
+
+Step 2/17 : workdir /tmp/docker-build/work/
+
+
+ ---> Using cache
+
+ ---> 416ded9895d6
+
+Step 3/17 : shell [     "/usr/bin/env", "bash",     "-o", "errexit",     "-o", "pipefail",     "-o", "nounset",     "-o", "verbose",     "-o", "errtrace",     "-O", "inherit_errexit",     "-O", "shift_verbose",     "-c" ]
+
+
+ ---> Using cache
+
+ ---> 5b24c39f1846
+
+Step 4/17 : env TZ='Etc/UTC'
+
+
+ ---> Using cache
+
+ ---> 27dd55b8d338
+
+Step 5/17 : env LANG='en_US.UTF-8'
+
+
+ ---> Using cache
+
+ ---> a4c213f3d20d
+
+Step 6/17 : arg DEBIAN_FRONTEND=noninteractive
+
+
+ ---> Using cache
+
+ ---> 7eed5569a303
+
+Step 7/17 : RUN apt-get update -y && apt-get install -y autoconf curl zip unzip wget gcc git make libbz2-dev zlib1g-dev libncurses5-dev libncursesw5-dev liblzma-dev libtool autoconf build-essential pkg-config automake tcsh
+
+
+ ---> Using cache
+
+ ---> 7cbdbbbfae0d
+
+Step 8/17 : RUN wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh &&     bash Mambaforge-Linux-x86_64.sh -b -p /mambaforge &&     rm Mambaforge-Linux-x86_64.sh
+
+
+ ---> Using cache
+
+ ---> 72699987ea8c
+
+Step 9/17 : ENV PATH="/mambaforge/bin:$PATH"
+
+
+ ---> Using cache
+
+ ---> e51d6b6d95b1
+
+Step 10/17 : RUN mamba create -n atacseqqc -c conda-forge -c bioconda bioconductor-atacseqqc bioconductor-bsgenome.hsapiens.ucsc.hg19 bioconductor-txdb.hsapiens.ucsc.hg19.knowngene bioconductor-bsgenome.hsapiens.ucsc.hg38 bioconductor-txdb.hsapiens.ucsc.hg38.knowngene bioconductor-motifdb r-cairo
+
+
+ ---> Using cache
+
+ ---> a867ffd8a7bb
+
+Step 11/17 : RUN pip install numpy pandas pyarrow pyBigWig
+
+
+ ---> Using cache
+
+ ---> 80657c93cdae
+
+Step 12/17 : run pip install latch
+
+
+ ---> Using cache
+
+ ---> 8dcecc79a6e2
+
+Step 13/17 : run mkdir /opt/latch
+
+
+ ---> Using cache
+
+ ---> d9ec3fc455af
+
+Step 14/17 : copy . /root/
+
+
+ ---> 68cfd5e5c98c
+
+Step 15/17 : arg tag
+
+
+ ---> Running in 45d62fb4264d
+
+ ---> 99120dee4538
+
+Step 16/17 : env FLYTE_INTERNAL_IMAGE $tag
+
+
+ ---> Running in 9c02e7b238f0
+
+ ---> 055852c7242f
+
+Step 17/17 : workdir /root
+
+
+ ---> Running in 441c23cf00e3
+
+ ---> ca7dc92823ae
+
+Successfully built ca7dc92823ae
+
+Successfully tagged 812206152185.dkr.ecr.us-west-2.amazonaws.com/35929_nf_nf_core_atacseq:0.1.0-71de84-wip-9d9a88
+

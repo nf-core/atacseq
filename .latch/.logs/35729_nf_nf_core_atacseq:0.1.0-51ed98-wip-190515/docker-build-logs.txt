@@ -1,0 +1,89 @@
+Step 1/17 : from 812206152185.dkr.ecr.us-west-2.amazonaws.com/latch-base-nextflow:v2.0.0
+
+
+ ---> 98d9cd0f2a3a
+
+Step 2/17 : workdir /tmp/docker-build/work/
+
+
+ ---> Using cache
+
+ ---> 8f95defb9629
+
+Step 3/17 : shell [     "/usr/bin/env", "bash",     "-o", "errexit",     "-o", "pipefail",     "-o", "nounset",     "-o", "verbose",     "-o", "errtrace",     "-O", "inherit_errexit",     "-O", "shift_verbose",     "-c" ]
+
+
+ ---> Using cache
+
+ ---> b2b2f8c4e3df
+
+Step 4/17 : env TZ='Etc/UTC'
+
+
+ ---> Using cache
+
+ ---> ee07cb31686a
+
+Step 5/17 : env LANG='en_US.UTF-8'
+
+
+ ---> Using cache
+
+ ---> b133cffabb9a
+
+Step 6/17 : arg DEBIAN_FRONTEND=noninteractive
+
+
+ ---> Using cache
+
+ ---> 7f1ec8bb956e
+
+Step 7/17 : RUN apt-get update -y && apt-get install -y autoconf curl zip unzip wget gcc git make libbz2-dev zlib1g-dev libncurses5-dev libncursesw5-dev liblzma-dev libtool autoconf build-essential pkg-config automake tcsh
+
+
+ ---> Using cache
+
+ ---> 8dcd56679e9f
+
+Step 8/17 : RUN wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh &&     bash Mambaforge-Linux-x86_64.sh -b -p /mambaforge &&     rm Mambaforge-Linux-x86_64.sh
+
+
+ ---> Using cache
+
+ ---> 15c88753019d
+
+Step 9/17 : ENV PATH="/mambaforge/bin:$PATH"
+
+
+ ---> Using cache
+
+ ---> 7e407ea96b7e
+
+Step 10/17 : RUN mamba create -n atacseqqc -c conda-forge -c bioconda bioconductor-atacseqqc bioconductor-bsgenome.hsapiens.ucsc.hg19 bioconductor-txdb.hsapiens.ucsc.hg19.knowngene bioconductor-bsgenome.hsapiens.ucsc.hg38 bioconductor-txdb.hsapiens.ucsc.hg38.knowngene bioconductor-motifdb r-cairo
+
+
+ ---> Using cache
+
+ ---> 0bb34ec8a115
+
+Step 11/17 : RUN pip install numpy pandas pyarrow pyBigWig
+
+
+ ---> Using cache
+
+ ---> 902524f000e1
+
+Step 12/17 : run pip install latch==2.52.1
+
+
+ ---> Running in 217e2f9e8dbb
+
+[91mpip install latch==2.52.1
+[0m
+[91mERROR: Ignored the following versions that require a different python version: 2.22.5 Requires-Python >=3.8,<3.11; 2.22.6 Requires-Python >=3.8,<3.11; 2.23.0 Requires-Python >=3.8,<3.11; 2.23.1 Requires-Python >=3.8,<3.11; 2.23.1.1 Requires-Python >=3.8,<3.11; 2.23.2 Requires-Python >=3.8,<3.11; 2.23.3 Requires-Python >=3.8,<3.11; 2.23.4 Requires-Python >=3.8,<3.11; 2.23.5 Requires-Python >=3.8,<3.11; 2.24.0 Requires-Python >=3.8,<3.11; 2.24.1 Requires-Python >=3.8,<3.11; 2.24.10 Requires-Python >=3.8,<3.11; 2.24.11 Requires-Python >=3.8,<3.11; 2.24.12 Requires-Python >=3.8,<3.11; 2.24.2 Requires-Python >=3.8,<3.11; 2.24.3 Requires-Python >=3.8,<3.11; 2.24.4 Requires-Python >=3.8,<3.11; 2.24.5 Requires-Python >=3.8,<3.11; 2.24.6 Requires-Python >=3.8,<3.11; 2.24.7 Requires-Python >=3.8,<3.11; 2.24.8 Requires-Python >=3.8,<3.11; 2.24.9 Requires-Python >=3.8,<3.11; 2.25.0 Requires-Python >=3.8,<3.11; 2.25.1 Requires-Python >=3.8,<3.11; 2.25.2 Requires-Python >=3.8,<3.11; 2.26.0 Requires-Python >=3.8,<3.11; 2.26.1 Requires-Python >=3.8,<3.11; 2.26.2 Requires-Python >=3.8,<3.11; 2.27.0 Requires-Python >=3.8,<3.11; 2.27.1 Requires-Python >=3.8,<3.11; 2.27.2 Requires-Python >=3.8,<3.11; 2.27.3 Requires-Python >=3.8,<3.11; 2.27.4 Requires-Python >=3.8,<3.11; 2.28.0 Requires-Python >=3.8,<3.11; 2.29.0 Requires-Python >=3.8,<3.11; 2.30.0 Requires-Python >=3.8,<3.12; 2.31.0 Requires-Python >=3.8,<3.12; 2.31.1 Requires-Python >=3.8,<3.12; 2.32.0 Requires-Python >=3.8,<3.12; 2.32.1 Requires-Python >=3.8,<3.12; 2.32.2 Requires-Python >=3.8,<3.12; 2.32.3 Requires-Python >=3.8,<3.12; 2.32.4 Requires-Python >=3.8,<3.12; 2.32.5 Requires-Python >=3.8,<3.12; 2.32.6 Requires-Python >=3.8,<3.12; 2.32.7 Requires-Python >=3.8,<3.12; 2.32.8 Requires-Python >=3.8,<3.12; 2.33.0 Requires-Python >=3.8,<3.12; 2.34.0 Requires-Python >=3.8,<3.12; 2.35.0 Requires-Python >=3.8,<3.12; 2.36.0 Requires-Python >=3.8,<3.12; 2.36.1 Requires-Python >=3.8,<3.12; 2.36.10 Requires-Python >=3.8,<3.12; 2.36.11 Requires-Python >=3.8,<3.12; 2.36.2 Requires-Python >=3.8,<3.12; 2.36.3 Requires-Python >=3.8,<3.12; 2.36.4 Requires-Python >=3.8,<3.12; 2.36.5 Requires-Python >=3.8,<3.12; 2.36.6 Requires-Python >=3.8,<3.12; 2.36.7 Requires-Python >=3.8,<3.12; 2.36.8 Requires-Python >=3.8,<3.12; 2.36.9 Requires-Python >=3.8,<3.12; 2.36.9a0 Requires-Python >=3.8,<3.12; 2.36.9a1 Requires-Python >=3.8,<3.12; 2.37.0 Requires-Python >=3.8,<3.12; 2.37.1 Requires-Python >=3.8,<3.12; 2.38.0 Requires-Python >=3.8,<3.12; 2.38.1 Requires-Python >=3.8,<3.12; 2.38.2 Requires-Python >=3.8,<3.12; 2.38.3 Requires-Python >=3.8,<3.12; 2.38.4 Requires-Python >=3.8,<3.12; 2.38.5 Requires-Python >=3.8,<3.12; 2.38.6 Requires-Python >=3.8,<3.12; 2.38.7 Requires-Python >=3.8,<3.12; 2.38.8 Requires-Python >=3.8,<3.12; 2.38.9 Requires-Python >=3.8,<3.12; 2.39.0 Requires-Python >=3.8,<3.12; 2.39.0.dev0 Requires-Python >=3.8,<3.12; 2.39.0.dev1 Requires-Python >=3.8,<3.12; 2.39.0.dev10 Requires-Python >=3.8,<3.12; 2.39.0.dev11 Requires-Python >=3.8,<3.12; 2.39.0.dev12 Requires-Python >=3.8,<3.12; 2.39.0.dev13 Requires-Python >=3.8,<3.12; 2.39.0.dev14 Requires-Python <3.12,>=3.8; 2.39.0.dev15 Requires-Python <3.12,>=3.8; 2.39.0.dev16 Requires-Python <3.12,>=3.8; 2.39.0.dev17 Requires-Python <3.12,>=3.8; 2.39.0.dev18 Requires-Python <3.12,>=3.8; 2.39.0.dev19 Requires-Python <3.12,>=3.8; 2.39.0.dev2 Requires-Python >=3.8,<3.12; 2.39.0.dev20 Requires-Python <3.12,>=3.8; 2.39.0.dev21 Requires-Python <3.12,>=3.8; 2.39.0.dev22 Requires-Python <3.12,>=3.8; 2.39.0.dev23 Requires-Python <3.12,>=3.8; 2.39.0.dev24 Requires-Python <3.12,>=3.8; 2.39.0.dev25 Requires-Python <3.12,>=3.8; 2.39.0.dev26 Requires-Python <3.12,>=3.8; 2.39.0.dev27 Requires-Python <3.12,>=3.8; 2.39.0.dev28 Requires-Python <3.12,>=3.8; 2.39.0.dev29 Requires-Python <3.12,>=3.8; 2.39.0.dev3 Requires-Python >=3.8,<3.12; 2.39.0.dev30 Requires-Python <3.12,>=3.8; 2.39.0.dev31 Requires-Python <3.12,>=3.8; 2.39.0.dev32 Requires-Python <3.12,>=3.8; 2.39.0.dev33 Requires-Python <3.12,>=3.8; 2.39.0.dev34 Requires-Python <3.12,>=3.8; 2.39.0.dev35 Requires-Python <3.12,>=3.8; 2.39.0.dev36 Requires-Python <3.12,>=3.8; 2.39.0.dev4 Requires-Python >=3.8,<3.12; 2.39.0.dev5 Requires-Python >=3.8,<3.12; 2.39.0.dev6 Requires-Python >=3.8,<3.12; 2.39.0.dev7 Requires-Python >=3.8,<3.12; 2.39.0.dev8 Requires-Python >=3.8,<3.12; 2.39.0.dev9 Requires-Python >=3.8,<3.12; 2.39.1 Requires-Python >=3.8,<3.12; 2.39.2 Requires-Python >=3.8,<3.12; 2.39.3 Requires-Python >=3.8,<3.12; 2.39.4 Requires-Python >=3.8,<3.12; 2.39.5 Requires-Python >=3.8,<3.12; 2.39.6 Requires-Python <3.12,>=3.8; 2.39.7 Requires-Python <3.12,>=3.8; 2.40.0 Requires-Python <3.12,>=3.8; 2.40.1 Requires-Python <3.12,>=3.8; 2.40.2 Requires-Python <3.12,>=3.8; 2.40.3 Requires-Python <3.12,>=3.8; 2.40.4 Requires-Python <3.12,>=3.8; 2.40.4.dev0 Requires-Python <3.12,>=3.8; 2.40.4.dev1 Requires-Python <3.12,>=3.8; 2.40.4.dev10 Requires-Python <3.12,>=3.8; 2.40.4.dev11 Requires-Python <3.12,>=3.8; 2.40.4.dev2 Requires-Python <3.12,>=3.8; 2.40.4.dev3 Requires-Python <3.12,>=3.8; 2.40.4.dev4 Requires-Python <3.12,>=3.8; 2.40.4.dev5 Requires-Python <3.12,>=3.8; 2.40.4.dev6 Requires-Python <3.12,>=3.8; 2.40.4.dev7 Requires-Python <3.12,>=3.8; 2.40.4.dev8 Requires-Python <3.12,>=3.8; 2.40.4.dev9 Requires-Python <3.12,>=3.8; 2.40.6 Requires-Python <3.12,>=3.8; 2.41.0 Requires-Python <3.12,>=3.8; 2.41.1 Requires-Python <3.12,>=3.8; 2.41.2 Requires-Python <3.12,>=3.8; 2.41.3 Requires-Python <3.12,>=3.8; 2.41.3.dev0 Requires-Python <3.12,>=3.8; 2.41.3.dev1 Requires-Python <3.12,>=3.8; 2.41.3.dev2 Requires-Python <3.12,>=3.8; 2.41.3.dev3 Requires-Python <3.12,>=3.8; 2.41.3.dev4 Requires-Python <3.12,>=3.8; 2.42.0 Requires-Python <3.12,>=3.8; 2.42.1 Requires-Python <3.12,>=3.8; 2.43.0 Requires-Python <3.12,>=3.8; 2.43.1 Requires-Python <3.12,>=3.8; 2.43.2 Requires-Python <3.12,>=3.8; 2.43.3 Requires-Python <3.12,>=3.8; 2.44.0 Requires-Python <3.12,>=3.8; 2.45.0 Requires-Python <3.12,>=3.8; 2.45.1 Requires-Python <3.12,>=3.8; 2.45.2 Requires-Python <3.12,>=3.8; 2.45.2.dev1 Requires-Python <3.12,>=3.8; 2.45.2.dev2 Requires-Python <3.12,>=3.8; 2.45.2.dev3 Requires-Python <3.12,>=3.8; 2.45.2.dev4 Requires-Python <3.12,>=3.8; 2.45.2.dev5 Requires-Python <3.12,>=3.8; 2.45.3 Requires-Python <3.12,>=3.8; 2.45.4 Requires-Python <3.12,>=3.8; 2.45.5 Requires-Python <3.12,>=3.8; 2.45.6 Requires-Python <3.12,>=3.8; 2.45.6.dev1 Requires-Python <3.12,>=3.8; 2.45.6.dev2 Requires-Python <3.12,>=3.8; 2.45.7 Requires-Python <3.12,>=3.8; 2.45.8 Requires-Python <3.12,>=3.8; 2.45.9 Requires-Python <3.12,>=3.8; 2.46.0 Requires-Python <3.12,>=3.8; 2.46.1 Requires-Python <3.12,>=3.8; 2.46.1.dev1 Requires-Python <3.12,>=3.8; 2.46.2 Requires-Python <3.12,>=3.8; 2.46.2.dev1 Requires-Python <3.12,>=3.8; 2.46.3 Requires-Python <3.12,>=3.8; 2.46.4 Requires-Python <3.12,>=3.8; 2.46.5 Requires-Python <3.12,>=3.8; 2.46.6 Requires-Python <3.12,>=3.8; 2.46.7 Requires-Python <3.12,>=3.8; 2.46.8 Requires-Python <3.12,>=3.8; 2.46.9 Requires-Python <3.12,>=3.8; 2.47.0 Requires-Python <3.12,>=3.8; 2.47.1 Requires-Python <3.12,>=3.8; 2.47.2 Requires-Python <3.12,>=3.8; 2.47.3 Requires-Python <3.12,>=3.8; 2.47.4 Requires-Python <3.12,>=3.8; 2.47.5 Requires-Python <3.12,>=3.8; 2.47.6 Requires-Python <3.12,>=3.8; 2.47.7 Requires-Python <3.12,>=3.8; 2.47.8 Requires-Python <3.12,>=3.8; 2.47.9 Requires-Python <3.12,>=3.8; 2.47.9a1 Requires-Python <3.12,>=3.8; 2.48.0 Requires-Python <3.12,>=3.8; 2.48.1 Requires-Python <3.12,>=3.8; 2.48.1a0 Requires-Python <3.12,>=3.8; 2.48.1a1 Requires-Python <3.12,>=3.8; 2.48.2 Requires-Python <3.12,>=3.8; 2.48.3 Requires-Python <3.12,>=3.8; 2.48.4 Requires-Python <3.12,>=3.8; 2.48.5 Requires-Python <3.12,>=3.8; 2.48.6 Requires-Python <3.12,>=3.8; 2.48.7 Requires-Python <3.12,>=3.8; 2.48.8 Requires-Python <3.12,>=3.8; 2.48.8a1 Requires-Python <3.12,>=3.8; 2.48.8a2 Requires-Python <3.12,>=3.8; 2.48.8a3 Requires-Python <3.12,>=3.8; 2.48.8a4 Requires-Python <3.12,>=3.8; 2.48.8a5 Requires-Python <3.12,>=3.8; 2.48.9 Requires-Python <3.12,>=3.8; 2.49.0 Requires-Python <3.12,>=3.8; 2.49.1 Requires-Python <3.12,>=3.8; 2.49.10 Requires-Python <3.12,>=3.8; 2.49.2 Requires-Python <3.12,>=3.8; 2.49.2a1 Requires-Python <3.12,>=3.8; 2.49.2a2 Requires-Python <3.12,>=3.8; 2.49.2a3 Requires-Python <3.12,>=3.8; 2.49.4 Requires-Python <3.12,>=3.8; 2.49.5 Requires-Python <3.12,>=3.8; 2.49.6 Requires-Python <3.12,>=3.8; 2.49.7 Requires-Python <3.12,>=3.8; 2.49.8 Requires-Python <3.12,>=3.8; 2.49.9 Requires-Python <3.12,>=3.8; 2.50.0 Requires-Python <3.12,>=3.8; 2.50.1 Requires-Python <3.12,>=3.8; 2.50.2 Requires-Python <3.12,>=3.8; 2.50.3 Requires-Python <3.12,>=3.8; 2.50.4 Requires-Python <3.12,>=3.8; 2.50.5 Requires-Python <3.12,>=3.8; 2.50.6 Requires-Python <3.12,>=3.8; 2.50.6.dev1 Requires-Python <3.12,>=3.8; 2.50.6.dev2 Requires-Python <3.12,>=3.8; 2.50.6.dev3 Requires-Python <3.12,>=3.8; 2.50.6.dev4 Requires-Python <3.12,>=3.8; 2.50.6.dev5 Requires-Python <3.12,>=3.8; 2.51.0 Requires-Python <3.12,>=3.8; 2.51.1 Requires-Python <3.12,>=3.8; 2.51.2 Requires-Python <3.12,>=3.8; 2.51.2.dev1 Requires-Python <3.12,>=3.8; 2.51.2.dev2 Requires-Python <3.12,>=3.8; 2.51.2.dev3 Requires-Python <3.12,>=3.8; 2.51.2.dev4 Requires-Python <3.12,>=3.8; 2.51.2.dev5 Requires-Python <3.12,>=3.8; 2.51.2.dev6 Requires-Python <3.12,>=3.8; 2.51.2.dev7 Requires-Python <3.12,>=3.8; 2.51.2.dev8 Requires-Python <3.12,>=3.8; 2.52.0 Requires-Python <3.12,>=3.8; 2.52.1 Requires-Python <3.12,>=3.8; 2.52.1.dev1 Requires-Python <3.12,>=3.8; 2.52.1.dev2 Requires-Python <3.12,>=3.8; 2.52.2 Requires-Python <3.12,>=3.8
+[0m
+[91mERROR: Could not find a version that satisfies the requirement latch==2.52.1 (from versions: 0.0.0, 0.0.1, 0.0.2, 0.0.3, 0.0.7, 0.0.8, 0.0.9, 0.0.10, 0.0.11, 0.0.12, 0.0.13, 0.0.14, 0.0.15, 0.0.16, 0.0.17, 0.0.18, 0.0.19, 0.0.20, 0.0.21, 0.0.22, 0.0.24, 0.0.25, 0.0.26, 0.0.27, 0.0.28, 0.0.29, 0.0.30, 0.0.31, 0.0.32, 0.0.33, 0.0.34, 0.0.35, 0.0.36, 0.0.37, 0.0.38, 0.0.39, 0.1.0, 0.1.1, 0.2.0, 0.3.0, 0.4.0, 0.5.0, 0.5.1, 0.6.0, 0.6.2, 0.7.0, 0.7.1, 0.8.0, 0.8.1, 0.8.2, 0.8.3, 0.9.0, 0.9.1, 0.9.2, 0.10.0, 0.11.0, 0.12.0, 1.0.0, 1.0.1, 1.0.2, 1.0.3, 1.0.4, 1.1.0, 1.1.1, 1.2.1, 1.3.0, 1.3.1, 1.3.2, 1.4.0, 1.4.1, 1.5.0, 1.5.1, 1.5.2, 1.5.3, 1.5.4, 1.5.5, 1.6.1, 1.6.2, 1.7.0, 1.8.0, 1.8.1, 1.9.0, 1.10.0, 1.10.1, 1.10.2, 1.10.3, 1.11.0, 1.11.1, 1.11.2, 1.11.3, 1.11.4, 1.11.5, 1.12.0, 1.12.1, 1.12.2, 1.12.3, 1.13.0, 1.13.1, 1.13.2, 1.13.3, 1.14.0, 1.14.1, 1.15.0, 1.15.1, 1.16.0, 1.16.1, 1.16.2, 1.17.0, 1.17.1, 1.17.2, 2.0.0, 2.0.1, 2.1.0, 2.1.1, 2.1.2, 2.1.3, 2.4.0, 2.4.1, 2.4.2, 2.4.4, 2.4.6, 2.4.7, 2.5.0, 2.5.1, 2.5.2, 2.6.1, 2.6.2, 2.6.3, 2.6.4, 2.6.5, 2.7.0, 2.7.1, 2.7.2, 2.8.0, 2.8.1, 2.8.2, 2.9.0, 2.9.1, 2.9.2, 2.9.3, 2.9.4, 2.9.5, 2.9.6, 2.10.0, 2.10.1, 2.11.0, 2.11.1, 2.11.2, 2.12.0, 2.12.1, 2.13.0, 2.13.1, 2.13.2, 2.13.3, 2.13.4, 2.13.5, 2.14.0, 2.14.1, 2.14.2, 2.15.0, 2.15.1, 2.16.0, 2.17.0, 2.17.1, 2.17.2, 2.18.0, 2.18.1, 2.18.2, 2.18.3, 2.19.0, 2.19.1, 2.19.2, 2.19.3, 2.19.4, 2.19.5, 2.19.6, 2.19.7, 2.19.8, 2.19.9, 2.19.10, 2.19.11, 2.20.0, 2.20.1, 2.20.2, 2.20.3, 2.21.0, 2.21.1, 2.21.2, 2.21.3, 2.21.4, 2.21.5, 2.21.6, 2.21.7, 2.22.0, 2.22.1, 2.22.2, 2.22.3, 2.22.4)
+[0m
+[91mERROR: No matching distribution found for latch==2.52.1
+[0m
+The command '/usr/bin/env bash -o errexit -o pipefail -o nounset -o verbose -o errtrace -O inherit_errexit -O shift_verbose -c pip install latch==2.52.1' returned a non-zero code: 1
