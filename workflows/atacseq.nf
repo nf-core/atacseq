@@ -13,7 +13,7 @@ include { MULTIQC } from '../modules/local/multiqc'
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { paramsSummaryMap       } from 'plugin/nf-validation'
+include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_atacseq_pipeline'
@@ -114,9 +114,8 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
-    ch_input = file(ch_samplesheet)
     INPUT_CHECK (
-        ch_input,
+        ch_samplesheet,
         params.seq_center,
         params.with_control
     )
@@ -750,13 +749,14 @@ workflow ATACSEQ {
     //
     // Collate and save software versions
     //
-    softwareVersionsToYAML(ch_versions)
+    `(ch_versions)
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
             name: 'nf_core_atacseq_software_mqc_versions.yml',
             sort: true,
             newLine: true
         ).set { ch_collated_versions }
+
 
     //
     // MODULE: MultiQC
@@ -827,7 +827,7 @@ workflow ATACSEQ {
 
     emit:
     multiqc_report = ch_multiqc_report  // channel: /path/to/multiqc_report.html
-    versions       = ch_versions       // channel: [ path(versions.yml) ]
+    versions       = ch_versions        // channel: [ path(versions.yml) ]
 }
 
 /*
