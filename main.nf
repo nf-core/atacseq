@@ -123,7 +123,7 @@ workflow {
         args,
         params.outdir
     )
-    
+
     //
     // WORKFLOW: Run main workflow
     //

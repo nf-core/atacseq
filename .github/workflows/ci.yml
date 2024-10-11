@@ -92,5 +92,5 @@ jobs:
 
       - name: Run pipeline with various parameters (conda)
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,conda --outdir ./results ${{ matrix.parameters }} 
+          nextflow run ${GITHUB_WORKSPACE} -profile test,conda --outdir ./results ${{ matrix.parameters }}
         if: "${{ github.base_ref == 'master' }}"
