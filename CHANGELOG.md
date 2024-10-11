@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#359](https://github.com/nf-core/atacseq/issues/359)] - Fix `--save_unaligned` description in schema.
 - [[#344](https://github.com/nf-core/atacseq/issues/344)] - Fix memory issues when sorting merged replicates after `bedtools genomecov`.
 - [[#338](https://github.com/nf-core/atacseq/issues/338)] - Check that samplesheet samples IDs do only have alphanumeric characters, dots, dashes or underscores.
-- [[#370](https://github.com/nf-core/atacseq/issues/370)] - Adding line numbers to errors messages in `bin/check_samplesheet.py`
+- [[#370](https://github.com/nf-core/atacseq/issues/370)] - Adding line numbers to errors messages in `bin/check_samplesheet.py`.
+- [[#381](https://github.com/nf-core/atacseq/issues/381)] - Set chromap to no shift reads by default and install `deeptools/alignmentsieve` from modules.
 
 ### Parameters
 

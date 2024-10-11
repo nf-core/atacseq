@@ -50,6 +50,11 @@
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
                         "installed_by": ["modules"]
                     },
+                    "deeptools/alignmentsieve": {
+                        "branch": "master",
+                        "git_sha": "5c2ab5de7e8de33ac7cab83a4cd28a4d29a84049",
+                        "installed_by": ["modules"]
+                    },
                     "deeptools/computematrix": {
                         "branch": "master",
                         "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
