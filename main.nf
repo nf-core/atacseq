@@ -9,8 +9,6 @@
 ----------------------------------------------------------------------------------------
 */
 
-nextflow.enable.dsl = 2
-
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT FUNCTIONS / MODULES / SUBWORKFLOWS / WORKFLOWS
@@ -85,7 +83,7 @@ workflow NFCORE_ATACSEQ {
     ch_samplesheet = Channel.value(file(params.input, checkIfExists: true))
 
     ATACSEQ (
-        params.input,
+        ch_samplesheet,
         ch_versions,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.fai,
@@ -101,7 +99,6 @@ workflow NFCORE_ATACSEQ {
         PREPARE_GENOME.out.autosomes,
         PREPARE_GENOME.out.macs_gsize
     )
-
     emit:
     multiqc_report = ATACSEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
     versions       = ch_versions                // channel: [version1, version2, ...]
@@ -116,13 +113,11 @@ workflow NFCORE_ATACSEQ {
 workflow {
 
     main:
-
     //
     // SUBWORKFLOW: Run initialisation tasks
     //
     PIPELINE_INITIALISATION (
         params.version,
-        params.help,
         params.validate_params,
         params.monochrome_logs,
         args,
