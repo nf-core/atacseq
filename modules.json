@@ -27,7 +27,7 @@
                     },
                     "bwa/index": {
                         "branch": "master",
-                        "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
+                        "git_sha": "baa9ee31e48f115832c8eb91a980bf35c9ffc9b9",
                         "installed_by": ["modules"]
                     },
                     "bwa/mem": {
