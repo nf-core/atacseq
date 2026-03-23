@@ -1,7 +1,7 @@
 {
     "skip_trimming": {
         "content": [
-            15,
+            9,
             {
                 
             },
@@ -10,28 +10,17 @@
                 "fastqc/OSMOTIC_STRESS_T0_PE_REP1_T1_1_fastqc.html",
                 "fastqc/OSMOTIC_STRESS_T0_PE_REP1_T1_2_fastqc.html",
                 "fastqc/OSMOTIC_STRESS_T0_PE_REP2_T1_1_fastqc.html",
-                "fastqc/OSMOTIC_STRESS_T0_PE_REP2_T1_2_fastqc.html",
                 "fastqc/OSMOTIC_STRESS_T100_SE_REP1_T1_fastqc.html",
                 "fastqc/OSMOTIC_STRESS_T100_SE_REP2_T1_fastqc.html",
                 "fastqc/OSMOTIC_STRESS_T150_SE_REP1_T1_fastqc.html",
                 "fastqc/OSMOTIC_STRESS_T150_SE_REP1_T2_fastqc.html",
                 "fastqc/OSMOTIC_STRESS_T15_PE_REP1_T1_1_fastqc.html",
-                "fastqc/OSMOTIC_STRESS_T15_PE_REP1_T1_2_fastqc.html",
                 "fastqc/OSMOTIC_STRESS_T15_PE_REP1_T2_1_fastqc.html",
-                "fastqc/OSMOTIC_STRESS_T15_PE_REP1_T2_2_fastqc.html",
                 "fastqc/zips",
                 "fastqc/zips/OSMOTIC_STRESS_T0_PE_REP1_T1_1_fastqc.zip",
                 "fastqc/zips/OSMOTIC_STRESS_T0_PE_REP1_T1_2_fastqc.zip",
-                "fastqc/zips/OSMOTIC_STRESS_T0_PE_REP2_T1_1_fastqc.zip",
-                "fastqc/zips/OSMOTIC_STRESS_T0_PE_REP2_T1_2_fastqc.zip",
                 "fastqc/zips/OSMOTIC_STRESS_T100_SE_REP1_T1_fastqc.zip",
                 "fastqc/zips/OSMOTIC_STRESS_T100_SE_REP2_T1_fastqc.zip",
-                "fastqc/zips/OSMOTIC_STRESS_T150_SE_REP1_T1_fastqc.zip",
-                "fastqc/zips/OSMOTIC_STRESS_T150_SE_REP1_T2_fastqc.zip",
-                "fastqc/zips/OSMOTIC_STRESS_T15_PE_REP1_T1_1_fastqc.zip",
-                "fastqc/zips/OSMOTIC_STRESS_T15_PE_REP1_T1_2_fastqc.zip",
-                "fastqc/zips/OSMOTIC_STRESS_T15_PE_REP1_T2_1_fastqc.zip",
-                "fastqc/zips/OSMOTIC_STRESS_T15_PE_REP1_T2_2_fastqc.zip",
                 "pipeline_info",
                 "pipeline_info/nf_core_chipseq_software_mqc_versions.yml",
                 "pipeline_info/samplesheet.valid.csv"
@@ -44,7 +33,7 @@
             "nf-test": "0.9.3",
             "nextflow": "25.04.7"
         },
-        "timestamp": "2026-03-20T23:15:47.620166781"
+        "timestamp": "2026-03-23T11:48:05.135308142"
     },
     "skip_trimming with stub": {
         "content": [
