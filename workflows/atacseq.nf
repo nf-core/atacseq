@@ -110,7 +110,27 @@ workflow ATACSEQ {
         ataqv_mito_reference = params.mito_name
     }
 
-    ch_multiqc_files = Channel.empty()
+    ch_multiqc_files = channel.empty()
+
+    //
+    // Collection versions from topic channel
+    //
+    def topic_versions = channel.topic("versions")
+        .distinct()
+        .branch { entry ->
+            versions_file: entry instanceof Path
+            versions_tuple: true
+        }
+
+    def topic_versions_string = topic_versions.versions_tuple
+        .map { process, tool, version ->
+            [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
+        }
+        .groupTuple(by:0)
+        .map { process, tool_versions ->
+            tool_versions.unique().sort()
+            "${process}:\n${tool_versions.join('\n')}"
+        }
 
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
@@ -155,7 +175,6 @@ workflow ATACSEQ {
         0,
         params.min_trimmed_reads
     )
-    ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
 
     //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
@@ -750,32 +769,14 @@ workflow ATACSEQ {
     //
     // Collate and save software versions
     //
-    def topic_versions = Channel.topic("versions")
-        .distinct()
-        .branch { entry ->
-            versions_file: entry instanceof Path
-            versions_tuple: true
-        }
-
-    def topic_versions_string = topic_versions.versions_tuple
-        .map { process, tool, version ->
-            [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
-        }
-        .groupTuple(by:0)
-        .map { process, tool_versions ->
-            tool_versions.unique().sort()
-            "${process}:\n${tool_versions.join('\n')}"
-        }
-
-    softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
+    ch_collated_versions = softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
         .mix(topic_versions_string)
         .collectFile(
             storeDir: "${params.outdir}/pipeline_info",
-            name: 'nf_core_'  +  'atacseq_software_'  + 'mqc_'  + 'versions.yml',
+            name: 'nf_core_'  +  'chipseq_software_'  + 'mqc_'  + 'versions.yml',
             sort: true,
             newLine: true
-        ).set { ch_collated_versions }
-
+        )
 
     //
     // MODULE: MultiQC
@@ -845,8 +846,8 @@ workflow ATACSEQ {
     }
 
     emit:
-    multiqc_report = ch_multiqc_report  // channel: /path/to/multiqc_report.html
-    versions       = ch_versions        // channel: [ path(versions.yml) ]
+    multiqc_report = ch_multiqc_report.toList() // channel: /path/to/multiqc_report.html
+    versions       = ch_versions                // channel: [ path(versions.yml) ]
 }
 
 /*

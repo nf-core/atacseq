@@ -180,7 +180,6 @@ workflow PREPARE_GENOME {
             }
         } else {
             ch_bwa_index = BWA_INDEX ( ch_fasta.map { [ [:], it ] } ).index
-            ch_versions  = ch_versions.mix(BWA_INDEX.out.versions)
         }
     }
 

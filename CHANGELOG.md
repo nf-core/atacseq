@@ -20,7 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#381](https://github.com/nf-core/atacseq/issues/381)] - Set chromap to no shift reads by default and install `deeptools/alignmentsieve` from modules.
 - Updated pipeline template to [nf-core/tools 3.1.1](https://github.com/nf-core/tools/releases/tag/3.1.1)
 - Updated pipeline template to [nf-core/tools 3.4.1](https://github.com/nf-core/tools/releases/tag/3.4.1)
-- [[#427](https://github.com/nf-core/atacseq/issues/427)] - Implements default nf-test at the pipeline level.
+- [[#427](https://github.com/nf-core/atacseq/issues/427)] - Implements default nf-test at the pipeline level.\
+- [[436](https://github.com/nf-core/atacseq/issues/437)] - Fix strick syntax.
+- [[437](https://github.com/nf-core/atacseq/issues/437)] - Follow up to 436.
 
 ### Parameters
 

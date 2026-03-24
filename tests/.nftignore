@@ -39,6 +39,9 @@ fastqc/*_fastqc.{html,zip}
 **/*.base_distribution_by_cycle_metrics
 **/*.MarkDuplicates.metrics.txt
 
+# Samtools
+**/*.bam.stats
+
 # Trimming reports
 **/*_trimming_report.txt
 
