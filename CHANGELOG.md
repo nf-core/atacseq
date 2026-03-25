@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#427](https://github.com/nf-core/atacseq/issues/427)] - Implements default nf-test at the pipeline level.\
 - [[436](https://github.com/nf-core/atacseq/issues/437)] - Fix strick syntax.
 - [[437](https://github.com/nf-core/atacseq/issues/437)] - Follow up to 436.
+- [[#438](https://github.com/nf-core/atacseq/issues/438)] - Add `checkIfExists` to file inputs and prevent S3 access errors during index validation.
 
 ### Parameters
 
