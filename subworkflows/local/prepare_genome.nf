@@ -50,17 +50,17 @@ workflow PREPARE_GENOME {
     read_length        // integer: read length
 
     main:
-    ch_versions = channel.empty()
+    ch_versions = Channel.empty()
 
     //
     // Uncompress genome fasta file if required
     //
-    ch_fasta = channel.empty()
+    ch_fasta = Channel.empty()
     if (fasta.endsWith('.gz')) {
         ch_fasta    = GUNZIP_FASTA ( [ [:], fasta ] ).gunzip.map { tuple -> tuple[1] }
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
-        ch_fasta = channel.value(file(fasta, checkIfExists: true))
+        ch_fasta = Channel.value(file(fasta, checkIfExists: true))
     }
 
     //
@@ -71,14 +71,14 @@ workflow PREPARE_GENOME {
             ch_gtf      = GUNZIP_GTF ( [ [:], gtf ] ).gunzip.map { tuple -> tuple[1] }
             ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
         } else {
-            ch_gtf = channel.value(file(gtf, checkIfExists: true))
+            ch_gtf = Channel.value(file(gtf, checkIfExists: true))
         }
     } else if (gff) {
         if (gff.endsWith('.gz')) {
             ch_gff      = GUNZIP_GFF ( [ [:], gff ] ).gunzip.map { tuple -> tuple[1] }
             ch_versions = ch_versions.mix(GUNZIP_GFF.out.versions)
         } else {
-            ch_gff = channel.value(file(gff, checkIfExists: true))
+            ch_gff = Channel.value(file(gff, checkIfExists: true))
         }
         ch_gtf      = GFFREAD ( ch_gff ).gtf
         ch_versions = ch_versions.mix(GFFREAD.out.versions)
@@ -87,13 +87,13 @@ workflow PREPARE_GENOME {
     //
     // Uncompress blacklist file if required
     //
-    ch_blacklist = channel.empty()
+    ch_blacklist = Channel.empty()
     if (blacklist) {
         if (blacklist.endsWith('.gz')) {
             ch_blacklist = GUNZIP_BLACKLIST ( [ [:], blacklist ] ).gunzip.map { tuple -> tuple[1] }
             ch_versions  = ch_versions.mix(GUNZIP_BLACKLIST.out.versions)
         } else {
-            ch_blacklist = channel.value(file(blacklist, checkIfExists: true))
+            ch_blacklist = Channel.value(file(blacklist, checkIfExists: true))
         }
     }
 
@@ -118,7 +118,7 @@ workflow PREPARE_GENOME {
             ch_gene_bed = GUNZIP_GENE_BED ( [ [:], params.gene_bed ] ).gunzip.map { tuple -> tuple[1] }
             ch_versions = ch_versions.mix(GUNZIP_GENE_BED.out.versions)
         } else {
-            ch_gene_bed = channel.value(file(gene_bed, checkIfExists: true))
+            ch_gene_bed = Channel.value(file(gene_bed, checkIfExists: true))
         }
     }
 
@@ -130,7 +130,7 @@ workflow PREPARE_GENOME {
             ch_tss_bed = GUNZIP_TSS_BED ( [ [:], tss_bed ] ).gunzip.map { tuple -> tuple[1] }
             ch_versions = ch_versions.mix(GUNZIP_TSS_BED.out.versions)
         } else {
-            ch_tss_bed = channel.value(file(tss_bed, checkIfExists: true))
+            ch_tss_bed = Channel.value(file(tss_bed, checkIfExists: true))
         }
     }
 
@@ -145,7 +145,7 @@ workflow PREPARE_GENOME {
     //
     // Create autosomal chromosome list for ataqv
     //
-    ch_genome_autosomes = channel.empty()
+    ch_genome_autosomes = Channel.empty()
     GET_AUTOSOMES (
         ch_fai
     )
@@ -156,7 +156,7 @@ workflow PREPARE_GENOME {
     //
     // Prepare genome intervals for filtering by removing regions in blacklist file
     //
-    ch_genome_filtered_bed = channel.empty()
+    ch_genome_filtered_bed = Channel.empty()
     GENOME_BLACKLIST_REGIONS (
         ch_chrom_sizes,
         ch_blacklist.ifEmpty([]),
@@ -169,7 +169,7 @@ workflow PREPARE_GENOME {
     //
     // Uncompress BWA index or generate from scratch if required
     //
-    ch_bwa_index = channel.empty()
+    ch_bwa_index = Channel.empty()
     if (prepare_tool_index == 'bwa') {
         if (bwa_index) {
             if (bwa_index.endsWith('.tar.gz')) {
@@ -186,7 +186,7 @@ workflow PREPARE_GENOME {
     //
     // Uncompress Bowtie2 index or generate from scratch if required
     //
-    ch_bowtie2_index = channel.empty()
+    ch_bowtie2_index = Channel.empty()
     if (prepare_tool_index == 'bowtie2') {
         if (bowtie2_index) {
             if (bowtie2_index.endsWith('.tar.gz')) {
@@ -204,7 +204,7 @@ workflow PREPARE_GENOME {
     //
     // Uncompress CHROMAP index or generate from scratch if required
     //
-    ch_chromap_index = channel.empty()
+    ch_chromap_index = Channel.empty()
     if (prepare_tool_index == 'chromap') {
         if (chromap_index) {
             if (chromap_index.endsWith('.tar.gz')) {
@@ -222,14 +222,14 @@ workflow PREPARE_GENOME {
     //
     // Uncompress STAR index or generate from scratch if required
     //
-    ch_star_index = channel.empty()
+    ch_star_index = Channel.empty()
     if (prepare_tool_index == 'star') {
         if (star_index) {
             if (star_index.endsWith('.tar.gz')) {
                 ch_star_index = UNTAR_STAR_INDEX ( [ [:], star_index ] ).untar.map{ tuple -> tuple[1] }
                 ch_versions   = ch_versions.mix(UNTAR_STAR_INDEX.out.versions)
             } else {
-                ch_star_index = channel.value(file(star_index, checkIfExists: true))
+                ch_star_index = Channel.value(file(star_index, checkIfExists: true))
             }
         } else {
             ch_star_index = STAR_GENOMEGENERATE ( ch_fasta, ch_gtf ).index
