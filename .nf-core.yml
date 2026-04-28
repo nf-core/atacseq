@@ -3,7 +3,7 @@ lint:
     - config_defaults:
         - params.bamtools_filter_se_config
         - params.bamtools_filter_pe_config
-nf_core_version: 3.5.1
+nf_core_version: 4.0.0
 repository_type: pipeline
 template:
   author: Patel H, Langer B, Espinosa-Carrasco J, Syme R
@@ -13,6 +13,4 @@ template:
   name: atacseq
   org: nf-core
   outdir: .
-  skip_features:
-    - nf-test
   version: 2.2.0dev
