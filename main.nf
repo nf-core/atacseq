@@ -51,7 +51,7 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_atac
 workflow NFCORE_ATACSEQ {
 
     main:
-    ch_versions = Channel.empty()
+    ch_versions = channel.empty()
 
     // SUBWORKFLOW: Prepare genome files
     PREPARE_GENOME (
@@ -78,11 +78,10 @@ workflow NFCORE_ATACSEQ {
     //
     // WORKFLOW: Run nf-core/atacseq workflow
     //
-    ch_samplesheet = Channel.value(file(params.input, checkIfExists: true))
+    ch_samplesheet = channel.value(file(params.input, checkIfExists: true))
 
     ATACSEQ (
         ch_samplesheet,
-        ch_versions,
         PREPARE_GENOME.out.fasta,
         PREPARE_GENOME.out.fai,
         PREPARE_GENOME.out.gtf,
@@ -95,8 +94,13 @@ workflow NFCORE_ATACSEQ {
         PREPARE_GENOME.out.chromap_index,
         PREPARE_GENOME.out.star_index,
         PREPARE_GENOME.out.autosomes,
-        PREPARE_GENOME.out.macs_gsize
+        PREPARE_GENOME.out.macs_gsize,
+        params.multiqc_config,
+        params.multiqc_logo,
+        params.multiqc_methods_description,
+        params.outdir
     )
+
     emit:
     multiqc_report = ATACSEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
     versions       = ch_versions                // channel: [version1, version2, ...]
@@ -140,7 +144,6 @@ workflow {
         params.plaintext_email,
         params.outdir,
         params.monochrome_logs,
-        params.hook_url,
         NFCORE_ATACSEQ.out.multiqc_report
     )
 }
