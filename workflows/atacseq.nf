@@ -159,7 +159,6 @@ workflow ATACSEQ {
         0,
         params.min_trimmed_reads
     )
-    ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.versions)
 
     //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
@@ -850,8 +849,8 @@ workflow ATACSEQ {
     }
 
     emit:
-    multiqc_report = ch_multiqc_report  // channel: /path/to/multiqc_report.html
-    versions       = ch_versions        // channel: [ path(versions.yml) ]
+    multiqc_report = ch_multiqc_report.toList() // channel: /path/to/multiqc_report.html
+    versions       = ch_versions                // channel: [ path(versions.yml) ]
 }
 
 /*
