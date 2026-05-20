@@ -70,7 +70,6 @@ workflow ATACSEQ {
 
     take:
     ch_samplesheet   // channel: path(sample_sheet.csv)
-    ch_versions      // channel: [ path(versions.yml) ]
     ch_fasta         // channel: path(genome.fa)
     ch_fai           // channel: path(genome.fai)
     ch_gtf           // channel: path(genome.gtf)
@@ -84,6 +83,10 @@ workflow ATACSEQ {
     ch_star_index    // channel: path(star/index/)
     ch_autosomes     // channel: path(autosomes.txt)
     ch_macs_gsize    // channel: integer
+    multiqc_config   // string: path to MultiQC config file or list of paths if multiple config files
+    multiqc_logo     // string: path to MultiQC logo file
+    multiqc_methods_description // string: path to MultiQC methods description file
+    outdir           // path: output directory
 
     main:
 
@@ -110,27 +113,8 @@ workflow ATACSEQ {
         ataqv_mito_reference = params.mito_name
     }
 
-    ch_multiqc_files = channel.empty()
-
-    //
-    // Collection versions from topic channel
-    //
-    def topic_versions = channel.topic("versions")
-        .distinct()
-        .branch { entry ->
-            versions_file: entry instanceof Path
-            versions_tuple: true
-        }
-
-    def topic_versions_string = topic_versions.versions_tuple
-        .map { process, tool, version ->
-            [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
-        }
-        .groupTuple(by:0)
-        .map { process, tool_versions ->
-            tool_versions.unique().sort()
-            "${process}:\n${tool_versions.join('\n')}"
-        }
+    def ch_versions      = channel.empty()
+    def ch_multiqc_files = channel.empty()
 
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
@@ -769,11 +753,28 @@ workflow ATACSEQ {
     //
     // Collate and save software versions
     //
-    ch_collated_versions = softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
+    def topic_versions = channel.topic("versions")
+        .distinct()
+        .branch { entry ->
+            versions_file: entry instanceof Path
+            versions_tuple: true
+        }
+
+    def topic_versions_string = topic_versions.versions_tuple
+        .map { process, tool, version ->
+            [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
+        }
+        .groupTuple(by:0)
+        .map { process, tool_versions ->
+            tool_versions.unique().sort()
+            "${process}:\n${tool_versions.join('\n')}"
+        }
+
+    def ch_collated_versions = softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
         .mix(topic_versions_string)
         .collectFile(
-            storeDir: "${params.outdir}/pipeline_info",
-            name: 'nf_core_'  +  'chipseq_software_'  + 'mqc_'  + 'versions.yml',
+            storeDir: "${outdir}/pipeline_info",
+            name: 'nf_core_'  +  'atacseq_software_'  + 'mqc_'  + 'versions.yml',
             sort: true,
             newLine: true
         )
@@ -781,17 +782,19 @@ workflow ATACSEQ {
     //
     // MODULE: MultiQC
     //
+    def ch_multiqc_report = channel.empty()
+
     if (!params.skip_multiqc) {
-        ch_multiqc_config                     = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-        ch_multiqc_custom_config              = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
-        ch_multiqc_logo                       = params.multiqc_logo   ? Channel.fromPath(params.multiqc_logo)   : Channel.empty()
-        summary_params                        = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
-        ch_workflow_summary                   = Channel.value(paramsSummaryMultiqc(summary_params))
-        ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
-        ch_methods_description                = Channel.value(methodsDescriptionText(ch_multiqc_custom_methods_description))
-        ch_multiqc_files                      = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-        ch_multiqc_files                      = ch_multiqc_files.mix(ch_collated_versions)
-        ch_multiqc_files                      = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml', sort: false))
+        def ch_multiqc_config                     = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+        def ch_multiqc_custom_config              = multiqc_config ? Channel.fromPath(multiqc_config) : Channel.empty()
+        def ch_multiqc_logo                       = multiqc_logo   ? Channel.fromPath(multiqc_logo)   : Channel.empty()
+        def ch_summary_params                     = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
+        def ch_workflow_summary                   = Channel.value(paramsSummaryMultiqc(ch_summary_params))
+        def ch_multiqc_custom_methods_description = multiqc_methods_description ? file(multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
+        def ch_methods_description                = Channel.value(methodsDescriptionText(ch_multiqc_custom_methods_description))
+        ch_multiqc_files                          = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+        ch_multiqc_files                          = ch_multiqc_files.mix(ch_collated_versions)
+        ch_multiqc_files                          = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml', sort: false))
 
         MULTIQC (
             ch_multiqc_files.collect(),
