@@ -3,7 +3,120 @@
         "content": [
             264,
             {
-                
+                "BAMTOOLS_FILTER": {
+                    "samtools": "1.15.1",
+                    "bamtools": "2.5.2"
+                },
+                "BAM_REMOVE_ORPHANS": {
+                    "samtools": "1.15.1"
+                },
+                "BEDTOOLS_GENOMECOV": {
+                    "bedtools": "2.31.1",
+                    "sort": 9.5
+                },
+                "BWA_INDEX": {
+                    "bwa": "0.7.19-r1273"
+                },
+                "BWA_MEM": {
+                    "bwa": "0.7.17-r1188",
+                    "samtools": "1.19.2"
+                },
+                "DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT": {
+                    "deeptools": "3.5.5"
+                },
+                "DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS": {
+                    "deeptools": "3.5.5"
+                },
+                "DEEPTOOLS_PLOTHEATMAP": {
+                    "deeptools": "3.5.5"
+                },
+                "DEEPTOOLS_PLOTPROFILE": {
+                    "deeptools": "3.5.5"
+                },
+                "DESEQ2_QC": {
+                    "r-base": "4.0.3",
+                    "bioconductor-deseq2": "1.28.0"
+                },
+                "FASTQC": {
+                    "fastqc": "0.12.1"
+                },
+                "FRIP_SCORE": {
+                    "bedtools": "2.30.0",
+                    "samtools": "1.15.1"
+                },
+                "HOMER_ANNOTATEPEAKS": {
+                    "homer": 4.11
+                },
+                "IGV": {
+                    "python": "3.8.3"
+                },
+                "MACS3_CALLPEAK": {
+                    "macs3": "3.0.1"
+                },
+                "MACS3_CONSENSUS": {
+                    "python": "3.10.0",
+                    "r-base": "4.1.1"
+                },
+                "MERGED_LIBRARY_ATAQV_ATAQV": {
+                    "ataqv": "1.3.1"
+                },
+                "MERGED_LIBRARY_ATAQV_MKARV": {
+                    "ataqv": "1.3.1"
+                },
+                "MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT": {
+                    "deeptools": "3.5.5"
+                },
+                "MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS": {
+                    "picard": "3.0.0"
+                },
+                "MULTIQC_CUSTOM_PEAKS": {
+                    "sed": 4.7
+                },
+                "PICARD_MARKDUPLICATES": {
+                    "picard": "3.1.1"
+                },
+                "PICARD_MERGESAMFILES_LIBRARY": {
+                    "picard": "3.4.0"
+                },
+                "PICARD_MERGESAMFILES_REPLICATE": {
+                    "picard": "3.4.0"
+                },
+                "PLOT_HOMER_ANNOTATEPEAKS": {
+                    "r-base": "4.0.3"
+                },
+                "PLOT_MACS3_QC": {
+                    "r-base": "4.0.3"
+                },
+                "SAMPLESHEET_CHECK": {
+                    "python": "3.8.3"
+                },
+                "SAMTOOLS_FLAGSTAT": {
+                    "samtools": "1.19.2"
+                },
+                "SAMTOOLS_IDXSTATS": {
+                    "samtools": "1.19.2"
+                },
+                "SAMTOOLS_INDEX": {
+                    "samtools": "1.19.2"
+                },
+                "SAMTOOLS_SORT": {
+                    "samtools": "1.19.2"
+                },
+                "SAMTOOLS_STATS": {
+                    "samtools": "1.19.2"
+                },
+                "SUBREAD_FEATURECOUNTS": {
+                    "subread": "2.0.1"
+                },
+                "TRIMGALORE": {
+                    "trimgalore": "0.6.10"
+                },
+                "UCSC_BEDGRAPHTOBIGWIG": {
+                    "ucsc": 445
+                },
+                "Workflow": {
+                    "nf-core/atacseq": "v2.2.0dev"
+                }
             },
             [
                 "bwa",
@@ -748,7 +861,7 @@
                 "multiqc/broad_peak/multiqc_plots/svg/mqc_samtools_alignment_plot_1_pc.svg",
                 "multiqc/broad_peak/multiqc_report.html",
                 "pipeline_info",
-                "pipeline_info/nf_core_chipseq_software_mqc_versions.yml",
+                "pipeline_info/nf_core_atacseq_software_mqc_versions.yml",
                 "pipeline_info/samplesheet.valid.csv",
                 "trimgalore",
                 "trimgalore/fastqc",
@@ -982,8 +1095,8 @@
         ],
         "meta": {
             "nf-test": "0.9.3",
-            "nextflow": "25.04.7"
+            "nextflow": "26.04.1"
         },
-        "timestamp": "2026-03-23T20:25:35.262604817"
+        "timestamp": "2026-05-20T12:35:49.679880032"
     }
 }
