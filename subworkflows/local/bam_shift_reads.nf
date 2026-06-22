@@ -37,12 +37,11 @@ workflow BAM_SHIFT_READS {
     // Run samtools flagstat
     //
     SAMTOOLS_FLAGSTAT (
-        SAMTOOLS_SORT.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0])
+        SAMTOOLS_SORT.out.bam.join(SAMTOOLS_INDEX.out.index, by: [0])
     )
 
     emit:
     bam      = SAMTOOLS_SORT.out.bam                // channel: [ val(meta), [ bam ] ]
-    bai      = SAMTOOLS_INDEX.out.bai               // channel: [ val(meta), [ bai ] ]
-    csi      = SAMTOOLS_INDEX.out.csi               // channel: [ val(meta), [ csi ] ]
+    index    = SAMTOOLS_INDEX.out.index             // channel: [ val(meta), [ bai/csi ] ]
     flagstat = SAMTOOLS_FLAGSTAT.out.flagstat       // channel: [ val(meta), [ flagstat ] ]
 }
