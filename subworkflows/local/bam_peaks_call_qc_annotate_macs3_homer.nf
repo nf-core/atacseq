@@ -42,7 +42,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
         .out
         .peak
         .filter {
-            meta, peaks ->
+            _meta, peaks ->
                 peaks.size() > 0
         }
         .set { ch_macs3_peaks }
@@ -51,7 +51,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     ch_bam
         .join(ch_macs3_peaks, by: [0])
         .map {
-            meta, ip_bam, control_bam, peaks ->
+            meta, ip_bam, _control_bam, peaks ->
                 [ meta, ip_bam, peaks ]
         }
         .set { ch_bam_peaks }
@@ -67,7 +67,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
     ch_bam_peaks
         .join(FRIP_SCORE.out.txt, by: [0])
         .map {
-            meta, ip_bam, peaks, frip ->
+            meta, _ip_bam, peaks, frip ->
                 [ meta, peaks, frip ]
         }
         .set { ch_bam_peak_frip }
@@ -103,7 +103,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
             // MACS3 QC plots with R
             //
             PLOT_MACS3_QC (
-                ch_macs3_peaks.collect{it[1]},
+                ch_macs3_peaks.collect { item -> item[1] },
                 is_narrow_peak
             )
             ch_plot_macs3_qc_txt = PLOT_MACS3_QC.out.txt
@@ -113,7 +113,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
             // Peak annotation QC plots with R
             //
             PLOT_HOMER_ANNOTATEPEAKS (
-                HOMER_ANNOTATEPEAKS.out.txt.collect{it[1]},
+                HOMER_ANNOTATEPEAKS.out.txt.collect { item -> item[1] },
                 ch_peak_annotation_header_multiqc,
                 annotate_peaks_suffix
             )
