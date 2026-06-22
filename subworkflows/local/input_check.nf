@@ -8,18 +8,18 @@ workflow INPUT_CHECK {
     take:
     samplesheet  // file: /path/to/samplesheet.csv
     seq_center   // string: sequencing center for read group
-    with_control // boolean: samplesheet contains controls
+    _with_control // boolean: samplesheet contains controls
 
 
     main:
     SAMPLESHEET_CHECK ( samplesheet )
         .csv
         .splitCsv ( header:true, sep:',' )
-        .map { create_fastq_channel(it, seq_center) }
+        .map { item -> create_fastq_channel(item, seq_center) }
         .set { reads }
 
     emit:
-    reads                                     // channel: [ val(meta), [ reads ] ]
+    reads = reads // channel: [ val(meta), [ reads ] ]
     versions = SAMPLESHEET_CHECK.out.versions // channel: [ versions.yml ]
 }
 

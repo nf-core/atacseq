@@ -14,7 +14,7 @@ workflow ALIGN_STAR {
 
     main:
 
-    ch_versions = Channel.empty()
+    ch_versions = channel.empty()
 
     //
     // Map reads with STAR

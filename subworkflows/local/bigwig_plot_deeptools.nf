@@ -16,7 +16,7 @@ workflow BIGWIG_PLOT_DEEPTOOLS {
 
     main:
 
-    ch_versions = Channel.empty()
+    ch_versions = channel.empty()
 
     //
     // deepTools matrix generation for plotting over full transcript length

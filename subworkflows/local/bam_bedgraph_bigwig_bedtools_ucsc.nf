@@ -13,7 +13,7 @@ workflow BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC {
 
     main:
 
-    ch_versions = Channel.empty()
+    ch_versions = channel.empty()
 
     //
     // Create bedGraph coverage track
