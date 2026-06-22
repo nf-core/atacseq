@@ -16,7 +16,6 @@ workflow BAM_FILTER_BAMTOOLS {
 
     main:
 
-    ch_versions = Channel.empty()
 
     //
     // Filter BAM file with BAMTools
@@ -27,7 +26,6 @@ workflow BAM_FILTER_BAMTOOLS {
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
-    ch_versions = ch_versions.mix(BAMTOOLS_FILTER.out.versions.first())
 
     BAMTOOLS_FILTER
         .out
@@ -47,7 +45,6 @@ workflow BAM_FILTER_BAMTOOLS {
     SAMTOOLS_INDEX {
         ch_bam.single_end
     }
-    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions.first())
 
     SAMTOOLS_INDEX.out.bai
         .join(SAMTOOLS_INDEX.out.csi, by: [0], remainder: true)
@@ -68,16 +65,15 @@ workflow BAM_FILTER_BAMTOOLS {
         ch_bam.single_end.join(ch_index),
         ch_fasta
     )
-    ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
 
     //
     // Name sort PE BAM before filtering with pysam
     //
     SAMTOOLS_SORT (
         ch_bam.paired_end,
-        ch_fasta
+        ch_fasta.map { fasta -> [ [:], fasta, [] ] },
+        ''
     )
-    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
 
     //
     // Remove orphan reads from PE BAM file
@@ -85,7 +81,6 @@ workflow BAM_FILTER_BAMTOOLS {
     BAM_REMOVE_ORPHANS (
         SAMTOOLS_SORT.out.bam
     )
-    ch_versions = ch_versions.mix(BAM_REMOVE_ORPHANS.out.versions.first())
 
     //
     // Sort, index PE BAM file and run samtools stats, flagstat and idxstats
@@ -94,7 +89,6 @@ workflow BAM_FILTER_BAMTOOLS {
         BAM_REMOVE_ORPHANS.out.bam,
         ch_fasta
     )
-    ch_versions = ch_versions.mix(BAM_SORT_STATS_SAMTOOLS.out.versions.first())
 
     emit:
     name_bam = SAMTOOLS_SORT.out.bam                                                     // channel: [ val(meta), [ bam ] ]
@@ -104,5 +98,4 @@ workflow BAM_FILTER_BAMTOOLS {
     stats    = BAM_SORT_STATS_SAMTOOLS.out.stats.mix(BAM_STATS_SAMTOOLS.out.stats)       // channel: [ val(meta), [ stats ] ]
     flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat.mix(BAM_STATS_SAMTOOLS.out.flagstat) // channel: [ val(meta), [ flagstat ] ]
     idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats.mix(BAM_STATS_SAMTOOLS.out.idxstats) // channel: [ val(meta), [ idxstats ] ]
-    versions = ch_versions                                                               // channel: [ versions.yml ]
 }

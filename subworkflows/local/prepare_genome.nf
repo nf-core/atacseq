@@ -50,17 +50,15 @@ workflow PREPARE_GENOME {
     read_length        // integer: read length
 
     main:
-    ch_versions = Channel.empty()
 
     //
     // Uncompress genome fasta file if required
     //
-    ch_fasta = Channel.empty()
+    ch_fasta = channel.empty()
     if (fasta.endsWith('.gz')) {
         ch_fasta    = GUNZIP_FASTA ( [ [:], fasta ] ).gunzip.map { tuple -> tuple[1] }
-        ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
-        ch_fasta = Channel.value(file(fasta, checkIfExists: true))
+        ch_fasta = channel.value(file(fasta, checkIfExists: true))
     }
 
     //
@@ -69,31 +67,27 @@ workflow PREPARE_GENOME {
     if (gtf) {
         if (gtf.endsWith('.gz')) {
             ch_gtf      = GUNZIP_GTF ( [ [:], gtf ] ).gunzip.map { tuple -> tuple[1] }
-            ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
         } else {
-            ch_gtf = Channel.value(file(gtf, checkIfExists: true))
+            ch_gtf = channel.value(file(gtf, checkIfExists: true))
         }
     } else if (gff) {
         if (gff.endsWith('.gz')) {
             ch_gff      = GUNZIP_GFF ( [ [:], gff ] ).gunzip.map { tuple -> tuple[1] }
-            ch_versions = ch_versions.mix(GUNZIP_GFF.out.versions)
         } else {
-            ch_gff = Channel.value(file(gff, checkIfExists: true))
+            ch_gff = channel.value(file(gff, checkIfExists: true))
         }
-        ch_gtf      = GFFREAD ( ch_gff ).gtf
-        ch_versions = ch_versions.mix(GFFREAD.out.versions)
+        ch_gtf      = GFFREAD ( ch_gff.map { gff_file -> [ [:], gff_file ] }, [] ).gtf.map { _meta, gtf_file -> gtf_file }
     }
 
     //
     // Uncompress blacklist file if required
     //
-    ch_blacklist = Channel.empty()
+    ch_blacklist = channel.empty()
     if (blacklist) {
         if (blacklist.endsWith('.gz')) {
             ch_blacklist = GUNZIP_BLACKLIST ( [ [:], blacklist ] ).gunzip.map { tuple -> tuple[1] }
-            ch_versions  = ch_versions.mix(GUNZIP_BLACKLIST.out.versions)
         } else {
-            ch_blacklist = Channel.value(file(blacklist, checkIfExists: true))
+            ch_blacklist = channel.value(file(blacklist, checkIfExists: true))
         }
     }
 
@@ -112,25 +106,21 @@ workflow PREPARE_GENOME {
 
     if (make_bed) {
         ch_gene_bed = GTF2BED ( ch_gtf ).bed
-        ch_versions = ch_versions.mix(GTF2BED.out.versions)
     } else {
         if (gene_bed.endsWith('.gz')) {
             ch_gene_bed = GUNZIP_GENE_BED ( [ [:], params.gene_bed ] ).gunzip.map { tuple -> tuple[1] }
-            ch_versions = ch_versions.mix(GUNZIP_GENE_BED.out.versions)
         } else {
-            ch_gene_bed = Channel.value(file(gene_bed, checkIfExists: true))
+            ch_gene_bed = channel.value(file(gene_bed, checkIfExists: true))
         }
     }
 
     if (!tss_bed) {
         ch_tss_bed = TSS_EXTRACT ( ch_gene_bed ).tss
-        ch_versions = ch_versions.mix(TSS_EXTRACT.out.versions)
     } else {
         if (tss_bed.endsWith('.gz')) {
             ch_tss_bed = GUNZIP_TSS_BED ( [ [:], tss_bed ] ).gunzip.map { tuple -> tuple[1] }
-            ch_versions = ch_versions.mix(GUNZIP_TSS_BED.out.versions)
         } else {
-            ch_tss_bed = Channel.value(file(tss_bed, checkIfExists: true))
+            ch_tss_bed = channel.value(file(tss_bed, checkIfExists: true))
         }
     }
 
@@ -140,23 +130,21 @@ workflow PREPARE_GENOME {
     CUSTOM_GETCHROMSIZES ( ch_fasta.map { item -> [ [:], item ] } )
     ch_chrom_sizes = CUSTOM_GETCHROMSIZES.out.sizes.map { tuple -> tuple[1]  }
     ch_fai         = CUSTOM_GETCHROMSIZES.out.fai.map{ tuple -> tuple[1]  }
-    ch_versions    = ch_versions.mix(CUSTOM_GETCHROMSIZES.out.versions)
 
     //
     // Create autosomal chromosome list for ataqv
     //
-    ch_genome_autosomes = Channel.empty()
+    ch_genome_autosomes = channel.empty()
     GET_AUTOSOMES (
         ch_fai
     )
     ch_genome_autosomes = GET_AUTOSOMES.out.txt
-    ch_versions = ch_versions.mix(GET_AUTOSOMES.out.versions)
 
 
     //
     // Prepare genome intervals for filtering by removing regions in blacklist file
     //
-    ch_genome_filtered_bed = Channel.empty()
+    ch_genome_filtered_bed = channel.empty()
     GENOME_BLACKLIST_REGIONS (
         ch_chrom_sizes,
         ch_blacklist.ifEmpty([]),
@@ -164,17 +152,15 @@ workflow PREPARE_GENOME {
         keep_mito
     )
     ch_genome_filtered_bed = GENOME_BLACKLIST_REGIONS.out.bed
-    ch_versions = ch_versions.mix(GENOME_BLACKLIST_REGIONS.out.versions)
 
     //
     // Uncompress BWA index or generate from scratch if required
     //
-    ch_bwa_index = Channel.empty()
+    ch_bwa_index = channel.empty()
     if (prepare_tool_index == 'bwa') {
         if (bwa_index) {
             if (bwa_index.endsWith('.tar.gz')) {
                 ch_bwa_index = UNTAR_BWA_INDEX ( [ [:], bwa_index ] ).untar
-                ch_versions  = ch_versions.mix(UNTAR_BWA_INDEX.out.versions)
             } else {
                 ch_bwa_index = [ [:], file(params.bwa_index, checkIfExists: true)]
             }
@@ -186,54 +172,48 @@ workflow PREPARE_GENOME {
     //
     // Uncompress Bowtie2 index or generate from scratch if required
     //
-    ch_bowtie2_index = Channel.empty()
+    ch_bowtie2_index = channel.empty()
     if (prepare_tool_index == 'bowtie2') {
         if (bowtie2_index) {
             if (bowtie2_index.endsWith('.tar.gz')) {
                 ch_bowtie2_index = UNTAR_BOWTIE2_INDEX ( [ [:], bowtie2_index ] ).untar
-                ch_versions  = ch_versions.mix(UNTAR_BOWTIE2_INDEX.out.versions)
             } else {
                 ch_bowtie2_index = [ [:], file(bowtie2_index, checkIfExists: true) ]
             }
         } else {
             ch_bowtie2_index = BOWTIE2_BUILD ( ch_fasta.map { item -> [ [:], item ] } ).index
-            ch_versions      = ch_versions.mix(BOWTIE2_BUILD.out.versions)
         }
     }
 
     //
     // Uncompress CHROMAP index or generate from scratch if required
     //
-    ch_chromap_index = Channel.empty()
+    ch_chromap_index = channel.empty()
     if (prepare_tool_index == 'chromap') {
         if (chromap_index) {
             if (chromap_index.endsWith('.tar.gz')) {
                 ch_chromap_index = UNTAR_CHROMAP_INDEX ( [ [:], chromap_index ] ).untar
-                ch_versions  = ch_versions.mix(UNTAR_CHROMAP_INDEX.out.versions)
             } else {
                 ch_chromap_index = [ [:], file(chromap_index, checkIfExists: true) ]
             }
         } else {
             ch_chromap_index = CHROMAP_INDEX ( ch_fasta.map { item -> [ [:], item ] } ).index
-            ch_versions  = ch_versions.mix(CHROMAP_INDEX.out.versions)
         }
     }
 
     //
     // Uncompress STAR index or generate from scratch if required
     //
-    ch_star_index = Channel.empty()
+    ch_star_index = channel.empty()
     if (prepare_tool_index == 'star') {
         if (star_index) {
             if (star_index.endsWith('.tar.gz')) {
                 ch_star_index = UNTAR_STAR_INDEX ( [ [:], star_index ] ).untar.map{ tuple -> tuple[1] }
-                ch_versions   = ch_versions.mix(UNTAR_STAR_INDEX.out.versions)
             } else {
-                ch_star_index = Channel.value(file(star_index, checkIfExists: true))
+                ch_star_index = channel.value(file(star_index, checkIfExists: true))
             }
         } else {
             ch_star_index = STAR_GENOMEGENERATE ( ch_fasta, ch_gtf ).index
-            ch_versions   = ch_versions.mix(STAR_GENOMEGENERATE.out.versions)
         }
     }
 
@@ -247,7 +227,6 @@ workflow PREPARE_GENOME {
             read_length
         )
         ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { item -> item.text.trim() }
-        ch_versions   = ch_versions.mix(KHMER_UNIQUEKMERS.out.versions)
     }
 
     emit:
@@ -264,5 +243,4 @@ workflow PREPARE_GENOME {
     star_index    = ch_star_index                 //    path: star/index/
     autosomes     = ch_genome_autosomes           //    path: *.autosomes.txt
     macs_gsize    = ch_macs_gsize                 // integer: MACS3 genome size
-    versions      = ch_versions.ifEmpty(null)     // channel: [ versions.yml ]
 }

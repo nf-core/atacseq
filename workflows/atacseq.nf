@@ -15,7 +15,6 @@ include { MULTIQC } from '../modules/local/multiqc'
 //
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_atacseq_pipeline'
 include { INPUT_CHECK            } from '../subworkflows/local/input_check'
 include { ALIGN_STAR             } from '../subworkflows/local/align_star'
@@ -113,7 +112,6 @@ workflow ATACSEQ {
         ataqv_mito_reference = params.mito_name
     }
 
-    def ch_versions      = channel.empty()
     def ch_multiqc_files = channel.empty()
 
     //
@@ -124,7 +122,6 @@ workflow ATACSEQ {
         params.seq_center,
         params.with_control
     )
-    ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
     // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with Channel.fromSamplesheet("input")
     // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
     // ! There is currently no tooling to help you write a sample sheet schema
@@ -163,10 +160,10 @@ workflow ATACSEQ {
     //
     // SUBWORKFLOW: Alignment with BWA & BAM QC
     //
-    ch_genome_bam        = Channel.empty()
-    ch_samtools_stats    = Channel.empty()
-    ch_samtools_flagstat = Channel.empty()
-    ch_samtools_idxstats = Channel.empty()
+    ch_genome_bam        = channel.empty()
+    ch_samtools_stats    = channel.empty()
+    ch_samtools_flagstat = channel.empty()
+    ch_samtools_idxstats = channel.empty()
     if (params.aligner == 'bwa') {
         FASTQ_ALIGN_BWA (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
@@ -181,7 +178,6 @@ workflow ATACSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BWA.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BWA.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_BWA.out.versions)
     }
 
     //
@@ -202,7 +198,6 @@ workflow ATACSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_BOWTIE2.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_BOWTIE2.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_BOWTIE2.out.versions)
     }
 
     //
@@ -226,13 +221,12 @@ workflow ATACSEQ {
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
         ch_samtools_flagstat = FASTQ_ALIGN_CHROMAP.out.flagstat
         ch_samtools_idxstats = FASTQ_ALIGN_CHROMAP.out.idxstats
-        ch_versions = ch_versions.mix(FASTQ_ALIGN_CHROMAP.out.versions)
     }
 
     //
     // SUBWORKFLOW: Alignment with STAR & BAM QC
     //
-    ch_star_multiqc = Channel.empty()
+    ch_star_multiqc = channel.empty()
     if (params.aligner == 'star') {
         ALIGN_STAR (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
@@ -248,7 +242,6 @@ workflow ATACSEQ {
         ch_samtools_flagstat = ALIGN_STAR.out.flagstat
         ch_samtools_idxstats = ALIGN_STAR.out.idxstats
         ch_star_multiqc      = ALIGN_STAR.out.log_final
-        ch_versions = ch_versions.mix(ALIGN_STAR.out.versions)
     }
 
     // Create channels: [ meta, [bam] ]
@@ -273,7 +266,6 @@ workflow ATACSEQ {
     PICARD_MERGESAMFILES_LIBRARY (
         ch_sort_bam
     )
-    ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_LIBRARY.out.versions.first())
 
     //
     // SUBWORKFLOW: Mark duplicates in BAM files
@@ -281,15 +273,9 @@ workflow ATACSEQ {
     MERGED_LIBRARY_MARKDUPLICATES_PICARD (
         PICARD_MERGESAMFILES_LIBRARY.out.bam,
         ch_fasta
-            .map {
-                [ [:], it ]
-            },
-        ch_fai
-            .map {
-                [ [:], it ]
-            }
+            .combine(ch_fai)
+            .map { fasta, fai -> [ [:], fasta, fai ] }
     )
-    ch_versions = ch_versions.mix(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.versions)
 
     //
     // SUBWORKFLOW: Filter BAM file
@@ -314,24 +300,22 @@ workflow ATACSEQ {
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
-    ch_versions = ch_versions.mix(MERGED_LIBRARY_FILTER_BAM.out.versions)
 
     //
     // MODULE: Preseq coverage analysis
     //
-    ch_preseq_multiqc = Channel.empty()
+    ch_preseq_multiqc = channel.empty()
     if (!params.skip_preseq) {
         MERGED_LIBRARY_PRESEQ_LCEXTRAP (
             MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam
         )
         ch_preseq_multiqc = MERGED_LIBRARY_PRESEQ_LCEXTRAP.out.lc_extrap
-        ch_versions = ch_versions.mix(MERGED_LIBRARY_PRESEQ_LCEXTRAP.out.versions.first())
     }
 
     //
     // MODULE: Picard post alignment QC
     //
-    ch_picardcollectmultiplemetrics_multiqc = Channel.empty()
+    ch_picardcollectmultiplemetrics_multiqc = channel.empty()
     if (!params.skip_picard_metrics) {
         MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS (
             MERGED_LIBRARY_FILTER_BAM
@@ -350,7 +334,6 @@ workflow ATACSEQ {
                 }
         )
         ch_picardcollectmultiplemetrics_multiqc = MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS.out.metrics
-        ch_versions = ch_versions.mix(MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS.out.versions.first())
     }
 
     //
@@ -369,7 +352,6 @@ workflow ATACSEQ {
                 [ [:], it ]
             }
         )
-        ch_versions = ch_versions.mix(MERGED_LIBRARY_BAM_SHIFT_READS.out.versions)
 
         ch_merged_library_filter_bam      = MERGED_LIBRARY_BAM_SHIFT_READS.out.bam
         ch_merged_library_filter_bai      = MERGED_LIBRARY_BAM_SHIFT_READS.out.bai
@@ -387,12 +369,11 @@ workflow ATACSEQ {
         ch_merged_library_filter_bam.join(ch_merged_library_filter_flagstat, by: [0]),
         ch_chrom_sizes
     )
-    ch_versions = ch_versions.mix(MERGED_LIBRARY_BAM_TO_BIGWIG.out.versions)
 
     //
     // SUBWORKFLOW: Plot coverage across annotation with deepTools
     //
-    ch_deeptoolsplotprofile_multiqc = Channel.empty()
+    ch_deeptoolsplotprofile_multiqc = channel.empty()
     if (!params.skip_plot_profile) {
         MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS (
             MERGED_LIBRARY_BAM_TO_BIGWIG.out.bigwig,
@@ -400,7 +381,6 @@ workflow ATACSEQ {
             ch_tss_bed
         )
         ch_deeptoolsplotprofile_multiqc = MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS.out.plotprofile_table
-        ch_versions = ch_versions.mix(MERGED_LIBRARY_BIGWIG_PLOT_DEEPTOOLS.out.versions)
     }
 
     // Create channels: [ meta, [bam], [bai] ] or [ meta, [ bam, control_bam ] [ bai, control_bai ] ]
@@ -438,13 +418,12 @@ workflow ATACSEQ {
     //
     // MODULE: deepTools plotFingerprint QC
     //
-    ch_deeptoolsplotfingerprint_multiqc = Channel.empty()
+    ch_deeptoolsplotfingerprint_multiqc = channel.empty()
     if (!params.skip_plot_fingerprint) {
         MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT (
             ch_bam_bai
         )
         ch_deeptoolsplotfingerprint_multiqc = MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT.out.matrix
-        ch_versions = ch_versions.mix(MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT.out.versions.first())
     }
 
     // Create channel: [ val(meta), bam, control_bam ]
@@ -480,15 +459,14 @@ workflow ATACSEQ {
         params.skip_peak_annotation,
         params.skip_peak_qc
     )
-    ch_versions = ch_versions.mix(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.versions)
 
     //
     // SUBWORKFLOW: Consensus peaks analysis
     //
-    ch_macs3_consensus_library_bed       = Channel.empty()
-    ch_featurecounts_library_multiqc     = Channel.empty()
-    ch_deseq2_pca_library_multiqc        = Channel.empty()
-    ch_deseq2_clustering_library_multiqc = Channel.empty()
+    ch_macs3_consensus_library_bed       = channel.empty()
+    ch_featurecounts_library_multiqc     = channel.empty()
+    ch_deseq2_pca_library_multiqc        = channel.empty()
+    ch_deseq2_clustering_library_multiqc = channel.empty()
     if (!params.skip_consensus_peaks) {
         MERGED_LIBRARY_CONSENSUS_PEAKS (
             MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks,
@@ -505,7 +483,6 @@ workflow ATACSEQ {
         ch_featurecounts_library_multiqc     = MERGED_LIBRARY_CONSENSUS_PEAKS.out.featurecounts_summary
         ch_deseq2_pca_library_multiqc        = MERGED_LIBRARY_CONSENSUS_PEAKS.out.deseq2_qc_pca_multiqc
         ch_deseq2_clustering_library_multiqc = MERGED_LIBRARY_CONSENSUS_PEAKS.out.deseq2_qc_dists_multiqc
-        ch_versions = ch_versions.mix(MERGED_LIBRARY_CONSENSUS_PEAKS.out.versions)
     }
 
     // Create channels: [ meta, bam, bai, peak_file ]
@@ -537,30 +514,28 @@ workflow ATACSEQ {
             [],
             ch_autosomes
         )
-        ch_versions = ch_versions.mix(MERGED_LIBRARY_ATAQV_ATAQV.out.versions.first())
 
         MERGED_LIBRARY_ATAQV_MKARV (
             MERGED_LIBRARY_ATAQV_ATAQV.out.json.collect{it[1]}
         )
-        ch_versions = ch_versions.mix(MERGED_LIBRARY_ATAQV_MKARV.out.versions)
     }
 
     //
     // Merged replicate analysis
     //
-    ch_markduplicates_replicate_stats                   = Channel.empty()
-    ch_markduplicates_replicate_flagstat                = Channel.empty()
-    ch_markduplicates_replicate_idxstats                = Channel.empty()
-    ch_markduplicates_replicate_metrics                 = Channel.empty()
-    ch_ucsc_bedgraphtobigwig_replicate_bigwig           = Channel.empty()
-    ch_macs3_replicate_peaks                            = Channel.empty()
-    ch_macs3_frip_replicate_multiqc                     = Channel.empty()
-    ch_macs3_peak_count_replicate_multiqc               = Channel.empty()
-    ch_macs3_plot_homer_annotatepeaks_replicate_multiqc = Channel.empty()
-    ch_macs3_consensus_replicate_bed                    = Channel.empty()
-    ch_featurecounts_replicate_multiqc                  = Channel.empty()
-    ch_deseq2_pca_replicate_multiqc                     = Channel.empty()
-    ch_deseq2_clustering_replicate_multiqc              = Channel.empty()
+    ch_markduplicates_replicate_stats                   = channel.empty()
+    ch_markduplicates_replicate_flagstat                = channel.empty()
+    ch_markduplicates_replicate_idxstats                = channel.empty()
+    ch_markduplicates_replicate_metrics                 = channel.empty()
+    ch_ucsc_bedgraphtobigwig_replicate_bigwig           = channel.empty()
+    ch_macs3_replicate_peaks                            = channel.empty()
+    ch_macs3_frip_replicate_multiqc                     = channel.empty()
+    ch_macs3_peak_count_replicate_multiqc               = channel.empty()
+    ch_macs3_plot_homer_annotatepeaks_replicate_multiqc = channel.empty()
+    ch_macs3_consensus_replicate_bed                    = channel.empty()
+    ch_featurecounts_replicate_multiqc                  = channel.empty()
+    ch_deseq2_pca_replicate_multiqc                     = channel.empty()
+    ch_deseq2_clustering_replicate_multiqc              = channel.empty()
     if (!params.skip_merge_replicates) {
 
         // Check if we have multiple replicates
@@ -589,7 +564,6 @@ workflow ATACSEQ {
         PICARD_MERGESAMFILES_REPLICATE (
             ch_merged_library_replicate_bam
         )
-        ch_versions = ch_versions.mix(PICARD_MERGESAMFILES_REPLICATE.out.versions.first())
 
         //
         // SUBWORKFLOW: Mark duplicates & filter BAM files after merging
@@ -597,19 +571,13 @@ workflow ATACSEQ {
         MERGED_REPLICATE_MARKDUPLICATES_PICARD (
             PICARD_MERGESAMFILES_REPLICATE.out.bam,
             ch_fasta
-                .map {
-                    [ [:], it ]
-                },
-            ch_fai
-                .map {
-                    [ [:], it ]
-                }
+                .combine(ch_fai)
+                .map { fasta, fai -> [ [:], fasta, fai ] }
         )
         ch_markduplicates_replicate_stats    = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.stats
         ch_markduplicates_replicate_flagstat = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat
         ch_markduplicates_replicate_idxstats = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.idxstats
         ch_markduplicates_replicate_metrics  = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.metrics
-        ch_versions = ch_versions.mix(MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.versions)
 
         //
         // SUBWORKFLOW: Shift paired-end reads
@@ -628,7 +596,6 @@ workflow ATACSEQ {
                     [ [:], it ]
                 }
             )
-            ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_SHIFT_READS.out.versions)
 
             ch_merged_replicate_markduplicate_bam      = MERGED_REPLICATE_BAM_SHIFT_READS.out.bam
             ch_merged_replicate_markduplicate_bai      = MERGED_REPLICATE_BAM_SHIFT_READS.out.bai
@@ -644,7 +611,6 @@ workflow ATACSEQ {
                 ch_chrom_sizes
             )
             ch_ucsc_bedgraphtobigwig_replicate_bigwig = MERGED_REPLICATE_BAM_TO_BIGWIG.out.bigwig
-            ch_versions = ch_versions.mix(MERGED_REPLICATE_BAM_TO_BIGWIG.out.versions)
         }
         // Create channels: [ meta, bam, ([] for control_bam) ]
         if (params.with_control) {
@@ -692,7 +658,6 @@ workflow ATACSEQ {
         ch_macs3_frip_replicate_multiqc                     = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.frip_multiqc
         ch_macs3_peak_count_replicate_multiqc               = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.peak_count_multiqc
         ch_macs3_plot_homer_annotatepeaks_replicate_multiqc = MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.plot_homer_annotatepeaks_tsv
-        ch_versions = ch_versions.mix(MERGED_REPLICATE_CALL_ANNOTATE_PEAKS.out.versions)
 
         //
         // SUBWORKFLOW: Consensus peaks analysis
@@ -713,7 +678,6 @@ workflow ATACSEQ {
             ch_featurecounts_replicate_multiqc     = MERGED_REPLICATE_CONSENSUS_PEAKS.out.featurecounts_summary
             ch_deseq2_pca_replicate_multiqc        = MERGED_REPLICATE_CONSENSUS_PEAKS.out.deseq2_qc_pca_multiqc
             ch_deseq2_clustering_replicate_multiqc = MERGED_REPLICATE_CONSENSUS_PEAKS.out.deseq2_qc_dists_multiqc
-            ch_versions = ch_versions.mix(MERGED_REPLICATE_CONSENSUS_PEAKS.out.versions)
         }
     }
 
@@ -747,36 +711,25 @@ workflow ATACSEQ {
                 "/consensus"
                 ].join('') },
         )
-        ch_versions = ch_versions.mix(IGV.out.versions)
     }
 
     //
     // Collate and save software versions
     //
-    def topic_versions = channel.topic("versions")
-        .distinct()
-        .branch { entry ->
-            versions_file: entry instanceof Path
-            versions_tuple: true
-        }
-
-    def topic_versions_string = topic_versions.versions_tuple
+    def ch_collated_versions = channel.topic('versions')
         .map { process, tool, version ->
-            [ process[process.lastIndexOf(':')+1..-1], "  ${tool}: ${version}" ]
+            [ process[process.lastIndexOf(':') + 1..-1], "  ${tool}: ${version}" ]
         }
-        .groupTuple(by:0)
+        .groupTuple(by: 0)
         .map { process, tool_versions ->
-            tool_versions.unique().sort()
-            "${process}:\n${tool_versions.join('\n')}"
+            def dedup = tool_versions.unique().sort()
+            "${process}:\n${dedup.join('\n')}"
         }
-
-    def ch_collated_versions = softwareVersionsToYAML(ch_versions.mix(topic_versions.versions_file))
-        .mix(topic_versions_string)
         .collectFile(
+            name: 'nf_core_atacseq_software_mqc_versions.yml',
             storeDir: "${outdir}/pipeline_info",
-            name: 'nf_core_'  +  'atacseq_software_'  + 'mqc_'  + 'versions.yml',
             sort: true,
-            newLine: true
+            newLine: true,
         )
 
     //
@@ -785,13 +738,13 @@ workflow ATACSEQ {
     def ch_multiqc_report = channel.empty()
 
     if (!params.skip_multiqc) {
-        def ch_multiqc_config                     = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-        def ch_multiqc_custom_config              = multiqc_config ? Channel.fromPath(multiqc_config) : Channel.empty()
-        def ch_multiqc_logo                       = multiqc_logo   ? Channel.fromPath(multiqc_logo)   : Channel.empty()
+        def ch_multiqc_config                     = channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+        def ch_multiqc_custom_config              = multiqc_config ? channel.fromPath(multiqc_config) : channel.empty()
+        def ch_multiqc_logo                       = multiqc_logo   ? channel.fromPath(multiqc_logo)   : channel.empty()
         def ch_summary_params                     = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
-        def ch_workflow_summary                   = Channel.value(paramsSummaryMultiqc(ch_summary_params))
+        def ch_workflow_summary                   = channel.value(paramsSummaryMultiqc(ch_summary_params))
         def ch_multiqc_custom_methods_description = multiqc_methods_description ? file(multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
-        def ch_methods_description                = Channel.value(methodsDescriptionText(ch_multiqc_custom_methods_description))
+        def ch_methods_description                = channel.value(methodsDescriptionText(ch_multiqc_custom_methods_description))
         ch_multiqc_files                          = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
         ch_multiqc_files                          = ch_multiqc_files.mix(ch_collated_versions)
         ch_multiqc_files                          = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml', sort: false))
@@ -850,7 +803,6 @@ workflow ATACSEQ {
 
     emit:
     multiqc_report = ch_multiqc_report.toList() // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                // channel: [ path(versions.yml) ]
 }
 
 /*
