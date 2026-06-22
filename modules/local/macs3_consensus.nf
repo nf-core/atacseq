@@ -30,12 +30,12 @@ process MACS3_CONSENSUS {
     def collapsecols = is_narrow_peak  ? (['collapse']*9).join(',') : (['collapse']*8).join(',')
     def expandparam  = is_narrow_peak  ? '--is_narrow_peak' : ''
     """
-    sort -T '.' -k1,1 -k2,2n ${peaks.collect{it.toString()}.sort().join(' ')} \\
+    sort -T '.' -k1,1 -k2,2n ${peaks.collect { item -> item.toString() }.sort().join(' ')} \\
         | mergeBed -c $mergecols -o $collapsecols > ${prefix}.txt
 
     macs3_merged_expand.py \\
         ${prefix}.txt \\
-        ${peaks.collect{it.toString()}.sort().join(',').replaceAll("_peaks.${peak_type}","")} \\
+        ${peaks.collect { item -> item.toString() }.sort().join(',').replaceAll("_peaks.${peak_type}","")} \\
         ${prefix}.boolean.txt \\
         $args \\
         $expandparam
