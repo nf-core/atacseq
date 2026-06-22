@@ -223,10 +223,10 @@ workflow PREPARE_GENOME {
     ch_macs_gsize = macs_gsize
     if (!macs_gsize) {
         KHMER_UNIQUEKMERS (
-            ch_fasta,
+            ch_fasta.map { item -> [ [:], item ] },
             read_length
         )
-        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { item -> item.text.trim() }
+        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { _meta, kmers -> kmers.text.trim() }
     }
 
     emit:
