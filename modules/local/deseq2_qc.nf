@@ -24,7 +24,7 @@ process DESEQ2_QC {
     path "*sample.dists_mqc.tsv", optional:true, emit: dists_multiqc
     path "*.log"                , optional:true, emit: log
     path "size_factors"         , optional:true, emit: size_factors
-    tuple val("${task.process}"), val('r-base'), eval("echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//'"), topic: versions
+    tuple val("${task.process}"), val('r-base'), eval("R --version 2>&1 | tr '\\n' ' ' | sed 's/^.*R version //; s/ .*\$//'"), topic: versions
     tuple val("${task.process}"), val('bioconductor-deseq2'), eval("Rscript -e \"library(DESeq2); cat(as.character(packageVersion('DESeq2')))\""), topic: versions
     when:
     task.ext.when == null || task.ext.when

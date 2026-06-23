@@ -163,15 +163,19 @@ workflow ATACSEQ {
     ch_samtools_stats    = channel.empty()
     ch_samtools_flagstat = channel.empty()
     ch_samtools_idxstats = channel.empty()
+
+    // Combined [ meta, fasta, fai ] channel required by the updated
+    // FASTQ_ALIGN_* subworkflows and BAM_SORT_STATS_SAMTOOLS
+    ch_fasta_fai = ch_fasta
+        .combine(ch_fai)
+        .map { fasta, fai -> [ [:], fasta, fai ] }
+
     if (params.aligner == 'bwa') {
         FASTQ_ALIGN_BWA (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             ch_bwa_index,
             false,
-            ch_fasta
-                .map { item ->
-                        [ [:], item ]
-                }
+            ch_fasta_fai
         )
         ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
         ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
@@ -188,10 +192,7 @@ workflow ATACSEQ {
             ch_bowtie2_index,
             params.save_unaligned,
             false,
-            ch_fasta
-                .map { item ->
-                    [ [:], item ]
-                }
+            ch_fasta_fai
         )
         ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
@@ -206,10 +207,7 @@ workflow ATACSEQ {
         FASTQ_ALIGN_CHROMAP (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             ch_chromap_index,
-            ch_fasta
-                .map { item ->
-                    [ [:], item ]
-                },
+            ch_fasta_fai,
             [],
             [],
             [],
@@ -229,10 +227,7 @@ workflow ATACSEQ {
         ALIGN_STAR (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             ch_star_index,
-            ch_fasta
-                .map { item ->
-                    [ [:], item ]
-                },
+            ch_fasta_fai,
             params.seq_center ?: ''
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
@@ -283,9 +278,8 @@ workflow ATACSEQ {
             .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.index, by: [0]),
         ch_filtered_bed.first(),
         ch_fasta
-            .map { item ->
-                [ [:], item ]
-            },
+            .combine(ch_fai)
+            .map { fasta, fai -> [ [:], fasta, fai ] },
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )

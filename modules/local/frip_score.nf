@@ -13,7 +13,7 @@ process FRIP_SCORE {
     output:
     tuple val(meta), path("*.txt"), emit: txt
     tuple val("${task.process}"), val('bedtools'), eval("bedtools --version | sed -e \"s/bedtools v//g\""), topic: versions
-    tuple val("${task.process}"), val('samtools'), eval("echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//'"), topic: versions
+    tuple val("${task.process}"), val('samtools'), eval("samtools --version 2>&1 | tr '\\n' ' ' | sed 's/^.*samtools //; s/Using.*\$//'"), topic: versions
     when:
     task.ext.when == null || task.ext.when
 

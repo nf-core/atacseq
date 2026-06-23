@@ -10,7 +10,7 @@ workflow BAM_FILTER_BAMTOOLS {
     take:
     ch_bam_bai                   // channel: [ val(meta), [ bam ], [bai] ]
     ch_bed                       // channel: [ bed ]
-    ch_fasta                     // channel: [ fasta ]
+    ch_fasta_fai                 // channel: [ val(meta), path(fasta), path(fai) ]
     ch_bamtools_filter_se_config // channel: [ config_file ]
     ch_bamtools_filter_pe_config // channel: [ config_file ]
 
@@ -53,7 +53,7 @@ workflow BAM_FILTER_BAMTOOLS {
     //
     BAM_STATS_SAMTOOLS (
         ch_bam.single_end.join(ch_index),
-        ch_fasta
+        ch_fasta_fai
     )
 
     //
@@ -61,7 +61,7 @@ workflow BAM_FILTER_BAMTOOLS {
     //
     SAMTOOLS_SORT (
         ch_bam.paired_end,
-        ch_fasta.map { fasta -> [ [:], fasta, [] ] },
+        ch_fasta_fai,
         ''
     )
 
@@ -77,7 +77,7 @@ workflow BAM_FILTER_BAMTOOLS {
     //
     BAM_SORT_STATS_SAMTOOLS (
         BAM_REMOVE_ORPHANS.out.bam,
-        ch_fasta
+        ch_fasta_fai
     )
 
     emit:

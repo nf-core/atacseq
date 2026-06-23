@@ -7,10 +7,10 @@ include { BAM_SORT_STATS_SAMTOOLS } from '../nf-core/bam_sort_stats_samtools/mai
 
 workflow ALIGN_STAR {
     take:
-    ch_reads   // channel: [ val(meta), [ reads ] ]
-    ch_index   // channel: /path/to/star/index/
-    ch_fasta   // channel: /path/to/fasta
-    seq_center //  string: sequencing center
+    ch_reads     // channel: [ val(meta), [ reads ] ]
+    ch_index     // channel: /path/to/star/index/
+    ch_fasta_fai // channel: [ val(meta), path(fasta), path(fai) ]
+    seq_center   //  string: sequencing center
 
     main:
 
@@ -23,7 +23,7 @@ workflow ALIGN_STAR {
     //
     // Sort, index BAM file and run samtools stats, flagstat and idxstats
     //
-    BAM_SORT_STATS_SAMTOOLS ( STAR_ALIGN.out.bam, ch_fasta )
+    BAM_SORT_STATS_SAMTOOLS ( STAR_ALIGN.out.bam, ch_fasta_fai )
 
     emit:
     orig_bam       = STAR_ALIGN.out.bam                   // channel: [ val(meta), bam            ]
