@@ -17,7 +17,7 @@ include {
     UNTAR as UNTAR_STAR_INDEX    } from '../../modules/nf-core/untar/main'
 
 include { GFFREAD              } from '../../modules/nf-core/gffread/main'
-include { CUSTOM_GETCHROMSIZES } from '../../modules/nf-core/custom/getchromsizes/main'
+include { SAMTOOLS_FAIDX       } from '../../modules/nf-core/samtools/faidx/main'
 include { BWA_INDEX            } from '../../modules/nf-core/bwa/index/main'
 include { BOWTIE2_BUILD        } from '../../modules/nf-core/bowtie2/build/main'
 include { CHROMAP_INDEX        } from '../../modules/nf-core/chromap/index/main'
@@ -127,9 +127,9 @@ workflow PREPARE_GENOME {
     //
     // Create chromosome sizes file
     //
-    CUSTOM_GETCHROMSIZES ( ch_fasta.map { item -> [ [:], item ] } )
-    ch_chrom_sizes = CUSTOM_GETCHROMSIZES.out.sizes.map { tuple -> tuple[1]  }
-    ch_fai         = CUSTOM_GETCHROMSIZES.out.fai.map{ tuple -> tuple[1]  }
+    SAMTOOLS_FAIDX ( ch_fasta.map { item -> [ [:], item, [] ] }, true )
+    ch_chrom_sizes = SAMTOOLS_FAIDX.out.sizes.map { tuple -> tuple[1] }
+    ch_fai         = SAMTOOLS_FAIDX.out.fai.map { tuple -> tuple[1] }
 
     //
     // Create autosomal chromosome list for ataqv
@@ -223,10 +223,10 @@ workflow PREPARE_GENOME {
     ch_macs_gsize = macs_gsize
     if (!macs_gsize) {
         KHMER_UNIQUEKMERS (
-            ch_fasta,
+            ch_fasta.map { item -> [ [:], item ] },
             read_length
         )
-        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { item -> item.text.trim() }
+        ch_macs_gsize = KHMER_UNIQUEKMERS.out.kmers.map { _meta, kmers -> kmers.text.trim() }
     }
 
     emit:

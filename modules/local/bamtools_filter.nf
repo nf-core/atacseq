@@ -15,8 +15,8 @@ process BAMTOOLS_FILTER {
 
     output:
     tuple val(meta), path("*.bam"), emit: bam
-    tuple val("${task.process}"), val('samtools'), eval("echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//'"), topic: versions
-    tuple val("${task.process}"), val('bamtools'), eval("echo \$(bamtools --version 2>&1) | sed 's/^.*bamtools //; s/Part .*\$//'"), topic: versions
+    tuple val("${task.process}"), val('samtools'), eval("samtools --version 2>&1 | tr '\\n' ' ' | sed 's/^.*samtools //; s/Using.*\$//'"), topic: versions
+    tuple val("${task.process}"), val('bamtools'), eval("bamtools --version 2>&1 | tr '\\n' ' ' | sed 's/^.*bamtools //; s/Part .*\$//'"), topic: versions
     when:
     task.ext.when == null || task.ext.when
 

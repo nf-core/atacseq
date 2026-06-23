@@ -122,7 +122,7 @@ workflow ATACSEQ {
         params.seq_center,
         params.with_control
     )
-    // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with Channel.fromSamplesheet("input")
+    // TODO: OPTIONAL, you can use nf-validation plugin to create an input channel from the samplesheet with channel.fromSamplesheet("input")
     // See the documentation https://nextflow-io.github.io/nf-validation/samplesheets/fromSamplesheet/
     // ! There is currently no tooling to help you write a sample sheet schema
 
@@ -163,15 +163,19 @@ workflow ATACSEQ {
     ch_samtools_stats    = channel.empty()
     ch_samtools_flagstat = channel.empty()
     ch_samtools_idxstats = channel.empty()
+
+    // Combined [ meta, fasta, fai ] channel required by the updated
+    // FASTQ_ALIGN_* subworkflows and BAM_SORT_STATS_SAMTOOLS
+    ch_fasta_fai = ch_fasta
+        .combine(ch_fai)
+        .map { fasta, fai -> [ [:], fasta, fai ] }
+
     if (params.aligner == 'bwa') {
         FASTQ_ALIGN_BWA (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             ch_bwa_index,
             false,
-            ch_fasta
-                .map { item ->
-                        [ [:], item ]
-                }
+            ch_fasta_fai
         )
         ch_genome_bam        = FASTQ_ALIGN_BWA.out.bam
         ch_samtools_stats    = FASTQ_ALIGN_BWA.out.stats
@@ -188,10 +192,7 @@ workflow ATACSEQ {
             ch_bowtie2_index,
             params.save_unaligned,
             false,
-            ch_fasta
-                .map { item ->
-                    [ [:], item ]
-                }
+            ch_fasta_fai
         )
         ch_genome_bam        = FASTQ_ALIGN_BOWTIE2.out.bam
         ch_samtools_stats    = FASTQ_ALIGN_BOWTIE2.out.stats
@@ -206,10 +207,7 @@ workflow ATACSEQ {
         FASTQ_ALIGN_CHROMAP (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             ch_chromap_index,
-            ch_fasta
-                .map { item ->
-                    [ [:], item ]
-                },
+            ch_fasta_fai,
             [],
             [],
             [],
@@ -229,10 +227,7 @@ workflow ATACSEQ {
         ALIGN_STAR (
             FASTQ_FASTQC_UMITOOLS_TRIMGALORE.out.reads,
             ch_star_index,
-            ch_fasta
-                .map { item ->
-                    [ [:], item ]
-                },
+            ch_fasta_fai,
             params.seq_center ?: ''
         )
         ch_genome_bam        = ALIGN_STAR.out.bam
@@ -280,21 +275,11 @@ workflow ATACSEQ {
     //
     MERGED_LIBRARY_FILTER_BAM (
         MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bam
-            .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0], remainder: true)
-            .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.csi, by: [0], remainder: true)
-            .map {
-                meta, bam, bai, csi ->
-                    if (bai) {
-                        [ meta, bam, bai ]
-                    } else {
-                        [ meta, bam, csi ]
-                    }
-            },
+            .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.index, by: [0]),
         ch_filtered_bed.first(),
         ch_fasta
-            .map { item ->
-                [ [:], item ]
-            },
+            .combine(ch_fai)
+            .map { fasta, fai -> [ [:], fasta, fai ] },
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
@@ -338,13 +323,12 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Shift paired-end reads
     //
     ch_merged_library_filter_bam      = MERGED_LIBRARY_FILTER_BAM.out.bam
-    ch_merged_library_filter_bai      = MERGED_LIBRARY_FILTER_BAM.out.bai
+    ch_merged_library_filter_index    = MERGED_LIBRARY_FILTER_BAM.out.index
     ch_merged_library_filter_flagstat = MERGED_LIBRARY_FILTER_BAM.out.flagstat
-    ch_merged_library_filter_csi      = MERGED_LIBRARY_FILTER_BAM.out.csi
 
     if (params.shift_reads && params.aligner != 'chromap' ) {
         MERGED_LIBRARY_BAM_SHIFT_READS (
-            ch_merged_library_filter_bam.join(ch_merged_library_filter_bai, by: [0]),
+            ch_merged_library_filter_bam.join(ch_merged_library_filter_index, by: [0]),
             ch_fasta
             .map { item ->
                 [ [:], item ]
@@ -352,9 +336,8 @@ workflow ATACSEQ {
         )
 
         ch_merged_library_filter_bam      = MERGED_LIBRARY_BAM_SHIFT_READS.out.bam
-        ch_merged_library_filter_bai      = MERGED_LIBRARY_BAM_SHIFT_READS.out.bai
+        ch_merged_library_filter_index    = MERGED_LIBRARY_BAM_SHIFT_READS.out.index
         ch_merged_library_filter_flagstat = MERGED_LIBRARY_BAM_SHIFT_READS.out.flagstat
-        ch_merged_library_filter_csi      = MERGED_LIBRARY_BAM_SHIFT_READS.out.csi
 
     }
 
@@ -383,16 +366,7 @@ workflow ATACSEQ {
 
     // Create channels: [ meta, [bam], [bai] ] or [ meta, [ bam, control_bam ] [ bai, control_bai ] ]
     ch_merged_library_filter_bam
-        .join(ch_merged_library_filter_bai, by: [0], remainder: true)
-        .join(ch_merged_library_filter_csi, by: [0], remainder: true)
-        .map {
-            meta, bam, bai, csi ->
-                if (bai) {
-                    [ meta, bam, bai ]
-                } else {
-                    [ meta, bam, csi ]
-                }
-        }
+        .join(ch_merged_library_filter_index, by: [0])
         .set { ch_bam_bai }
 
     if (params.with_control) {
@@ -487,16 +461,7 @@ workflow ATACSEQ {
     MERGED_LIBRARY_MARKDUPLICATES_PICARD
         .out
         .bam
-        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.bai, by: [0], remainder: true)
-        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.csi, by: [0], remainder: true)
-        .map {
-            meta, bam, bai, csi ->
-                if (bai) {
-                    [ meta, bam, bai ]
-                } else {
-                    [ meta, bam, csi ]
-                }
-        }
+        .join(MERGED_LIBRARY_MARKDUPLICATES_PICARD.out.index, by: [0])
         .join(MERGED_LIBRARY_CALL_ANNOTATE_PEAKS.out.peaks, by: [0])
         .set { ch_bam_peaks }
 
@@ -582,13 +547,12 @@ workflow ATACSEQ {
         // Shift again, as ch_merged_library_replicate_bam is generated out of unshifted reads
         //
         ch_merged_replicate_markduplicate_bam      = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bam
-        ch_merged_replicate_markduplicate_bai      = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.bai
+        ch_merged_replicate_markduplicate_index    = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.index
         ch_merged_replicate_markduplicate_flagstat = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.flagstat
-        ch_merged_replicate_markduplicate_csi      = MERGED_REPLICATE_MARKDUPLICATES_PICARD.out.csi
 
         if (params.shift_reads && params.aligner != 'chromap' ) {
             MERGED_REPLICATE_BAM_SHIFT_READS (
-                ch_merged_replicate_markduplicate_bam.join(ch_merged_replicate_markduplicate_bai, by: [0]),
+                ch_merged_replicate_markduplicate_bam.join(ch_merged_replicate_markduplicate_index, by: [0]),
                 ch_fasta
                 .map { item ->
                     [ [:], item ]
@@ -596,9 +560,8 @@ workflow ATACSEQ {
             )
 
             ch_merged_replicate_markduplicate_bam      = MERGED_REPLICATE_BAM_SHIFT_READS.out.bam
-            ch_merged_replicate_markduplicate_bai      = MERGED_REPLICATE_BAM_SHIFT_READS.out.bai
+            ch_merged_replicate_markduplicate_index    = MERGED_REPLICATE_BAM_SHIFT_READS.out.index
             ch_merged_replicate_markduplicate_flagstat = MERGED_REPLICATE_BAM_SHIFT_READS.out.flagstat
-            ch_merged_replicate_markduplicate_csi      = MERGED_REPLICATE_BAM_SHIFT_READS.out.csi
         }
         if (!params.skip_merged_replicate_bigwig) {
             //

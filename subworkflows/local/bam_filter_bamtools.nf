@@ -10,7 +10,7 @@ workflow BAM_FILTER_BAMTOOLS {
     take:
     ch_bam_bai                   // channel: [ val(meta), [ bam ], [bai] ]
     ch_bed                       // channel: [ bed ]
-    ch_fasta                     // channel: [ fasta ]
+    ch_fasta_fai                 // channel: [ val(meta), path(fasta), path(fai) ]
     ch_bamtools_filter_se_config // channel: [ config_file ]
     ch_bamtools_filter_pe_config // channel: [ config_file ]
 
@@ -46,24 +46,14 @@ workflow BAM_FILTER_BAMTOOLS {
         ch_bam.single_end
     }
 
-    SAMTOOLS_INDEX.out.bai
-        .join(SAMTOOLS_INDEX.out.csi, by: [0], remainder: true)
-        .map {
-            meta, bai, csi ->
-                if (bai) {
-                    [ meta, bai ]
-                } else {
-                    [ meta, csi ]
-                }
-        }
-        .set { ch_index }
+    ch_index = SAMTOOLS_INDEX.out.index
 
     //
     // Run samtools stats, flagstat and idxstats on SE BAM
     //
     BAM_STATS_SAMTOOLS (
         ch_bam.single_end.join(ch_index),
-        ch_fasta
+        ch_fasta_fai
     )
 
     //
@@ -71,7 +61,7 @@ workflow BAM_FILTER_BAMTOOLS {
     //
     SAMTOOLS_SORT (
         ch_bam.paired_end,
-        ch_fasta.map { fasta -> [ [:], fasta, [] ] },
+        ch_fasta_fai,
         ''
     )
 
@@ -87,14 +77,13 @@ workflow BAM_FILTER_BAMTOOLS {
     //
     BAM_SORT_STATS_SAMTOOLS (
         BAM_REMOVE_ORPHANS.out.bam,
-        ch_fasta
+        ch_fasta_fai
     )
 
     emit:
     name_bam = SAMTOOLS_SORT.out.bam                                                     // channel: [ val(meta), [ bam ] ]
     bam      = BAM_SORT_STATS_SAMTOOLS.out.bam.mix(ch_bam.single_end)                    // channel: [ val(meta), [ bam ] ]
-    bai      = BAM_SORT_STATS_SAMTOOLS.out.bai.mix(SAMTOOLS_INDEX.out.bai)               // channel: [ val(meta), [ bai ] ]
-    csi      = BAM_SORT_STATS_SAMTOOLS.out.csi.mix(SAMTOOLS_INDEX.out.csi)               // channel: [ val(meta), [ csi ] ]
+    index    = BAM_SORT_STATS_SAMTOOLS.out.index.mix(SAMTOOLS_INDEX.out.index)           // channel: [ val(meta), [ bai/csi ] ]
     stats    = BAM_SORT_STATS_SAMTOOLS.out.stats.mix(BAM_STATS_SAMTOOLS.out.stats)       // channel: [ val(meta), [ stats ] ]
     flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat.mix(BAM_STATS_SAMTOOLS.out.flagstat) // channel: [ val(meta), [ flagstat ] ]
     idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats.mix(BAM_STATS_SAMTOOLS.out.idxstats) // channel: [ val(meta), [ idxstats ] ]
