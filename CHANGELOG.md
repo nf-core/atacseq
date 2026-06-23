@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements & fixes
 
+- [[#446]](https://github.com/nf-core/atacseq/pull/446) - Make pipeline code compliant with strict Nextflow v2 syntax parser, with no behaviour change.
 - [[#407]](https://github.com/nf-core/atacseq/pull/407) to add filtering reads according fragment size to help to focus on NFR, MNR, DNR, TNR
 - [[#164]](https://github.com/nf-core/atacseq/issues/164) and partly [[#91]](https://github.com/nf-core/atacseq/issues/91) with code from [[#301]](https://github.com/nf-core/atacseq/pull/301) to address shifting of reads as an option that is turned off by default.
 - [[#327](https://github.com/nf-core/atacseq/issues/327)] - Consistently support `.csi` indices as alternative to `.bai` to allow SAMTOOLS_INDEX to be used with the `-c` flag.

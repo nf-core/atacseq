@@ -26,8 +26,8 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     // Create channels: [ meta , [ peaks ] ]
     // where meta = [ id : consensus_peaks ]
     ch_peaks
-        .collect { it[1] }
-        .filter { it.size() > 1 }
+        .collect { item -> item[1] }
+        .filter { item -> item.size() > 1 }
         .map {
             peaks ->
                 [ [ id: 'consensus_peaks' ], peaks ]
@@ -58,12 +58,12 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     // Create channels: [ meta, [ bams ], saf ]
     ch_bams
         .join(ch_peaks)
-        .collect { it[1] }
-        .filter { it.size() > 1 }
-        .map { [ it ] }
+        .collect { item -> item[1] }
+        .filter { item -> item.size() > 1 }
+        .map { item -> [ item ] }
         .concat(MACS3_CONSENSUS.out.saf)
         .collect()
-        .filter { it.size() == 3 }
+        .filter { item -> item.size() == 3 }
         .map {
             bam, meta, saf ->
                 [ meta, bam , saf ]
