@@ -165,10 +165,16 @@ workflow ATACSEQ {
     ch_samtools_idxstats = channel.empty()
 
     // Combined [ meta, fasta, fai ] channel required by the updated
-    // FASTQ_ALIGN_* subworkflows and BAM_SORT_STATS_SAMTOOLS
+    // FASTQ_ALIGN_* subworkflows and BAM_SORT_STATS_SAMTOOLS.
+    // .first() makes this a value channel so the single reference is
+    // broadcast to every sample. Without it, combine(ch_fasta, ch_fai)
+    // yields a one-element QUEUE (ch_fai derives from SAMTOOLS_FAIDX.out),
+    // which would cap all downstream reference-consuming processes at the
+    // first sample only.
     ch_fasta_fai = ch_fasta
         .combine(ch_fai)
         .map { fasta, fai -> [ [:], fasta, fai ] }
+        .first()
 
     if (params.aligner == 'bwa') {
         FASTQ_ALIGN_BWA (
