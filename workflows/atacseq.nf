@@ -175,6 +175,7 @@ workflow ATACSEQ {
         .combine(ch_fai)
         .map { fasta, fai -> [ [:], fasta, fai ] }
         .first()
+        .first()
 
     if (params.aligner == 'bwa') {
         FASTQ_ALIGN_BWA (
