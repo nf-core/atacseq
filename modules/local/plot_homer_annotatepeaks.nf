@@ -15,7 +15,7 @@ process PLOT_HOMER_ANNOTATEPEAKS {
     path '*.txt'       , emit: txt
     path '*.pdf'       , emit: pdf
     path '*.tsv'       , emit: tsv
-    tuple val("${task.process}"), val('r-base'), eval("R --version 2>&1 | tr '\\n' ' ' | sed 's/^.*R version //; s/ .*\$//'"), topic: versions
+    tuple val("${task.process}"), val('r-base'), eval("R --version | sed '1!d;s/.*version //;s/ .*//'"), topic: versions
     when:
     task.ext.when == null || task.ext.when
 

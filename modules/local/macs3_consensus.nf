@@ -18,7 +18,7 @@ process MACS3_CONSENSUS {
     tuple val(meta), path("*.boolean.txt")  , emit: boolean_txt
     tuple val(meta), path("*.intersect.txt"), emit: intersect_txt
     tuple val("${task.process}"), val('python'), eval("python --version | sed 's/Python //g'"), topic: versions
-    tuple val("${task.process}"), val('r-base'), eval("R --version 2>&1 | tr '\\n' ' ' | sed 's/^.*R version //; s/ .*\$//'"), topic: versions
+    tuple val("${task.process}"), val('r-base'), eval("R --version | sed '1!d;s/.*version //;s/ .*//'"), topic: versions
     when:
     task.ext.when == null || task.ext.when
 

@@ -10,7 +10,7 @@ process TSS_EXTRACT {
 
     output:
     path "*.bed"       , emit: tss
-    tuple val("${task.process}"), val('sed'), eval("sed --version 2>&1 | tr '\\n' ' ' | sed 's/^.*GNU sed) //; s/ .*\$//'"), topic: versions
+    tuple val("${task.process}"), val('sed'), eval("sed --version | sed '1!d;s/.*GNU sed) //'"), topic: versions
     when:
     task.ext.when == null || task.ext.when
 
