@@ -8,26 +8,24 @@ include { BAM_REMOVE_ORPHANS      } from '../../modules/local/bam_remove_orphans
 
 workflow BAM_FILTER_BAMTOOLS {
     take:
-    ch_bam_bai                   // channel: [ val(meta), [ bam ], [bai] ]
+    ch_bam_index                 // channel: [ val(meta), [ bam ], [ bai/csi ] ]
     ch_bed                       // channel: [ bed ]
-    ch_fasta                     // channel: [ fasta ]
+    ch_fasta_fai                 // channel: [ val(meta), path(fasta), path(fai) ]
     ch_bamtools_filter_se_config // channel: [ config_file ]
     ch_bamtools_filter_pe_config // channel: [ config_file ]
 
     main:
 
-    ch_versions = channel.empty()
 
     //
     // Filter BAM file with BAMTools
     //
     BAMTOOLS_FILTER (
-        ch_bam_bai,
+        ch_bam_index,
         ch_bed,
         ch_bamtools_filter_se_config,
         ch_bamtools_filter_pe_config
     )
-    ch_versions = ch_versions.mix(BAMTOOLS_FILTER.out.versions.first())
 
     BAMTOOLS_FILTER
         .out
@@ -47,37 +45,25 @@ workflow BAM_FILTER_BAMTOOLS {
     SAMTOOLS_INDEX {
         ch_bam.single_end
     }
-    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions.first())
 
-    SAMTOOLS_INDEX.out.bai
-        .join(SAMTOOLS_INDEX.out.csi, by: [0], remainder: true)
-        .map {
-            meta, bai, csi ->
-                if (bai) {
-                    [ meta, bai ]
-                } else {
-                    [ meta, csi ]
-                }
-        }
-        .set { ch_index }
+    ch_index = SAMTOOLS_INDEX.out.index
 
     //
     // Run samtools stats, flagstat and idxstats on SE BAM
     //
     BAM_STATS_SAMTOOLS (
         ch_bam.single_end.join(ch_index),
-        ch_fasta
+        ch_fasta_fai
     )
-    ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
 
     //
     // Name sort PE BAM before filtering with pysam
     //
     SAMTOOLS_SORT (
         ch_bam.paired_end,
-        ch_fasta
+        ch_fasta_fai,
+        ''
     )
-    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
 
     //
     // Remove orphan reads from PE BAM file
@@ -85,24 +71,20 @@ workflow BAM_FILTER_BAMTOOLS {
     BAM_REMOVE_ORPHANS (
         SAMTOOLS_SORT.out.bam
     )
-    ch_versions = ch_versions.mix(BAM_REMOVE_ORPHANS.out.versions.first())
 
     //
     // Sort, index PE BAM file and run samtools stats, flagstat and idxstats
     //
     BAM_SORT_STATS_SAMTOOLS (
         BAM_REMOVE_ORPHANS.out.bam,
-        ch_fasta
+        ch_fasta_fai
     )
-    ch_versions = ch_versions.mix(BAM_SORT_STATS_SAMTOOLS.out.versions.first())
 
     emit:
     name_bam = SAMTOOLS_SORT.out.bam                                                     // channel: [ val(meta), [ bam ] ]
     bam      = BAM_SORT_STATS_SAMTOOLS.out.bam.mix(ch_bam.single_end)                    // channel: [ val(meta), [ bam ] ]
-    bai      = BAM_SORT_STATS_SAMTOOLS.out.bai.mix(SAMTOOLS_INDEX.out.bai)               // channel: [ val(meta), [ bai ] ]
-    csi      = BAM_SORT_STATS_SAMTOOLS.out.csi.mix(SAMTOOLS_INDEX.out.csi)               // channel: [ val(meta), [ csi ] ]
+    index    = BAM_SORT_STATS_SAMTOOLS.out.index.mix(ch_index)                           // channel: [ val(meta), [ bai/csi ] ]
     stats    = BAM_SORT_STATS_SAMTOOLS.out.stats.mix(BAM_STATS_SAMTOOLS.out.stats)       // channel: [ val(meta), [ stats ] ]
     flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat.mix(BAM_STATS_SAMTOOLS.out.flagstat) // channel: [ val(meta), [ flagstat ] ]
     idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats.mix(BAM_STATS_SAMTOOLS.out.idxstats) // channel: [ val(meta), [ idxstats ] ]
-    versions = ch_versions                                                               // channel: [ versions.yml ]
 }

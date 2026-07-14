@@ -15,8 +15,7 @@ process PLOT_HOMER_ANNOTATEPEAKS {
     path '*.txt'       , emit: txt
     path '*.pdf'       , emit: pdf
     path '*.tsv'       , emit: tsv
-    path "versions.yml", emit: versions
-
+    tuple val("${task.process}"), val('r-base'), eval("R --version 2>&1 | tr '\\n' ' ' | sed 's/^.*R version //; s/ .*\$//'"), topic: versions
     when:
     task.ext.when == null || task.ext.when
 
@@ -32,9 +31,5 @@ process PLOT_HOMER_ANNOTATEPEAKS {
 
     find ./ -type f -name "*summary.txt" -exec cat {} \\; | cat $mqc_header - > ${prefix}.summary_mqc.tsv
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-    END_VERSIONS
     """
 }

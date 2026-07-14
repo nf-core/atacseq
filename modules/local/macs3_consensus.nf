@@ -17,8 +17,8 @@ process MACS3_CONSENSUS {
     tuple val(meta), path("*.pdf")          , emit: pdf
     tuple val(meta), path("*.boolean.txt")  , emit: boolean_txt
     tuple val(meta), path("*.intersect.txt"), emit: intersect_txt
-    path "versions.yml"                     , emit: versions
-
+    tuple val("${task.process}"), val('python'), eval("python --version | sed 's/Python //g'"), topic: versions
+    tuple val("${task.process}"), val('r-base'), eval("R --version 2>&1 | tr '\\n' ' ' | sed 's/^.*R version //; s/ .*\$//'"), topic: versions
     when:
     task.ext.when == null || task.ext.when
 
@@ -47,10 +47,5 @@ process MACS3_CONSENSUS {
 
     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: \$(python --version | sed 's/Python //g')
-        r-base: \$(echo \$(R --version 2>&1) | sed 's/^.*R version //; s/ .*\$//')
-    END_VERSIONS
     """
 }

@@ -22,7 +22,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
 
     main:
 
-    ch_versions = channel.empty()
 
     // Create channels: [ meta , [ peaks ] ]
     // where meta = [ id : consensus_peaks ]
@@ -42,7 +41,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         ch_consensus_peaks,
         is_narrow_peak
     )
-    ch_versions = ch_versions.mix(MACS3_CONSENSUS.out.versions)
 
     //
     // Annotate consensus peaks
@@ -55,7 +53,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
             ch_gtf
         )
         ch_homer_annotatepeaks = HOMER_ANNOTATEPEAKS.out.txt
-        ch_versions = ch_versions.mix(HOMER_ANNOTATEPEAKS.out.versions)
     }
 
     // Create channels: [ meta, [ bams ], saf ]
@@ -79,7 +76,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     SUBREAD_FEATURECOUNTS (
         ch_bam_saf
     )
-    ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS.out.versions)
 
     //
     // Generate QC plots with DESeq2
@@ -108,7 +104,6 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         ch_deseq2_qc_dists_multiqc = DESEQ2_QC.out.dists_multiqc
         ch_deseq2_qc_log           = DESEQ2_QC.out.log
         ch_deseq2_qc_size_factors  = DESEQ2_QC.out.size_factors
-        ch_versions = ch_versions.mix(DESEQ2_QC.out.versions)
     }
 
     emit:
@@ -133,5 +128,4 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     deseq2_qc_log           = ch_deseq2_qc_log                  // channel: [ txt ]
     deseq2_qc_size_factors  = ch_deseq2_qc_size_factors         // channel: [ txt ]
 
-    versions                = ch_versions                       // channel: [ versions.yml ]
 }
