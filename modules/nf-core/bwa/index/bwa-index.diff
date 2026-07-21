@@ -12,7 +12,7 @@ Changes in 'bwa/index/main.nf':
 +    // Floor at 1.GB: the proportional formula under-provisions small (e.g. test)
 +    // genomes below bwa+runtime overhead, causing OOM kills.
 +    memory { [ 7.B * fasta.size(), 1.GB ].max() }
- 
+
      conda "${moduleDir}/environment.yml"
      container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
 

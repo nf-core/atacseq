@@ -2,16 +2,16 @@
     "Single-End - SAM output": {
         "content": [
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             {
                 "versions_bwa": [
@@ -40,16 +40,16 @@
     "Single-End": {
         "content": [
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             {
                 "versions_bwa": [
@@ -78,16 +78,16 @@
     "Single-End Sort": {
         "content": [
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             {
                 "versions_bwa": [
@@ -116,16 +116,16 @@
     "Paired-End": {
         "content": [
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             {
                 "versions_bwa": [
@@ -154,16 +154,16 @@
     "Paired-End Sort": {
         "content": [
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             {
                 "versions_bwa": [
@@ -202,10 +202,10 @@
                     ]
                 ],
                 "1": [
-                    
+
                 ],
                 "2": [
-                    
+
                 ],
                 "3": [
                     [
@@ -258,7 +258,7 @@
                     ]
                 ],
                 "cram": [
-                    
+
                 ],
                 "csi": [
                     [
@@ -270,7 +270,7 @@
                     ]
                 ],
                 "sam": [
-                    
+
                 ],
                 "versions_bwa": [
                     [
@@ -297,16 +297,16 @@
     "Paired-End - no fasta": {
         "content": [
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             {
                 "versions_bwa": [
@@ -335,16 +335,16 @@
     "Paired-end - SAM output": {
         "content": [
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             [
-                
+
             ],
             {
                 "versions_bwa": [
@@ -383,10 +383,10 @@
                     ]
                 ],
                 "1": [
-                    
+
                 ],
                 "2": [
-                    
+
                 ],
                 "3": [
                     [
@@ -439,7 +439,7 @@
                     ]
                 ],
                 "cram": [
-                    
+
                 ],
                 "csi": [
                     [
@@ -451,7 +451,7 @@
                     ]
                 ],
                 "sam": [
-                    
+
                 ],
                 "versions_bwa": [
                     [

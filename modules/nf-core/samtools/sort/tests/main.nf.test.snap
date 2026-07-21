@@ -155,7 +155,7 @@
                 ]
             ],
             [
-                
+
             ],
             {
                 "versions_samtools": [
@@ -203,7 +203,7 @@
                 ]
             ],
             [
-                
+
             ],
             {
                 "versions_samtools": [
@@ -224,10 +224,10 @@
     "multi_sam": {
         "content": [
             [
-                
+
             ],
             [
-                
+
             ],
             {
                 "versions_samtools": [
@@ -284,10 +284,10 @@
     "sam": {
         "content": [
             [
-                
+
             ],
             [
-                
+
             ],
             {
                 "versions_samtools": [

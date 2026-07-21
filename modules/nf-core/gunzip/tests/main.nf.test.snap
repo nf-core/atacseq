@@ -87,7 +87,7 @@
                 "0": [
                     [
                         [
-                            
+
                         ],
                         "test_1.fastq:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
@@ -102,7 +102,7 @@
                 "gunzip": [
                     [
                         [
-                            
+
                         ],
                         "test_1.fastq:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
@@ -128,7 +128,7 @@
                 "0": [
                     [
                         [
-                            
+
                         ],
                         "test_1.fastq:md5,4161df271f9bfcd25d5845a1e220dbec"
                     ]
@@ -143,7 +143,7 @@
                 "gunzip": [
                     [
                         [
-                            
+
                         ],
                         "test_1.fastq:md5,4161df271f9bfcd25d5845a1e220dbec"
                     ]
