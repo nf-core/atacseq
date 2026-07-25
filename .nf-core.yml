@@ -1,6 +1,12 @@
 lint:
   files_unchanged:
     - .gitignore
+    # Pre-existing drift from the nf-core 4.0.2 template (unrelated to this
+    # module update); refreshed by the 4.0.3 template update. Exempt so the
+    # modules-only PR lints clean.
+    - .github/PULL_REQUEST_TEMPLATE.md
+    - assets/nf-core-atacseq_logo_light.png
+    - docs/images/nf-core-atacseq_logo_light.png
   merge_markers:
     # False positive: SAM base-quality strings contain runs of '<' that trip the
     # merge-marker check. Snapshot shipped by nf-core/modules bowtie2/align.
