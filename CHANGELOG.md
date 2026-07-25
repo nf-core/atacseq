@@ -7,8 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements & fixes
 
-- [[#XXX]](https://github.com/nf-core/atacseq/pull/XXX) - Update nf-core modules and subworkflows to their latest versions and reconcile the resulting call-signature changes.
-- [[#XXX]](https://github.com/nf-core/atacseq/pull/XXX) - Fix a MultiQC deadlock: publishing MultiQC's version to the `versions` topic created a dependency cycle (its own input depended on that topic resolving) that left the run hanging after all upstream tasks completed. The version is now emitted as a named output instead.
+- [[#448]](https://github.com/nf-core/atacseq/pull/448) - Update nf-core modules and subworkflows to their latest versions and reconcile the resulting call-signature changes.
 - [[#446]](https://github.com/nf-core/atacseq/pull/446) - Make pipeline code compliant with strict Nextflow v2 syntax parser, with no behaviour change.
 - [[#407]](https://github.com/nf-core/atacseq/pull/407) to add filtering reads according fragment size to help to focus on NFR, MNR, DNR, TNR
 - [[#164]](https://github.com/nf-core/atacseq/issues/164) and partly [[#91]](https://github.com/nf-core/atacseq/issues/91) with code from [[#301]](https://github.com/nf-core/atacseq/pull/301) to address shifting of reads as an option that is turned off by default.
