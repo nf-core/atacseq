@@ -211,7 +211,8 @@ workflow ATACSEQ {
             [],
             [],
             [],
-            []
+            [],
+            true
         )
         ch_genome_bam        = FASTQ_ALIGN_CHROMAP.out.bam
         ch_samtools_stats    = FASTQ_ALIGN_CHROMAP.out.stats
