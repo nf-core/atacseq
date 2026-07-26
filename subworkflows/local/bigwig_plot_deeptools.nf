@@ -16,7 +16,6 @@ workflow BIGWIG_PLOT_DEEPTOOLS {
 
     main:
 
-    ch_versions = channel.empty()
 
     //
     // deepTools matrix generation for plotting over full transcript length
@@ -25,7 +24,6 @@ workflow BIGWIG_PLOT_DEEPTOOLS {
         ch_bigwig,
         ch_gene_bed
     )
-    ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS.out.versions.first())
 
     //
     // deepTools matrix generation for plotting at TSS point
@@ -34,7 +32,6 @@ workflow BIGWIG_PLOT_DEEPTOOLS {
         ch_bigwig,
         ch_tss_bed
     )
-    ch_versions = ch_versions.mix(DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT.out.versions.first())
 
     //
     // deepTools profile plots
@@ -42,7 +39,6 @@ workflow BIGWIG_PLOT_DEEPTOOLS {
     DEEPTOOLS_PLOTPROFILE (
         DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS.out.matrix
     )
-    ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions.first())
 
     //
     // deepTools heatmaps
@@ -50,7 +46,6 @@ workflow BIGWIG_PLOT_DEEPTOOLS {
     DEEPTOOLS_PLOTHEATMAP (
         DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT.out.matrix
     )
-    ch_versions = ch_versions.mix(DEEPTOOLS_PLOTHEATMAP.out.versions.first())
 
     emit:
     scale_regions_matrix   = DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS.out.matrix   // channel: [ val(meta), [ matrix ] ]
@@ -65,5 +60,4 @@ workflow BIGWIG_PLOT_DEEPTOOLS {
     plotheatmap_pdf        = DEEPTOOLS_PLOTHEATMAP.out.pdf                      // channel: [ val(meta), [ pdf ] ]
     plotheatmap_table      = DEEPTOOLS_PLOTHEATMAP.out.table                    // channel: [ val(meta), [ table ] ]
 
-    versions               = ch_versions                                        // channel: [ versions.yml ]
 }

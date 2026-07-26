@@ -59,8 +59,9 @@ process MULTIQC {
     path "*multiqc_report.html", emit: report
     path "*_data"              , emit: data
     path "*_plots"             , optional:true, emit: plots
-    path "versions.yml"        , emit: versions
-
+    // MultiQC must NOT push its version to the `versions` topic: its own input depends on
+    // that topic being resolved, so publishing to it creates a cycle that hangs the run.
+    tuple val("${task.process}"), val('multiqc'), eval("multiqc --version | sed -e \"s/multiqc, version //g\""), emit: versions
     when:
     task.ext.when == null || task.ext.when
 
@@ -74,10 +75,6 @@ process MULTIQC {
         $custom_config \\
         .
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        multiqc: \$( multiqc --version | sed -e "s/multiqc, version //g" )
-    END_VERSIONS
     """
 
     stub:
@@ -85,9 +82,5 @@ process MULTIQC {
     mkdir -p multiqc_data
     touch multiqc_report.html
     touch multiqc_data/multiqc.log
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        multiqc: \$( multiqc --version | sed -e "s/multiqc, version //g" )
-    END_VERSIONS
     """
 }

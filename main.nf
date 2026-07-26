@@ -51,8 +51,6 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_atac
 workflow NFCORE_ATACSEQ {
 
     main:
-    ch_versions = channel.empty()
-
     // SUBWORKFLOW: Prepare genome files
     PREPARE_GENOME (
         params.genome,
@@ -73,7 +71,6 @@ workflow NFCORE_ATACSEQ {
         params.macs_gsize,
         params.read_length
     )
-    ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     //
     // WORKFLOW: Run nf-core/atacseq workflow
@@ -103,7 +100,6 @@ workflow NFCORE_ATACSEQ {
 
     emit:
     multiqc_report = ATACSEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                // channel: [version1, version2, ...]
 }
 
 /*
