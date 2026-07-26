@@ -1,0 +1,21 @@
+Changes in component 'nf-core/bwa/index'
+'modules/nf-core/bwa/index/environment.yml' is unchanged
+'modules/nf-core/bwa/index/meta.yml' is unchanged
+Changes in 'bwa/index/main.nf':
+--- modules/nf-core/bwa/index/main.nf
++++ modules/nf-core/bwa/index/main.nf
+@@ -2,7 +2,9 @@
+     tag "$fasta"
+     // NOTE requires 5.37N memory where N is the size of the database
+     // source: https://bio-bwa.sourceforge.net/bwa.shtml#8
+-    memory { 7.B * fasta.size() }
++    // Floor at 1.GB: the proportional formula under-provisions small (e.g. test)
++    // genomes below bwa+runtime overhead, causing OOM kills.
++    memory { [ 7.B * fasta.size(), 1.GB ].max() }
+
+     conda "${moduleDir}/environment.yml"
+     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+
+'modules/nf-core/bwa/index/tests/main.nf.test.snap' is unchanged
+'modules/nf-core/bwa/index/tests/main.nf.test' is unchanged
+************************************************************
