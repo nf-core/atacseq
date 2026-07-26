@@ -56,6 +56,10 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     }
 
     // Create channels: [ meta, [ bams ], saf ]
+    // The bam list comes from an unordered channel collect, so its order (and
+    // therefore the featureCounts column order and output file) is otherwise
+    // non-deterministic across runs/hosts. Sort by filename so the consensus
+    // count matrix is reproducible and its snapshot is stable.
     ch_bams
         .join(ch_peaks)
         .collect { item -> item[1] }
@@ -66,7 +70,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         .filter { item -> item.size() == 3 }
         .map {
             bam, meta, saf ->
-                [ meta, bam , saf ]
+                [ meta, bam.toSorted { it.name }, saf ]
         }
         .set { ch_bam_saf }
 
