@@ -38,6 +38,11 @@ fastqc/*_fastqc.{html,zip}
 **/*.alignment_summary_metrics
 **/*.base_distribution_by_cycle_metrics
 **/*.MarkDuplicates.metrics.txt
+# Picard MarkDuplicates metrics as renamed by this pipeline's ext.prefix
+# (merged library + merged replicate). Their header carries a per-run
+# "Started on: <timestamp>" line, so the md5 is not reproducible across runs.
+**/*.mkD.sorted.metrics.txt
+**/*.mRp.clN.sorted.metrics.txt
 
 # Samtools
 **/*.bam.stats
