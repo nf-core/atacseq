@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements & fixes
 
+- [[#452]](https://github.com/nf-core/atacseq/pull/452) - Count consensus peaks separately for single-end and paired-end libraries and merge the per-batch matrices, so mixed cohorts work under `subread` 2.1.1 and the 2.0.1 pin added in [[#448]](https://github.com/nf-core/atacseq/pull/448) can be removed.
+- [[#452]](https://github.com/nf-core/atacseq/pull/452) - Publish the per-library-type consensus count matrices (`*.SE.featureCounts.tsv` / `*.PE.featureCounts.tsv`) alongside the merged matrix.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Update nf-core modules and subworkflows to their latest versions and reconcile the resulting call-signature changes.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Add read groups to Chromap alignments, which Picard 3.4.0 `MarkDuplicates` now requires.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Quote `--seq_center` when building read-group arguments, so a sequencing-centre name containing whitespace no longer breaks Chromap (Picard) or Bowtie2 alignment.
