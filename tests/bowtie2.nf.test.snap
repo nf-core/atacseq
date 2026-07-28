@@ -1,7 +1,7 @@
 {
     "bowtie2": {
         "content": [
-            264,
+            268,
             {
                 "BAMTOOLS_FILTER": {
                     "bamtools": "2.5.2",
@@ -40,6 +40,9 @@
                 },
                 "FASTQC": {
                     "fastqc": "0.12.1"
+                },
+                "FEATURECOUNTS_MERGE": {
+                    "sed": 4.7
                 },
                 "FRIP_SCORE": {
                     "bedtools": "2.30.0",
@@ -122,7 +125,7 @@
                     "samtools": 1.24
                 },
                 "SUBREAD_FEATURECOUNTS": {
-                    "subread": "2.0.1"
+                    "subread": "2.1.1"
                 },
                 "TRIMGALORE": {
                     "trimgalore": "2.1.0"
@@ -300,13 +303,16 @@
                 "bowtie2/merged_library/macs3/broad_peak/OSMOTIC_STRESS_T15_PE_REP1.mLb.clN_peaks.gappedPeak",
                 "bowtie2/merged_library/macs3/broad_peak/OSMOTIC_STRESS_T15_PE_REP1.mLb.clN_peaks.xls",
                 "bowtie2/merged_library/macs3/broad_peak/consensus",
+                "bowtie2/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.PE.featureCounts.tsv",
+                "bowtie2/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.PE.featureCounts.tsv.summary",
+                "bowtie2/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.SE.featureCounts.tsv",
+                "bowtie2/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.SE.featureCounts.tsv.summary",
                 "bowtie2/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.annotatePeaks.txt",
                 "bowtie2/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.bed",
                 "bowtie2/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.boolean.intersect.plot.pdf",
                 "bowtie2/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.boolean.intersect.txt",
                 "bowtie2/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.boolean.txt",
                 "bowtie2/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.featureCounts.tsv",
-                "bowtie2/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.featureCounts.tsv.summary",
                 "bowtie2/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.saf",
                 "bowtie2/merged_library/macs3/broad_peak/consensus/deseq2",
                 "bowtie2/merged_library/macs3/broad_peak/consensus/deseq2/R_sessionInfo.log",
@@ -464,13 +470,16 @@
                 "bowtie2/merged_replicate/macs3/broad_peak/OSMOTIC_STRESS_T100_SE.mRp.clN_peaks.gappedPeak",
                 "bowtie2/merged_replicate/macs3/broad_peak/OSMOTIC_STRESS_T100_SE.mRp.clN_peaks.xls",
                 "bowtie2/merged_replicate/macs3/broad_peak/consensus",
+                "bowtie2/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.PE.featureCounts.tsv",
+                "bowtie2/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.PE.featureCounts.tsv.summary",
+                "bowtie2/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.SE.featureCounts.tsv",
+                "bowtie2/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.SE.featureCounts.tsv.summary",
                 "bowtie2/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.annotatePeaks.txt",
                 "bowtie2/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.bed",
                 "bowtie2/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.boolean.intersect.plot.pdf",
                 "bowtie2/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.boolean.intersect.txt",
                 "bowtie2/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.boolean.txt",
                 "bowtie2/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.featureCounts.tsv",
-                "bowtie2/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.featureCounts.tsv.summary",
                 "bowtie2/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.saf",
                 "bowtie2/merged_replicate/macs3/broad_peak/consensus/deseq2",
                 "bowtie2/merged_replicate/macs3/broad_peak/consensus/deseq2/R_sessionInfo.log",
@@ -966,19 +975,22 @@
                 "OSMOTIC_STRESS_T15_PE_REP1.mLb.clN_peaks.broadPeak:md5,2639ddfabd8ef8ffe1209cd565e32fa1",
                 "OSMOTIC_STRESS_T15_PE_REP1.mLb.clN_peaks.gappedPeak:md5,552bde3429fcda63c6dc8151cd381d40",
                 "OSMOTIC_STRESS_T15_PE_REP1.mLb.clN_peaks.xls:md5,241fb2b28eef4bee1a259b26d150c9f0",
+                "consensus_peaks.mLb.clN.PE.featureCounts.tsv:md5,3d242c5e5e7b1d52a77cf70742fc5fbe",
+                "consensus_peaks.mLb.clN.PE.featureCounts.tsv.summary:md5,181ed21e715ec2834aac2d396da9948f",
+                "consensus_peaks.mLb.clN.SE.featureCounts.tsv:md5,d7cc8de35172c26d47f9af95b516c307",
+                "consensus_peaks.mLb.clN.SE.featureCounts.tsv.summary:md5,a4a07aaa74c77029c70cbcf61ce3a764",
                 "consensus_peaks.mLb.clN.bed:md5,2887f1e35b9eea82a9de1c92cb43e7ae",
                 "consensus_peaks.mLb.clN.boolean.intersect.txt:md5,5a4f92efb0a79bf7fbbd50c5ed5bfbbd",
                 "consensus_peaks.mLb.clN.boolean.txt:md5,c4499f15dd2f076262a9689785a9e5d4",
-                "consensus_peaks.mLb.clN.featureCounts.tsv:md5,8f96955dd800632c8f5343a1897a6901",
-                "consensus_peaks.mLb.clN.featureCounts.tsv.summary:md5,f72c779fba50615978af0582b56190c2",
+                "consensus_peaks.mLb.clN.featureCounts.tsv:md5,1f01d7bb58f30e34dde37c7bba9dfa4a",
                 "consensus_peaks.mLb.clN.saf:md5,add1c0c9dab6be6861c93bd3efce5ecd",
                 "R_sessionInfo.log:md5,fb0da0d7ad6994ed66a8e68348b19676",
-                "OSMOTIC_STRESS_T0_PE_REP1.size_factors.txt:md5,575217248fd623bf1eb8dd535df3ba11",
-                "OSMOTIC_STRESS_T0_PE_REP2.size_factors.txt:md5,fc1dc5428a67ce1f812f04ebe128eb92",
-                "OSMOTIC_STRESS_T100_SE_REP1.size_factors.txt:md5,994af920ffac65bae6233ecb13b8637e",
-                "OSMOTIC_STRESS_T100_SE_REP2.size_factors.txt:md5,9036c6e9d107e7828bb23af780f0de88",
-                "OSMOTIC_STRESS_T150_SE_REP1.size_factors.txt:md5,7d35bd13b608e03d40a55e3f3bfd09a8",
-                "OSMOTIC_STRESS_T15_PE_REP1.size_factors.txt:md5,f4e83fb27d38331f522ad1d17e284b89",
+                "OSMOTIC_STRESS_T0_PE_REP1.size_factors.txt:md5,152f1a6cd7e44486db1641419a2b1956",
+                "OSMOTIC_STRESS_T0_PE_REP2.size_factors.txt:md5,9957c2eee30009597e5ab024dfb25677",
+                "OSMOTIC_STRESS_T100_SE_REP1.size_factors.txt:md5,3ab70ebbe2850298847b99b5d3156316",
+                "OSMOTIC_STRESS_T100_SE_REP2.size_factors.txt:md5,ae1fd7ff4df2b692e45464a4d631aacc",
+                "OSMOTIC_STRESS_T150_SE_REP1.size_factors.txt:md5,07faf98eb26e9030034d08ec1ddcfb66",
+                "OSMOTIC_STRESS_T15_PE_REP1.size_factors.txt:md5,cc787543931aa31a80006ab7f4e429c2",
                 "OSMOTIC_STRESS_T0_PE_REP1.mLb.clN_peaks.FRiP_mqc.tsv:md5,43cf646f6d45a983082cc3251b9e550c",
                 "OSMOTIC_STRESS_T0_PE_REP1.mLb.clN_peaks.count_mqc.tsv:md5,b43f9274c85d0ab50a4f5f1235c5f777",
                 "OSMOTIC_STRESS_T0_PE_REP2.mLb.clN_peaks.FRiP_mqc.tsv:md5,12289eeeae627b94423d89b7eba91d01",
@@ -1025,17 +1037,20 @@
                 "OSMOTIC_STRESS_T100_SE.mRp.clN_peaks.broadPeak:md5,2dc1c575b4dc03e20fd2680cc9b04b88",
                 "OSMOTIC_STRESS_T100_SE.mRp.clN_peaks.gappedPeak:md5,e05c7ef694608aa2d63e0f2057270d2e",
                 "OSMOTIC_STRESS_T100_SE.mRp.clN_peaks.xls:md5,db177400e0402a3bad2657d171ef47ff",
+                "consensus_peaks.mRp.clN.PE.featureCounts.tsv:md5,bc73e4580e576de297bd0d781d65d385",
+                "consensus_peaks.mRp.clN.PE.featureCounts.tsv.summary:md5,33186392a994cd50779ef23282cefd48",
+                "consensus_peaks.mRp.clN.SE.featureCounts.tsv:md5,4d6cc53c886843a52272fbd247864b67",
+                "consensus_peaks.mRp.clN.SE.featureCounts.tsv.summary:md5,c250438f7dd08e4d99b0da0e56603f22",
                 "consensus_peaks.mRp.clN.bed:md5,b29a19860b56b6d33cddf37d99a23891",
                 "consensus_peaks.mRp.clN.boolean.intersect.txt:md5,a594441b7196b3e84c9b834e9566931d",
                 "consensus_peaks.mRp.clN.boolean.txt:md5,e655d0af796a8d2599b3492be2d2454f",
-                "consensus_peaks.mRp.clN.featureCounts.tsv:md5,df145c73c03d99fb3db6b47f214f270c",
-                "consensus_peaks.mRp.clN.featureCounts.tsv.summary:md5,ee1054c488d5d0f70d8b616dc91f6e1b",
+                "consensus_peaks.mRp.clN.featureCounts.tsv:md5,8ef4c37114bf4358485fb3261f9471ee",
                 "consensus_peaks.mRp.clN.saf:md5,76c841ae13edf75ba7f5b0fd306ed142",
                 "R_sessionInfo.log:md5,fb0da0d7ad6994ed66a8e68348b19676",
-                "OSMOTIC_STRESS_T0_PE_REP1.size_factors.txt:md5,42a2f7eb49ffc240c2312f32edb05b9a",
-                "OSMOTIC_STRESS_T0_PE_REP2.size_factors.txt:md5,8393cdf9977f80429e4b8efb5f06f404",
-                "OSMOTIC_STRESS_T100_SE_REP1.size_factors.txt:md5,68fffdc01fd148ffa4ea30a53632eb6b",
-                "OSMOTIC_STRESS_T100_SE_REP2.size_factors.txt:md5,6944ba21c188164bc64983e3c6683f3b",
+                "OSMOTIC_STRESS_T0_PE_REP1.size_factors.txt:md5,d3cdccb44fe679c927462eab6cea4bed",
+                "OSMOTIC_STRESS_T0_PE_REP2.size_factors.txt:md5,da67dfd1313c269a761784aae95a2c97",
+                "OSMOTIC_STRESS_T100_SE_REP1.size_factors.txt:md5,5b0298e41f8999813c16e7900ad06502",
+                "OSMOTIC_STRESS_T100_SE_REP2.size_factors.txt:md5,192f549b26d3c6d5e2789b1d0282c035",
                 "OSMOTIC_STRESS_T0_PE.mRp.clN_peaks.FRiP_mqc.tsv:md5,862582629bf4b2d0b604a1b55b00b8fc",
                 "OSMOTIC_STRESS_T0_PE.mRp.clN_peaks.count_mqc.tsv:md5,ca9b57ac3e220d160e872720c4104743",
                 "OSMOTIC_STRESS_T100_SE.mRp.clN_peaks.FRiP_mqc.tsv:md5,6739406cd76451c426cd082c9ab42481",
@@ -1071,8 +1086,8 @@
                 "mqc_fastqc_sequence_duplication_levels_plot-2_1.txt:md5,d7ada8561d521eaf645073f7cccf7b82",
                 "mqc_fastqc_sequence_duplication_levels_plot_1.txt:md5,23c4883ed6c22212b0c3e07a863745d1",
                 "mqc_fastqc_sequence_length_distribution_plot_1.txt:md5,bc3acb40acbf620b237d0f2fa8c8a1ab",
-                "mqc_featureCounts_assignment_plot-2_1.txt:md5,2963815b8e8e8469a917dc0ddc3375d2",
-                "mqc_featureCounts_assignment_plot_1.txt:md5,86d1ec8a28848e38fb3cd7236fbffa1b",
+                "mqc_featureCounts_assignment_plot-2_1.txt:md5,804903576a262efcb22f16c045f862f8",
+                "mqc_featureCounts_assignment_plot_1.txt:md5,61d23a02f32261f26306bf28feee3b83",
                 "mqc_samtools-idxstats-mapped-reads-plot-2_Normalised_Counts.txt:md5,9276bae8c9042ef2a1e4a7b7a8c2f231",
                 "mqc_samtools-idxstats-mapped-reads-plot-2_Observed_over_Expected_Counts.txt:md5,a33a1311653dc054f0056792705689e0",
                 "mqc_samtools-idxstats-mapped-reads-plot-2_Raw_Counts.txt:md5,4a615bbabd9fa9ff406274a2ccee4c06",
@@ -1093,8 +1108,8 @@
                 "multiqc_cutadapt.txt:md5,926fcf7c5a9c5dc0a105a439c85a5f58",
                 "multiqc_fastqc.txt:md5,a9a7484add8120fc3cf3d5626a92973b",
                 "multiqc_fastqc_1.txt:md5,58ab2bbd2d19745e5975742c6d1335d7",
-                "multiqc_featureCounts_mlib_featurecounts.txt:md5,e4dad0f69a56aebc7b3d1674a6a0c9f2",
-                "multiqc_featureCounts_mrep_featurecounts.txt:md5,dbd3c88a1d6c5b5bd4efe0c5ad2493f9",
+                "multiqc_featureCounts_mlib_featurecounts.txt:md5,9b2af7182264eec8f130a91d3ad47021",
+                "multiqc_featureCounts_mrep_featurecounts.txt:md5,4041b4e04860c1d66d9157cb62d84941",
                 "multiqc_mlib_frip_score-plot.txt:md5,15e8e48bb609bcd103b3df769d6116e7",
                 "multiqc_mlib_peak_annotation-plot.txt:md5,5cf8a13eb9f4ad773e7281cb64f29859",
                 "multiqc_mlib_peak_count-plot.txt:md5,9451e9c6f55bb70114f04646c89e438f",
@@ -1113,7 +1128,7 @@
                 "samplesheet.valid.csv:md5,51b046b55592e95949824f21b12c7e49"
             ]
         ],
-        "timestamp": "2026-07-25T08:45:05.289955508",
+        "timestamp": "2026-07-26T03:35:21.884005804",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.10.4"

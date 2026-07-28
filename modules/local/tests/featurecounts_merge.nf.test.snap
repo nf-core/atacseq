@@ -1,0 +1,44 @@
+{
+    "versions": {
+        "content": null,
+        "timestamp": "2026-07-23T03:28:47.894742",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "26.04.4"
+        }
+    },
+    "stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "consensus_peaks"
+                        },
+                        "consensus_peaks.featureCounts.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "FEATURECOUNTS_MERGE",
+                        "sed",
+                        "4.7"
+                    ]
+                ],
+                "counts": [
+                    [
+                        {
+                            "id": "consensus_peaks"
+                        },
+                        "consensus_peaks.featureCounts.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-07-26T19:08:19.592397783",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    }
+}
