@@ -211,6 +211,7 @@ Various QC plots per sample including number of peaks, fold-change distribution,
   - `*.saf`: Consensus peak-set across all samples in SAF format. Required by featureCounts for read quantification.
   - `*.featureCounts.tsv`: Read counts across all samples relative to consensus peak-set.
   - `*.featureCounts.tsv.summary`: featureCounts assignment summary, used by MultiQC.
+  - `*.SE.featureCounts.tsv`, `*.PE.featureCounts.tsv` (and their `.summary` files): Per-library-type counts, before they are merged into the matrix above. featureCounts applies paired-end mode to a whole invocation, so single-end and paired-end libraries are counted in separate batches and then combined.
   - `*.annotatePeaks.txt`: HOMER peak-to-gene annotation file for consensus peaks.
   - `*.boolean.annotatePeaks.txt`: Spreadsheet representation of consensus peak-set across samples **with** gene annotation columns. The columns from individual peak files are included in this file along with the ability to filter peaks based on their presence or absence in multiple replicates/conditions.
   - `*.boolean.txt`: Spreadsheet representation of consensus peak-set across samples **without** gene annotation columns. Same as file above but without annotation columns.
