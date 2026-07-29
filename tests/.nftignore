@@ -67,9 +67,6 @@ fastqc/*_fastqc.{html,zip}
 **/*.boolean.annotatePeaks.txt
 **/macs3_peak.*.summary.txt
 
-# Feature counting
-**/*.featureCounts.txt
-**/*.featureCounts.txt.summary
 
 # Statistical analysis
 **/*.pca.vals.txt
