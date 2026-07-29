@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Update nf-core modules and subworkflows to their latest versions and reconcile the resulting call-signature changes.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Add read groups to Chromap alignments, which Picard 3.4.0 `MarkDuplicates` now requires.
+- [[#448]](https://github.com/nf-core/atacseq/pull/448) - Quote `--seq_center` when building read-group arguments, so a sequencing-centre name containing whitespace no longer breaks Chromap (Picard) or Bowtie2 alignment.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Pin `subread` to 2.0.1 so consensus peak counting keeps supporting mixed single-end/paired-end cohorts in a single `featureCounts` invocation.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Sort the consensus `featureCounts` BAM inputs so the count matrix column order is deterministic.
 - [[#446]](https://github.com/nf-core/atacseq/pull/446) - Make pipeline code compliant with strict Nextflow v2 syntax parser, with no behaviour change.

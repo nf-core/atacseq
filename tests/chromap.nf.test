@@ -10,6 +10,10 @@ nextflow_pipeline {
             params {
                 outdir = "$outputDir"
                 aligner = "chromap"
+                // Deliberately contains whitespace: seq_center is free text and reaches
+                // Picard AddOrReplaceReadGroups as --RGCN. Unquoted, Picard reads only the
+                // first word and rejects the rest as a positional argument.
+                seq_center = "Broad Institute"
             }
         }
 
