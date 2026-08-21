@@ -107,12 +107,8 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
             //
             // MACS3 QC plots with R
             //
-            // Sort by file name: the R scripts derive sample ids from the order of
-            // the file list, and `collect` emits in task-completion order.
             PLOT_MACS3_QC (
-                ch_macs3_peaks
-                    .map { item -> item[1] }
-                    .toSortedList { a, b -> a.name <=> b.name },
+                ch_macs3_peaks.collect { item -> item[1] },
                 is_narrow_peak
             )
             ch_plot_macs3_qc_txt = PLOT_MACS3_QC.out.txt
@@ -123,9 +119,7 @@ workflow BAM_PEAKS_CALL_QC_ANNOTATE_MACS3_HOMER {
             // Peak annotation QC plots with R
             //
             PLOT_HOMER_ANNOTATEPEAKS (
-                HOMER_ANNOTATEPEAKS.out.txt
-                    .map { item -> item[1] }
-                    .toSortedList { a, b -> a.name <=> b.name },
+                HOMER_ANNOTATEPEAKS.out.txt.collect { item -> item[1] },
                 ch_peak_annotation_header_multiqc,
                 annotate_peaks_suffix
             )
