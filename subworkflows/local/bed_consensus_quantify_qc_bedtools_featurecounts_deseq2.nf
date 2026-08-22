@@ -93,13 +93,13 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         .map { item -> item[1] }
         .collect()
         .filter { bams -> bams }
-        .map { bams -> [ [ id: 'consensus_peaks', single_end: true ], bams.toSorted { it.name } ] }
+        .map { bams -> [ [ id: 'consensus_peaks', single_end: true ], bams.toSorted { bam -> bam.name } ] }
 
     ch_pe_batch = ch_consensus_bams.paired_end
         .map { item -> item[1] }
         .collect()
         .filter { bams -> bams }
-        .map { bams -> [ [ id: 'consensus_peaks', single_end: false ], bams.toSorted { it.name } ] }
+        .map { bams -> [ [ id: 'consensus_peaks', single_end: false ], bams.toSorted { bam -> bam.name } ] }
 
     ch_featurecounts_input = ch_se_batch
         .mix(ch_pe_batch)
@@ -117,7 +117,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
     ch_merged_counts = SUBREAD_FEATURECOUNTS.out.counts
         .map { _meta, counts -> counts }
         .collect()
-        .map { counts -> [ [ id: 'consensus_peaks' ], counts.toSorted { it.name } ] }
+        .map { counts -> [ [ id: 'consensus_peaks' ], counts.toSorted { count -> count.name } ] }
 
     FEATURECOUNTS_MERGE (
         ch_merged_counts
