@@ -22,10 +22,12 @@ process PLOT_HOMER_ANNOTATEPEAKS {
     script: // This script is bundled with the pipeline, in nf-core/chipseq/bin/
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "annotatepeaks"
+    // Files arrive in task-completion order; sort so sample order in the outputs is reproducible.
+    def anno_list = annos.toSorted { anno -> anno.name }.join(',')
     """
     plot_homer_annotatepeaks.r \\
-        -i ${annos.join(',')} \\
-        -s ${annos.join(',').replaceAll("${suffix}","")} \\
+        -i ${anno_list} \\
+        -s ${anno_list.replaceAll("${suffix}","")} \\
         -p $prefix \\
         $args
 

@@ -32,7 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#436]](https://github.com/nf-core/atacseq/pull/436) - Fix strict syntax.
 - [[437](https://github.com/nf-core/atacseq/issues/437)] - Follow up to 436.
 - [[#438](https://github.com/nf-core/atacseq/issues/438)] - Add `checkIfExists` to file inputs in `PREPARE_GENOME` and prevent S3 access errors during index validation.
-- [[PR #443](https://github.com/nf-core/chipseq/pull/443)] - Updated pipeline template to [nf-core/tools 4.0.2](https://github.com/nf-core/tools/releases/tag/4.0.2)
+- [[PR #443](https://github.com/nf-core/atacseq/pull/443)] - Updated pipeline template to [nf-core/tools 4.0.2](https://github.com/nf-core/tools/releases/tag/4.0.2)
+- [[PR #453](https://github.com/nf-core/atacseq/pull/453)] - Updated pipeline template to [nf-core/tools 4.0.3](https://github.com/nf-core/tools/releases/tag/4.0.3)
+- [[PR #454](https://github.com/nf-core/atacseq/pull/454)] - Sort the peak QC plot inputs by file name so that `PLOT_MACS3_QC` and `PLOT_HOMER_ANNOTATEPEAKS` outputs no longer depend on task completion order.
 
 ### Parameters
 

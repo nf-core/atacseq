@@ -20,10 +20,12 @@ process PLOT_MACS3_QC {
     script: // This script is bundled with the pipeline, in nf-core/atacseq/bin/
     def args      = task.ext.args ?: ''
     def peak_type = is_narrow_peak ? 'narrowPeak' : 'broadPeak'
+    // Files arrive in task-completion order; sort so sample order in the outputs is reproducible.
+    def peak_list = peaks.toSorted { peak -> peak.name }.join(',')
     """
     plot_macs3_qc.r \\
-        -i ${peaks.join(',')} \\
-        -s ${peaks.join(',').replaceAll("_peaks.${peak_type}","")} \\
+        -i ${peak_list} \\
+        -s ${peak_list.replaceAll("_peaks.${peak_type}","")} \\
         $args
 
     """
