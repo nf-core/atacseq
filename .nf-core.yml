@@ -1,6 +1,10 @@
 lint:
   files_unchanged:
     - .gitignore
+  merge_markers:
+    # False positive: SAM base-quality strings contain runs of '<' that trip the
+    # merge-marker check. Snapshot shipped by nf-core/modules bowtie2/align.
+    - modules/nf-core/bowtie2/align/tests/main.nf.test.snap
   nextflow_config:
     - config_defaults:
         - params.bamtools_filter_se_config

@@ -13,8 +13,8 @@ process BEDTOOLS_GENOMECOV {
     output:
     tuple val(meta), path("*.bedGraph"), emit: bedgraph
     tuple val(meta), path("*.txt")     , emit: scale_factor
-    path "versions.yml"                , emit: versions
-
+    tuple val("${task.process}"), val('bedtools'), eval("bedtools --version | sed -e \"s/bedtools v//g\""), topic: versions
+    tuple val("${task.process}"), val('sort'), eval("sort --version | head -n 1 | awk '{print \$4;}'"), topic: versions
     when:
     task.ext.when == null || task.ext.when
 
@@ -49,11 +49,6 @@ process BEDTOOLS_GENOMECOV {
 
     rm tmp.bg
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
-        sort: \$(sort --version | head -n 1 | awk '{print \$4;}')
-    END_VERSIONS
     """
 
     stub:
@@ -61,9 +56,5 @@ process BEDTOOLS_GENOMECOV {
     """
     touch ${prefix}.bedGraph
     touch ${prefix}.scale_factor.txt
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
-    END_VERSIONS
     """
 }
