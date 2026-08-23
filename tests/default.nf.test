@@ -28,7 +28,29 @@ nextflow_pipeline {
                     stable_name,
                     // All files with stable contents
                     stable_path
-                ).match() }
+                ).match() },
+                // Failure-B regression: the -profile test cohort mixes single-end
+                // (OSMOTIC_STRESS_*_SE) and paired-end (OSMOTIC_STRESS_*_PE) libraries.
+                // subread >= 2.1 aborts if one featureCounts call mixes endedness, so
+                // the consensus quantification splits the cohort by library type,
+                // counts each batch, and merges the matrices. Assert the merged
+                // consensus matrix carries every SE and PE sample column exactly once.
+                {
+                    def mergedFc = []
+                    new File("${outputDir}").eachFileRecurse { f ->
+                        if (f.name ==~ /consensus_peaks\.m(Lb|Rp)\.clN\.featureCounts\.tsv/) {
+                            mergedFc << f
+                        }
+                    }
+                    assert mergedFc.size() > 0 : "no merged consensus featureCounts matrix was produced"
+                    mergedFc.each { f ->
+                        def header = f.readLines().find { it.startsWith('Geneid') }.split('\t') as List
+                        def cols = header[6..-1]
+                        assert cols.toUnique().size() == cols.size() : "duplicate sample columns in ${f.name}: ${cols}"
+                        assert cols.any { it.contains('_SE') } : "no single-end sample column in ${f.name}: ${cols}"
+                        assert cols.any { it.contains('_PE') } : "no paired-end sample column in ${f.name}: ${cols}"
+                    }
+                }
             )
         }
     }

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements & fixes
 
+- [[#452]](https://github.com/nf-core/atacseq/pull/452) - Count consensus peaks separately for single-end and paired-end libraries and merge the per-batch matrices, so mixed cohorts work under `subread` 2.1.1 and the 2.0.1 pin added in [[#448]](https://github.com/nf-core/atacseq/pull/448) can be removed.
+- [[#452]](https://github.com/nf-core/atacseq/pull/452) - Publish the per-library-type consensus count matrices (`*.SE.featureCounts.tsv` / `*.PE.featureCounts.tsv`) alongside the merged matrix.
+- [[#452]](https://github.com/nf-core/atacseq/pull/452) - Pass `--countReadPairs` alongside `-p` in the paired-end `featureCounts` invocation, so consensus counts stay fragment-based under `subread` 2.1.1 (where bare `-p` counts individual reads) and no longer roughly double relative to the 2.0.1 behaviour.
+- [[#452]](https://github.com/nf-core/atacseq/pull/452) - Pass `--countReadPairs` alongside `-p` in the paired-end `featureCounts` invocation, so consensus counts stay fragment-based under `subread` 2.1.1 (where bare `-p` counts individual reads) and no longer roughly double relative to the 2.0.1 behaviour.
+- [[#448]](https://github.com/nf-core/atacseq/pull/448) - Update nf-core modules and subworkflows to their latest versions and reconcile the resulting call-signature changes.
+- [[#448]](https://github.com/nf-core/atacseq/pull/448) - Add read groups to Chromap alignments, which Picard 3.4.0 `MarkDuplicates` now requires.
+- [[#448]](https://github.com/nf-core/atacseq/pull/448) - Quote `--seq_center` when building read-group arguments, so a sequencing-centre name containing whitespace no longer breaks Chromap (Picard) or Bowtie2 alignment.
+- [[#448]](https://github.com/nf-core/atacseq/pull/448) - Pin `subread` to 2.0.1 so consensus peak counting keeps supporting mixed single-end/paired-end cohorts in a single `featureCounts` invocation.
+- [[#448]](https://github.com/nf-core/atacseq/pull/448) - Sort the consensus `featureCounts` BAM inputs so the count matrix column order is deterministic.
 - [[#446]](https://github.com/nf-core/atacseq/pull/446) - Make pipeline code compliant with strict Nextflow v2 syntax parser, with no behaviour change.
 - [[#407]](https://github.com/nf-core/atacseq/pull/407) to add filtering reads according fragment size to help to focus on NFR, MNR, DNR, TNR
 - [[#164]](https://github.com/nf-core/atacseq/issues/164) and partly [[#91]](https://github.com/nf-core/atacseq/issues/91) with code from [[#301]](https://github.com/nf-core/atacseq/pull/301) to address shifting of reads as an option that is turned off by default.
@@ -22,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated pipeline template to [nf-core/tools 3.1.1](https://github.com/nf-core/tools/releases/tag/3.1.1)
 - Updated pipeline template to [nf-core/tools 3.4.1](https://github.com/nf-core/tools/releases/tag/3.4.1)
 - [[#427](https://github.com/nf-core/atacseq/issues/427)] - Implements default nf-test at the pipeline level.
-- [[436](https://github.com/nf-core/atacseq/issues/437)] - Fix strick syntax.
+- [[#436]](https://github.com/nf-core/atacseq/pull/436) - Fix strict syntax.
 - [[437](https://github.com/nf-core/atacseq/issues/437)] - Follow up to 436.
 - [[#438](https://github.com/nf-core/atacseq/issues/438)] - Add `checkIfExists` to file inputs in `PREPARE_GENOME` and prevent S3 access errors during index validation.
 - [[PR #443](https://github.com/nf-core/atacseq/pull/443)] - Updated pipeline template to [nf-core/tools 4.0.2](https://github.com/nf-core/tools/releases/tag/4.0.2)

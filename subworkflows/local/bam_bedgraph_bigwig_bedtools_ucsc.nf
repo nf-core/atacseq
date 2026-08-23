@@ -13,7 +13,6 @@ workflow BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC {
 
     main:
 
-    ch_versions = channel.empty()
 
     //
     // Create bedGraph coverage track
@@ -21,7 +20,6 @@ workflow BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC {
     BEDTOOLS_GENOMECOV (
         ch_bam_flagstat
     )
-    ch_versions = ch_versions.mix(BEDTOOLS_GENOMECOV.out.versions.first())
 
     //
     // Create bigWig coverage tracks
@@ -30,7 +28,6 @@ workflow BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC {
         BEDTOOLS_GENOMECOV.out.bedgraph,
         ch_chrom_sizes
     )
-    ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first())
 
     emit:
     bedgraph     = BEDTOOLS_GENOMECOV.out.bedgraph      // channel: [ val(meta), [ bedgraph ] ]
@@ -38,5 +35,4 @@ workflow BAM_BEDGRAPH_BIGWIG_BEDTOOLS_UCSC {
 
     bigwig       = UCSC_BEDGRAPHTOBIGWIG.out.bigwig     // channel: [ val(meta), [ bigwig ] ]
 
-    versions     = ch_versions                          // channel: [ versions.yml ]
 }

@@ -1,0 +1,20 @@
+Changes in component 'nf-core/subread/featurecounts'
+'modules/nf-core/subread/featurecounts/environment.yml' is unchanged
+'modules/nf-core/subread/featurecounts/meta.yml' is unchanged
+Changes in 'subread/featurecounts/main.nf':
+--- modules/nf-core/subread/featurecounts/main.nf
++++ modules/nf-core/subread/featurecounts/main.nf
+@@ -21,7 +21,7 @@
+     script:
+     def args = task.ext.args ?: ''
+     def prefix = task.ext.prefix ?: "${meta.id}"
+-    def paired_end = meta.single_end ? '' : '-p'
++    def paired_end = meta.single_end ? '' : '-p --countReadPairs'
+ 
+     def strandedness = 0
+     if (meta.strandedness == 'forward') {
+
+'modules/nf-core/subread/featurecounts/tests/main.nf.test.snap' is unchanged
+'modules/nf-core/subread/featurecounts/tests/nextflow.config' is unchanged
+'modules/nf-core/subread/featurecounts/tests/main.nf.test' is unchanged
+************************************************************

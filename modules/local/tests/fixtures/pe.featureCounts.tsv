@@ -1,0 +1,5 @@
+# Program:featureCounts v2.1.1; Command:"featureCounts" "-F" "SAF" "-p"
+Geneid	Chr	Start	End	Strand	Length	T0_PE.bam	T15_PE.bam
+peak_3	III	9	309	+	301	131	132
+peak_1	I	1	100	+	100	111	112
+peak_2	II	5	205	+	201	121	122
