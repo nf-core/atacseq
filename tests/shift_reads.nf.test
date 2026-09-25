@@ -3,6 +3,10 @@ nextflow_pipeline {
     name "Test pipeline with --shift_reads"
     script "../main.nf"
     tag "shift_reads"
+    // --shift_reads requires all samples to be paired-end (see workflows/atacseq.nf);
+    // the default "test" profile mixes single- and paired-end samples, so use
+    // "test_controls" instead, which is all paired-end.
+    profile "test_controls"
 
     test("shift_reads") {
 
