@@ -70,7 +70,7 @@ workflow BED_CONSENSUS_QUANTIFY_QC_BEDTOOLS_FEATURECOUNTS_DESEQ2 {
         .filter { item -> item.size() == 3 }
         .map {
             bam, meta, saf ->
-                [ meta, bam.toSorted { it.name }, saf ]
+                [ meta, bam.toSorted { b -> b.name }, saf ]
         }
         .set { ch_bam_saf }
 

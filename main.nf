@@ -99,7 +99,7 @@ workflow NFCORE_ATACSEQ {
     )
 
     emit:
-    multiqc_report = ATACSEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
+    ATACSEQ.out // channel: /path/to/multiqc_report.html
 }
 
 /*
@@ -140,7 +140,7 @@ workflow {
         params.plaintext_email,
         params.outdir,
         params.monochrome_logs,
-        NFCORE_ATACSEQ.out.multiqc_report
+        NFCORE_ATACSEQ.out
     )
 }
 
