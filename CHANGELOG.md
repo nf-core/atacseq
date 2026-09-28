@@ -7,15 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements & fixes
 
-- [[#452]](https://github.com/nf-core/atacseq/pull/452) - Count consensus peaks separately for single-end and paired-end libraries and merge the per-batch matrices, so mixed cohorts work under `subread` 2.1.1 and the 2.0.1 pin added in [[#448]](https://github.com/nf-core/atacseq/pull/448) can be removed.
+- [[#452]](https://github.com/nf-core/atacseq/pull/452) - Count consensus peaks separately for single-end and paired-end libraries and merge the per-batch matrices, so mixed cohorts work under `subread` 2.1.1.
 - [[#452]](https://github.com/nf-core/atacseq/pull/452) - Publish the per-library-type consensus count matrices (`*.SE.featureCounts.tsv` / `*.PE.featureCounts.tsv`) alongside the merged matrix.
-- [[#452]](https://github.com/nf-core/atacseq/pull/452) - Pass `--countReadPairs` alongside `-p` in the paired-end `featureCounts` invocation, so consensus counts stay fragment-based under `subread` 2.1.1 (where bare `-p` counts individual reads) and no longer roughly double relative to the 2.0.1 behaviour.
 - [[#452]](https://github.com/nf-core/atacseq/pull/452) - Pass `--countReadPairs` alongside `-p` in the paired-end `featureCounts` invocation, so consensus counts stay fragment-based under `subread` 2.1.1 (where bare `-p` counts individual reads) and no longer roughly double relative to the 2.0.1 behaviour.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Update nf-core modules and subworkflows to their latest versions and reconcile the resulting call-signature changes.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Add read groups to Chromap alignments, which Picard 3.4.0 `MarkDuplicates` now requires.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Quote `--seq_center` when building read-group arguments, so a sequencing-centre name containing whitespace no longer breaks Chromap (Picard) or Bowtie2 alignment.
-- [[#448]](https://github.com/nf-core/atacseq/pull/448) - Pin `subread` to 2.0.1 so consensus peak counting keeps supporting mixed single-end/paired-end cohorts in a single `featureCounts` invocation.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Sort the consensus `featureCounts` BAM inputs so the count matrix column order is deterministic.
+- [[#448]](https://github.com/nf-core/atacseq/pull/448) - Consensus peak counts are now published as `*.featureCounts.tsv` (and `*.featureCounts.tsv.summary`) instead of `*.featureCounts.txt`, following the updated `subread/featurecounts` module.
 - [[#446]](https://github.com/nf-core/atacseq/pull/446) - Make pipeline code compliant with strict Nextflow v2 syntax parser, with no behaviour change.
 - [[#407]](https://github.com/nf-core/atacseq/pull/407) to add filtering reads according fragment size to help to focus on NFR, MNR, DNR, TNR
 - [[#164]](https://github.com/nf-core/atacseq/issues/164) and partly [[#91]](https://github.com/nf-core/atacseq/issues/91) with code from [[#301]](https://github.com/nf-core/atacseq/pull/301) to address shifting of reads as an option that is turned off by default.
@@ -52,10 +51,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
 
-| Dependency | Old version | New version |
-| ---------- | ----------- | ----------- |
-| `macs2`    | 2.2.7.1     |             |
-| `macs3`    |             | 3.0.1       |
+| Dependency              | Old version | New version |
+| ----------------------- | ----------- | ----------- |
+| `bowtie2`               | 2.4.4       | 2.5.4       |
+| `bwa`                   | 0.7.17      | 0.7.19      |
+| `chromap`               | 0.2.4       | 0.3.2       |
+| `deeptools`             | 3.5.1       | 3.5.6       |
+| `gffread`               | 0.12.1      | 0.12.7      |
+| `macs2`                 | 2.2.7.1     |             |
+| `macs3`                 |             | 3.0.4       |
+| `picard`                | 3.0.0       | 3.4.0       |
+| `preseq`                | 3.1.2       | 3.2.0       |
+| `samtools`              | 1.17        | 1.24        |
+| `subread`               | 2.0.1       | 2.1.1       |
+| `trim-galore`           | 0.6.7       | 2.1.0       |
+| `ucsc-bedgraphtobigwig` | 445         | 482         |
 
 ## [[2.1.2](https://github.com/nf-core/atacseq/releases/tag/2.1.2)] - 2022-08-07
 

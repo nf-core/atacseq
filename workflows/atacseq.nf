@@ -132,7 +132,6 @@ workflow ATACSEQ {
     if (params.shift_reads) {
         INPUT_CHECK
             .out
-            .reads
             .filter { meta, _reads -> meta.single_end }
             .collect()
             .map { item ->
@@ -147,7 +146,7 @@ workflow ATACSEQ {
     // SUBWORKFLOW: Read QC and trim adapters
     //
     FASTQ_FASTQC_UMITOOLS_TRIMGALORE (
-        INPUT_CHECK.out.reads,
+        INPUT_CHECK.out,
         params.skip_fastqc || params.skip_qc,
         false,
         false,
@@ -752,7 +751,7 @@ workflow ATACSEQ {
     }
 
     emit:
-    multiqc_report = ch_multiqc_report.toList() // channel: /path/to/multiqc_report.html
+    ch_multiqc_report.toList() // channel: /path/to/multiqc_report.html
 }
 
 /*
