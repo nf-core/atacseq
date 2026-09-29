@@ -209,7 +209,8 @@ Various QC plots per sample including number of peaks, fold-change distribution,
 - `<ALIGNER>/merged_library/macs3/<PEAK_TYPE>/consensus/`
   - `*.bed`: Consensus peak-set across all samples in BED format.
   - `*.saf`: Consensus peak-set across all samples in SAF format. Required by featureCounts for read quantification.
-  - `*.featureCounts.txt`: Read counts across all samples relative to consensus peak-set.
+  - `*.featureCounts.tsv`: Read counts across all samples relative to consensus peak-set.
+  - `*.featureCounts.tsv.summary`: featureCounts assignment summary, used by MultiQC.
   - `*.annotatePeaks.txt`: HOMER peak-to-gene annotation file for consensus peaks.
   - `*.boolean.annotatePeaks.txt`: Spreadsheet representation of consensus peak-set across samples **with** gene annotation columns. The columns from individual peak files are included in this file along with the ability to filter peaks based on their presence or absence in multiple replicates/conditions.
   - `*.boolean.txt`: Spreadsheet representation of consensus peak-set across samples **without** gene annotation columns. Same as file above but without annotation columns.

@@ -9,14 +9,10 @@ nextflow_process {
     tag "samtools/index"
 
     test("bai") {
-
         when {
-            params {
-                outdir   = "$outputDir"
-            }
             process {
                 """
-                input[0] = Channel.of([
+                input[0] = channel.of([
                     [ id:'test', single_end:false ], // meta map
                     file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true)
                 ])
@@ -25,23 +21,21 @@ nextflow_process {
         }
 
         then {
-            assertAll (
-                { assert process.success },
-                { assert snapshot(process.out.bai).match("bai") },
-                { assert snapshot(process.out.versions).match("bai_versions") }
+            assert process.success
+            assertAll(
+                { assert snapshot(
+                    process.out.index,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                ).match() }
             )
         }
     }
 
     test("crai") {
-
         when {
-            params {
-                outdir   = "$outputDir"
-            }
             process {
                 """
-                input[0] = Channel.of([
+                input[0] = channel.of([
                     [ id:'test', single_end:false ], // meta map
                     file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/cram/test.paired_end.recalibrated.sorted.cram', checkIfExists: true)
                 ])
@@ -50,25 +44,23 @@ nextflow_process {
         }
 
         then {
-            assertAll (
-                { assert process.success },
-                { assert snapshot(process.out.crai).match("crai") },
-                { assert snapshot(process.out.versions).match("crai_versions") }
+            assert process.success
+            assertAll(
+                { assert snapshot(
+                    process.out.index,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                ).match() }
             )
         }
     }
 
     test("csi") {
-
         config "./csi.nextflow.config"
 
         when {
-            params {
-                outdir   = "$outputDir"
-            }
             process {
                 """
-                input[0] = Channel.of([
+                input[0] = channel.of([
                     [ id:'test', single_end:false ], // meta map
                     file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true)
                 ])
@@ -77,10 +69,92 @@ nextflow_process {
         }
 
         then {
-            assertAll (
-                { assert process.success },
-                { assert path(process.out.csi.get(0).get(1)).exists() },
-                { assert snapshot(process.out.versions).match("csi_versions") }
+            assert process.success
+            assertAll(
+                { assert snapshot(
+                    file(process.out.index[0][1]).name,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                ).match() }
+            )
+        }
+    }
+
+    test("bai - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = channel.of([
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true)
+                ])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assertAll(
+                { assert snapshot(
+                    process.out.index,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                ).match() }
+            )
+        }
+    }
+
+    test("crai - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = channel.of([
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/homo_sapiens/illumina/cram/test.paired_end.recalibrated.sorted.cram', checkIfExists: true)
+                ])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assertAll(
+                { assert snapshot(
+                    process.out.index,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                ).match() }
+            )
+        }
+    }
+
+    test("csi - stub") {
+
+        options "-stub"
+
+        config "./csi.nextflow.config"
+
+        when {
+            process {
+                """
+                input[0] = channel.of([
+                    [ id:'test', single_end:false ], // meta map
+                    file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/bam/test.paired_end.sorted.bam', checkIfExists: true)
+                ])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assertAll(
+                { assert snapshot(
+                    process.out.index,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                ).match() }
             )
         }
     }

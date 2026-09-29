@@ -10,8 +10,7 @@ process TSS_EXTRACT {
 
     output:
     path "*.bed"       , emit: tss
-    path "versions.yml", emit: versions
-
+    tuple val("${task.process}"), val('sed'), eval("sed --version | sed '1!d;s/.*GNU sed) //'"), topic: versions
     when:
     task.ext.when == null || task.ext.when
 
@@ -19,9 +18,5 @@ process TSS_EXTRACT {
     """
     cat $bed | awk -v FS='\t' -v OFS='\t' '{ if(\$6=="+") \$3=\$2+1; else \$2=\$3-1; print \$1, \$2, \$3, \$4, \$5, \$6;}' > ${bed.baseName}.tss.bed
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        sed: \$(echo \$(sed --version 2>&1) | sed 's/^.*GNU sed) //; s/ .*\$//')
-    END_VERSIONS
     """
 }

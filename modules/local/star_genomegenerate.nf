@@ -14,8 +14,7 @@ process STAR_GENOMEGENERATE {
 
     output:
     path "star"        , emit: index
-    path "versions.yml", emit: versions
-
+    tuple val("${task.process}"), val('star'), eval("STAR --version | sed -e \"s/STAR_//g\""), topic: versions
     when:
     task.ext.when == null || task.ext.when
 
@@ -33,10 +32,6 @@ process STAR_GENOMEGENERATE {
             --runThreadN $task.cpus \\
             $memory \\
             ${args.join(' ')}
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            star: \$(STAR --version | sed -e "s/STAR_//g")
-        END_VERSIONS
         """
     } else {
         """
@@ -52,10 +47,6 @@ process STAR_GENOMEGENERATE {
             --genomeSAindexNbases \$NUM_BASES \\
             $memory \\
             ${args.join(' ')}
-        cat <<-END_VERSIONS > versions.yml
-        "${task.process}":
-            star: \$(STAR --version | sed -e "s/STAR_//g")
-        END_VERSIONS
         """
     }
 }

@@ -27,8 +27,7 @@ process IGV {
     path "*.xml"       , emit: xml
     path fasta         , emit: fasta
     path fai           , emit: fai
-    path "versions.yml", emit: versions
-
+    tuple val("${task.process}"), val('python'), eval("python --version | sed 's/Python //g'"), topic: versions
     when:
     task.ext.when == null || task.ext.when
 
@@ -44,9 +43,5 @@ process IGV {
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt ../../genome/${fasta.getName()} --path_prefix '../../'
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: \$(python --version | sed 's/Python //g')
-    END_VERSIONS
     """
 }

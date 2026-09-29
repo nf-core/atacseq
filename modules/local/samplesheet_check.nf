@@ -12,8 +12,7 @@ process SAMPLESHEET_CHECK {
 
     output:
     path '*.csv'       , emit: csv
-    path "versions.yml", emit: versions
-
+    tuple val("${task.process}"), val('python'), eval("python --version | sed 's/Python //g'"), topic: versions
     when:
     task.ext.when == null || task.ext.when
 
@@ -24,9 +23,5 @@ process SAMPLESHEET_CHECK {
         $samplesheet \\
         $args
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        python: \$(python --version | sed 's/Python //g')
-    END_VERSIONS
     """
 }

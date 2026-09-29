@@ -4,38 +4,38 @@
             256,
             {
                 "BAMTOOLS_FILTER": {
-                    "samtools": "1.15.1",
-                    "bamtools": "2.5.2"
+                    "bamtools": "2.5.2",
+                    "samtools": "1.15.1"
                 },
                 "BAM_REMOVE_ORPHANS": {
                     "samtools": "1.15.1"
                 },
                 "BEDTOOLS_GENOMECOV": {
                     "bedtools": "2.31.1",
-                    "sort": 9.5
+                    "sort": "sort (GNU coreutils) 9.5"
                 },
                 "BWA_INDEX": {
                     "bwa": "0.7.19-r1273"
                 },
                 "BWA_MEM": {
-                    "bwa": "0.7.17-r1188",
-                    "samtools": "1.19.2"
+                    "bwa": "0.7.19-r1273",
+                    "samtools": "1.22.1"
                 },
                 "DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT": {
-                    "deeptools": "3.5.5"
+                    "deeptools": "3.5.6"
                 },
                 "DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS": {
-                    "deeptools": "3.5.5"
+                    "deeptools": "3.5.6"
                 },
                 "DEEPTOOLS_PLOTHEATMAP": {
-                    "deeptools": "3.5.5"
+                    "deeptools": "3.5.6"
                 },
                 "DEEPTOOLS_PLOTPROFILE": {
-                    "deeptools": "3.5.5"
+                    "deeptools": "3.5.6"
                 },
                 "DESEQ2_QC": {
-                    "r-base": "4.0.3",
-                    "bioconductor-deseq2": "1.28.0"
+                    "bioconductor-deseq2": "1.28.0",
+                    "r-base": "4.0.3"
                 },
                 "FASTQC": {
                     "fastqc": "0.12.1"
@@ -44,14 +44,26 @@
                     "bedtools": "2.30.0",
                     "samtools": "1.15.1"
                 },
+                "GENOME_BLACKLIST_REGIONS": {
+                    "bedtools": "2.30.0"
+                },
+                "GET_AUTOSOMES": {
+                    "python": "3.8.3"
+                },
+                "GTF2BED": {
+                    "perl": "5.26.2"
+                },
                 "HOMER_ANNOTATEPEAKS": {
                     "homer": 4.11
                 },
                 "IGV": {
                     "python": "3.8.3"
                 },
+                "KHMER_UNIQUEKMERS": {
+                    "khmer": "3.0.0a3"
+                },
                 "MACS3_CALLPEAK": {
-                    "macs3": "3.0.1"
+                    "macs3": "3.0.4"
                 },
                 "MACS3_CONSENSUS": {
                     "python": "3.10.0",
@@ -64,16 +76,16 @@
                     "ataqv": "1.3.1"
                 },
                 "MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT": {
-                    "deeptools": "3.5.5"
+                    "deeptools": "3.5.6"
                 },
                 "MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS": {
-                    "picard": "3.0.0"
+                    "picard": "3.4.0"
                 },
                 "MULTIQC_CUSTOM_PEAKS": {
                     "sed": 4.7
                 },
                 "PICARD_MARKDUPLICATES": {
-                    "picard": "3.1.1"
+                    "picard": "3.4.0"
                 },
                 "PICARD_MERGESAMFILES_LIBRARY": {
                     "picard": "3.4.0"
@@ -90,29 +102,32 @@
                 "SAMPLESHEET_CHECK": {
                     "python": "3.8.3"
                 },
+                "SAMTOOLS_FAIDX": {
+                    "samtools": "1.23.1"
+                },
                 "SAMTOOLS_FLAGSTAT": {
-                    "samtools": "1.19.2"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_IDXSTATS": {
-                    "samtools": "1.19.2"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_INDEX": {
-                    "samtools": "1.19.2"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_SORT": {
-                    "samtools": "1.19.2"
+                    "samtools": 1.24
                 },
                 "SAMTOOLS_STATS": {
-                    "samtools": "1.19.2"
+                    "samtools": 1.24
                 },
                 "SUBREAD_FEATURECOUNTS": {
                     "subread": "2.0.1"
                 },
-                "UCSC_BEDGRAPHTOBIGWIG": {
-                    "ucsc": 445
+                "TSS_EXTRACT": {
+                    "sed": 4.7
                 },
-                "Workflow": {
-                    "nf-core/atacseq": "v2.2.0dev"
+                "UCSC_BEDGRAPHTOBIGWIG": {
+                    "ucsc": 482
                 }
             },
             [
@@ -286,8 +301,8 @@
                 "bwa/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.boolean.intersect.plot.pdf",
                 "bwa/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.boolean.intersect.txt",
                 "bwa/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.boolean.txt",
-                "bwa/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.featureCounts.txt",
-                "bwa/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.featureCounts.txt.summary",
+                "bwa/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.featureCounts.tsv",
+                "bwa/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.featureCounts.tsv.summary",
                 "bwa/merged_library/macs3/broad_peak/consensus/consensus_peaks.mLb.clN.saf",
                 "bwa/merged_library/macs3/broad_peak/consensus/deseq2",
                 "bwa/merged_library/macs3/broad_peak/consensus/deseq2/R_sessionInfo.log",
@@ -330,34 +345,34 @@
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T0_PE_REP1.mLb.clN.CollectMultipleMetrics.insert_size_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T0_PE_REP1.mLb.clN.CollectMultipleMetrics.quality_by_cycle_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T0_PE_REP1.mLb.clN.CollectMultipleMetrics.quality_distribution_metrics",
-                "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T0_PE_REP1.mLb.mkD.sorted.MarkDuplicates.metrics.txt",
+                "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T0_PE_REP1.mLb.mkD.sorted.metrics.txt",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T0_PE_REP2.mLb.clN.CollectMultipleMetrics.alignment_summary_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T0_PE_REP2.mLb.clN.CollectMultipleMetrics.base_distribution_by_cycle_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T0_PE_REP2.mLb.clN.CollectMultipleMetrics.insert_size_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T0_PE_REP2.mLb.clN.CollectMultipleMetrics.quality_by_cycle_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T0_PE_REP2.mLb.clN.CollectMultipleMetrics.quality_distribution_metrics",
-                "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T0_PE_REP2.mLb.mkD.sorted.MarkDuplicates.metrics.txt",
+                "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T0_PE_REP2.mLb.mkD.sorted.metrics.txt",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T100_SE_REP1.mLb.clN.CollectMultipleMetrics.alignment_summary_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T100_SE_REP1.mLb.clN.CollectMultipleMetrics.base_distribution_by_cycle_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T100_SE_REP1.mLb.clN.CollectMultipleMetrics.quality_by_cycle_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T100_SE_REP1.mLb.clN.CollectMultipleMetrics.quality_distribution_metrics",
-                "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T100_SE_REP1.mLb.mkD.sorted.MarkDuplicates.metrics.txt",
+                "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T100_SE_REP1.mLb.mkD.sorted.metrics.txt",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T100_SE_REP2.mLb.clN.CollectMultipleMetrics.alignment_summary_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T100_SE_REP2.mLb.clN.CollectMultipleMetrics.base_distribution_by_cycle_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T100_SE_REP2.mLb.clN.CollectMultipleMetrics.quality_by_cycle_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T100_SE_REP2.mLb.clN.CollectMultipleMetrics.quality_distribution_metrics",
-                "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T100_SE_REP2.mLb.mkD.sorted.MarkDuplicates.metrics.txt",
+                "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T100_SE_REP2.mLb.mkD.sorted.metrics.txt",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T150_SE_REP1.mLb.clN.CollectMultipleMetrics.alignment_summary_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T150_SE_REP1.mLb.clN.CollectMultipleMetrics.base_distribution_by_cycle_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T150_SE_REP1.mLb.clN.CollectMultipleMetrics.quality_by_cycle_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T150_SE_REP1.mLb.clN.CollectMultipleMetrics.quality_distribution_metrics",
-                "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T150_SE_REP1.mLb.mkD.sorted.MarkDuplicates.metrics.txt",
+                "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T150_SE_REP1.mLb.mkD.sorted.metrics.txt",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T15_PE_REP1.mLb.clN.CollectMultipleMetrics.alignment_summary_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T15_PE_REP1.mLb.clN.CollectMultipleMetrics.base_distribution_by_cycle_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T15_PE_REP1.mLb.clN.CollectMultipleMetrics.insert_size_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T15_PE_REP1.mLb.clN.CollectMultipleMetrics.quality_by_cycle_metrics",
                 "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T15_PE_REP1.mLb.clN.CollectMultipleMetrics.quality_distribution_metrics",
-                "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T15_PE_REP1.mLb.mkD.sorted.MarkDuplicates.metrics.txt",
+                "bwa/merged_library/picard_metrics/OSMOTIC_STRESS_T15_PE_REP1.mLb.mkD.sorted.metrics.txt",
                 "bwa/merged_library/picard_metrics/pdf",
                 "bwa/merged_library/picard_metrics/pdf/OSMOTIC_STRESS_T0_PE_REP1.mLb.clN.CollectMultipleMetrics.base_distribution_by_cycle.pdf",
                 "bwa/merged_library/picard_metrics/pdf/OSMOTIC_STRESS_T0_PE_REP1.mLb.clN.CollectMultipleMetrics.insert_size_histogram.pdf",
@@ -450,8 +465,8 @@
                 "bwa/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.boolean.intersect.plot.pdf",
                 "bwa/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.boolean.intersect.txt",
                 "bwa/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.boolean.txt",
-                "bwa/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.featureCounts.txt",
-                "bwa/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.featureCounts.txt.summary",
+                "bwa/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.featureCounts.tsv",
+                "bwa/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.featureCounts.tsv.summary",
                 "bwa/merged_replicate/macs3/broad_peak/consensus/consensus_peaks.mRp.clN.saf",
                 "bwa/merged_replicate/macs3/broad_peak/consensus/deseq2",
                 "bwa/merged_replicate/macs3/broad_peak/consensus/deseq2/R_sessionInfo.log",
@@ -479,8 +494,8 @@
                 "bwa/merged_replicate/macs3/broad_peak/qc/macs3_peak.mRp.clN.plots.pdf",
                 "bwa/merged_replicate/macs3/broad_peak/qc/macs3_peak.mRp.clN.summary.txt",
                 "bwa/merged_replicate/picard_metrics",
-                "bwa/merged_replicate/picard_metrics/OSMOTIC_STRESS_T0_PE.mRp.clN.sorted.MarkDuplicates.metrics.txt",
-                "bwa/merged_replicate/picard_metrics/OSMOTIC_STRESS_T100_SE.mRp.clN.sorted.MarkDuplicates.metrics.txt",
+                "bwa/merged_replicate/picard_metrics/OSMOTIC_STRESS_T0_PE.mRp.clN.sorted.metrics.txt",
+                "bwa/merged_replicate/picard_metrics/OSMOTIC_STRESS_T100_SE.mRp.clN.sorted.metrics.txt",
                 "bwa/merged_replicate/samtools_stats",
                 "bwa/merged_replicate/samtools_stats/OSMOTIC_STRESS_T0_PE.mRp.clN.sorted.bam.flagstat",
                 "bwa/merged_replicate/samtools_stats/OSMOTIC_STRESS_T0_PE.mRp.clN.sorted.bam.idxstats",
@@ -834,26 +849,28 @@
                 "OSMOTIC_STRESS_T150_SE_REP1.mLb.clN.scale_factor.txt:md5,68373452427c1fb3e0f20d959c5aa6c7",
                 "OSMOTIC_STRESS_T15_PE_REP1.mLb.clN.scale_factor.txt:md5,04928308175458f7e21957a4c9dc7afb",
                 "OSMOTIC_STRESS_T0_PE_REP1.mLb.clN_peaks.broadPeak:md5,59c977277ba11ab4c8b9b7bafc6e0e7e",
-                "OSMOTIC_STRESS_T0_PE_REP1.mLb.clN_peaks.gappedPeak:md5,659c900f8be056cabaecdf0cf8992449",
-                "OSMOTIC_STRESS_T0_PE_REP1.mLb.clN_peaks.xls:md5,c27b821be1bed0050e7129292f4ac4c4",
+                "OSMOTIC_STRESS_T0_PE_REP1.mLb.clN_peaks.gappedPeak:md5,714d8e5d201e0129a55b202c1d4b437f",
+                "OSMOTIC_STRESS_T0_PE_REP1.mLb.clN_peaks.xls:md5,ea2e33a31b189c3c56a1051354b7797d",
                 "OSMOTIC_STRESS_T0_PE_REP2.mLb.clN_peaks.broadPeak:md5,2465ec263cd50577995418413d7dce42",
-                "OSMOTIC_STRESS_T0_PE_REP2.mLb.clN_peaks.gappedPeak:md5,ce05b66c8644e05f91260be71b3c799e",
-                "OSMOTIC_STRESS_T0_PE_REP2.mLb.clN_peaks.xls:md5,63fe893b810c925c6bd3214df2d17086",
+                "OSMOTIC_STRESS_T0_PE_REP2.mLb.clN_peaks.gappedPeak:md5,1dca72a0859ee67414c4a39c2949dfe8",
+                "OSMOTIC_STRESS_T0_PE_REP2.mLb.clN_peaks.xls:md5,e18ce783c58c18296d58912b19cc679f",
                 "OSMOTIC_STRESS_T100_SE_REP1.mLb.clN_peaks.broadPeak:md5,d58ac509e5955ef11e78166a8398caa7",
-                "OSMOTIC_STRESS_T100_SE_REP1.mLb.clN_peaks.gappedPeak:md5,30afa099afe41ec21149f6a0e8bf9882",
-                "OSMOTIC_STRESS_T100_SE_REP1.mLb.clN_peaks.xls:md5,90191ed78cfc1b5417be865570228534",
+                "OSMOTIC_STRESS_T100_SE_REP1.mLb.clN_peaks.gappedPeak:md5,9b44b06e78444813c2ba290507b92c04",
+                "OSMOTIC_STRESS_T100_SE_REP1.mLb.clN_peaks.xls:md5,a3c0974e169e886b6194e484023e6026",
                 "OSMOTIC_STRESS_T100_SE_REP2.mLb.clN_peaks.broadPeak:md5,989551d20b0cc0ab1b856cf41a878ed9",
-                "OSMOTIC_STRESS_T100_SE_REP2.mLb.clN_peaks.gappedPeak:md5,550689e5f987da17a2a7e97e8b20b0f9",
-                "OSMOTIC_STRESS_T100_SE_REP2.mLb.clN_peaks.xls:md5,a33818adc510b2c669e841897bf58cae",
+                "OSMOTIC_STRESS_T100_SE_REP2.mLb.clN_peaks.gappedPeak:md5,3bdc0b6179e3a8b85c6db82b1b656d1c",
+                "OSMOTIC_STRESS_T100_SE_REP2.mLb.clN_peaks.xls:md5,7571b5649fbd9e2dfcec9325950f8177",
                 "OSMOTIC_STRESS_T150_SE_REP1.mLb.clN_peaks.broadPeak:md5,a454e4af57c9af7085d936d9fcc96f1e",
-                "OSMOTIC_STRESS_T150_SE_REP1.mLb.clN_peaks.gappedPeak:md5,e43e0b81040bd172f7e9aee857efd233",
-                "OSMOTIC_STRESS_T150_SE_REP1.mLb.clN_peaks.xls:md5,d3539d92d2466bee39990ffdbe34330b",
+                "OSMOTIC_STRESS_T150_SE_REP1.mLb.clN_peaks.gappedPeak:md5,92a70848190df2cca16a4914646669ab",
+                "OSMOTIC_STRESS_T150_SE_REP1.mLb.clN_peaks.xls:md5,667ce2000c304985dee64b4700d761ba",
                 "OSMOTIC_STRESS_T15_PE_REP1.mLb.clN_peaks.broadPeak:md5,d83276ebd8c6c594038fdceb519929ac",
-                "OSMOTIC_STRESS_T15_PE_REP1.mLb.clN_peaks.gappedPeak:md5,3333b8da73db92f660778260e144ef7a",
-                "OSMOTIC_STRESS_T15_PE_REP1.mLb.clN_peaks.xls:md5,3188ac548bc58db0fa569cf25bff6973",
+                "OSMOTIC_STRESS_T15_PE_REP1.mLb.clN_peaks.gappedPeak:md5,6334a6581878cf93a39dd76b56794ad0",
+                "OSMOTIC_STRESS_T15_PE_REP1.mLb.clN_peaks.xls:md5,c5d4d3843a6cf331de01ba5443f82720",
                 "consensus_peaks.mLb.clN.bed:md5,7e645855322eff59ea58446857e05c1e",
                 "consensus_peaks.mLb.clN.boolean.intersect.txt:md5,27e105619c6e9bb7aac7dc9a84a70395",
                 "consensus_peaks.mLb.clN.boolean.txt:md5,7ca3fc47837d64951401ca58d79ebe88",
+                "consensus_peaks.mLb.clN.featureCounts.tsv:md5,2a5c4ee37d61e7f5fccd8e8512209705",
+                "consensus_peaks.mLb.clN.featureCounts.tsv.summary:md5,06b8b756c6babe6483ff15c2fd96b950",
                 "consensus_peaks.mLb.clN.saf:md5,9f7d7bcc1ee838d8ecfc3d0bdd1f4b25",
                 "R_sessionInfo.log:md5,fb0da0d7ad6994ed66a8e68348b19676",
                 "OSMOTIC_STRESS_T0_PE_REP1.size_factors.txt:md5,5f6946d1361c195398acbeaa4c8f6f32",
@@ -903,14 +920,16 @@
                 "OSMOTIC_STRESS_T0_PE.mRp.clN.scale_factor.txt:md5,585485db7da5ff4fd27b5007514947d8",
                 "OSMOTIC_STRESS_T100_SE.mRp.clN.scale_factor.txt:md5,cb999ab5df67d6d99ce162d05d4ef7eb",
                 "OSMOTIC_STRESS_T0_PE.mRp.clN_peaks.broadPeak:md5,6559863f0b1d4c4e5ffd2f84c02982b1",
-                "OSMOTIC_STRESS_T0_PE.mRp.clN_peaks.gappedPeak:md5,88580c6e8d6ec676be482eccb609378c",
-                "OSMOTIC_STRESS_T0_PE.mRp.clN_peaks.xls:md5,ecb0aec376aa0025c86a089cabcebf4d",
+                "OSMOTIC_STRESS_T0_PE.mRp.clN_peaks.gappedPeak:md5,7f007ca9b3a7b9d28ce77cdb1b2646f8",
+                "OSMOTIC_STRESS_T0_PE.mRp.clN_peaks.xls:md5,c195339765b3d9a8f8163108a6f16183",
                 "OSMOTIC_STRESS_T100_SE.mRp.clN_peaks.broadPeak:md5,35709d3fc707f53628e0ccab6b464d83",
-                "OSMOTIC_STRESS_T100_SE.mRp.clN_peaks.gappedPeak:md5,df8204d2f219db2fa44bc1c7073e60a0",
-                "OSMOTIC_STRESS_T100_SE.mRp.clN_peaks.xls:md5,eedf4ae489baa75e01c1a27c8f04221a",
+                "OSMOTIC_STRESS_T100_SE.mRp.clN_peaks.gappedPeak:md5,ced7d5fe0af52b238f05422b2d3185af",
+                "OSMOTIC_STRESS_T100_SE.mRp.clN_peaks.xls:md5,101d2313d93c121eb53e0e8644df37d3",
                 "consensus_peaks.mRp.clN.bed:md5,c9408cce53d821e215368a553c9f1a08",
                 "consensus_peaks.mRp.clN.boolean.intersect.txt:md5,3d2c2f1597c7c30cb6089e934c6c031a",
                 "consensus_peaks.mRp.clN.boolean.txt:md5,c9c5842fea9750535cf50890e2da0c13",
+                "consensus_peaks.mRp.clN.featureCounts.tsv:md5,1d3de5bef00a3cc323d04967c760fd1d",
+                "consensus_peaks.mRp.clN.featureCounts.tsv.summary:md5,f3c3783a0b57eb73a38b4313a56aecb4",
                 "consensus_peaks.mRp.clN.saf:md5,ea5c6c818aff4142c9cbaea5c3d7fc1c",
                 "R_sessionInfo.log:md5,fb0da0d7ad6994ed66a8e68348b19676",
                 "OSMOTIC_STRESS_T0_PE_REP1.size_factors.txt:md5,9fd5e3e7ef3904cfc797a403423f29b3",
@@ -980,20 +999,20 @@
                 "samplesheet.valid.csv:md5,51b046b55592e95949824f21b12c7e49"
             ]
         ],
+        "timestamp": "2026-07-25T08:39:31.169940442",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "26.04.1"
-        },
-        "timestamp": "2026-05-20T12:45:20.021780783"
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
     },
     "skip_trimming with stub": {
         "content": [
             213
         ],
+        "timestamp": "2025-11-03T13:33:27.997860306",
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.04.7"
-        },
-        "timestamp": "2025-11-03T13:33:27.997860306"
+        }
     }
 }

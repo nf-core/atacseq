@@ -1,0 +1,11 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  # PINNED: subread held at 2.0.1. 2.1.1 strictly rejects mixed single-end /
+  # paired-end BAMs in one featureCounts call (both -p and no -p error), which
+  # breaks consensus-peak quantification for mixed cohorts. 2.0.1 auto-detects
+  # per BAM. Remove the pin once mixed-library counting is handled explicitly.
+  - bioconda::subread=2.0.1
