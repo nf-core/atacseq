@@ -1,0 +1,102 @@
+nextflow_process {
+
+    name "Test Process FEATURECOUNTS_MERGE"
+    script "../featurecounts_merge.nf"
+    process "FEATURECOUNTS_MERGE"
+
+    tag "modules"
+    tag "modules_local"
+    tag "featurecounts_merge"
+
+    test("merge single-end and paired-end count tables") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'consensus_peaks' ],
+                    [
+                        file("\${projectDir}/modules/local/tests/fixtures/se.featureCounts.tsv", checkIfExists: true),
+                        file("\${projectDir}/modules/local/tests/fixtures/pe.featureCounts.tsv", checkIfExists: true)
+                    ]
+                ]
+                """
+            }
+        }
+
+        then {
+            def merged = path(process.out.counts.get(0).get(1)).readLines()
+            def header = merged.find { it.startsWith('Geneid') }.split('\t')
+            def sampleCols = header[6..-1]
+            assertAll(
+                { assert process.success },
+                // one merged table emitted
+                { assert process.out.counts.size() == 1 },
+                // The module merges its inputs in `ls | sort` filename order, so the
+                // column order is deterministic. Here 'pe.featureCounts.tsv' sorts
+                // before 'se.featureCounts.tsv' (in the pipeline the files are
+                // '...PE.featureCounts.tsv' / '...SE.featureCounts.tsv', so PE-first).
+                // Every SE and PE sample column appears exactly once.
+                { assert sampleCols == ['T0_PE.bam', 'T15_PE.bam', 'T100_SE.bam', 'T150_SE.bam'] },
+                { assert sampleCols.toUnique().size() == sampleCols.size() },
+                // Annotation + row order preserved from the first-sorted (PE) table;
+                // SE counts matched to rows by Geneid despite the different row order.
+                { assert merged.contains('peak_3\tIII\t9\t309\t+\t301\t131\t132\t31\t32') },
+                { assert merged.contains('peak_1\tI\t1\t100\t+\t100\t111\t112\t11\t12') },
+                { assert merged.contains('peak_2\tII\t5\t205\t+\t201\t121\t122\t21\t22') },
+                { assert snapshot(process.out.versions).match("versions") }
+            )
+        }
+    }
+
+    test("single-file pass-through (homogeneous cohort)") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'consensus_peaks' ],
+                    [ file("\${projectDir}/modules/local/tests/fixtures/se.featureCounts.tsv", checkIfExists: true) ]
+                ]
+                """
+            }
+        }
+
+        then {
+            def merged = path(process.out.counts.get(0).get(1)).readLines()
+            def header = merged.find { it.startsWith('Geneid') }.split('\t')
+            assertAll(
+                { assert process.success },
+                { assert (header[6..-1]) == ['T100_SE.bam', 'T150_SE.bam'] },
+                { assert merged.contains('peak_1\tI\t1\t100\t+\t100\t11\t12') },
+                { assert merged.contains('peak_3\tIII\t9\t309\t+\t301\t31\t32') }
+            )
+        }
+    }
+
+    test("stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'consensus_peaks' ],
+                    [
+                        file("\${projectDir}/modules/local/tests/fixtures/se.featureCounts.tsv", checkIfExists: true),
+                        file("\${projectDir}/modules/local/tests/fixtures/pe.featureCounts.tsv", checkIfExists: true)
+                    ]
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+}

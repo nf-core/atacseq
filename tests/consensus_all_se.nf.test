@@ -1,0 +1,44 @@
+nextflow_pipeline {
+
+    name "Test pipeline - homogeneous all-single-end cohort"
+    script "../main.nf"
+    tag "pipeline"
+    tag "consensus_endedness"
+
+    // Failure-B edge case: an all-single-end cohort. The paired-end branch of the
+    // consensus split is empty, so featureCounts runs exactly once (single-end
+    // mode) and FEATURECOUNTS_MERGE takes the single-file pass-through path. The
+    // merged matrix must still be produced and carry only single-end sample columns.
+    test("all single-end cohort - single featureCounts batch, pass-through merge") {
+
+        when {
+            params {
+                input  = "${projectDir}/tests/csv/all_se_samplesheet.csv"
+                outdir = "$outputDir"
+            }
+        }
+
+        then {
+            def mergedFc = []
+            new File("${outputDir}").eachFileRecurse { f ->
+                if (f.name ==~ /consensus_peaks\.m(Lb|Rp)\.clN\.featureCounts\.tsv/) {
+                    mergedFc << f
+                }
+            }
+            assertAll(
+                { assert workflow.success },
+                { assert mergedFc.size() > 0 : "no merged consensus featureCounts matrix was produced" },
+                { mergedFc.each { f ->
+                    def header = f.readLines().find { it.startsWith('Geneid') }.split('\t') as List
+                    def cols = header[6..-1]
+                    assert cols.toUnique().size() == cols.size() : "duplicate sample columns in ${f.name}: ${cols}"
+                    assert cols.every { it.contains('_SE') } : "unexpected non-SE column in ${f.name}: ${cols}"
+                } },
+                // Nextflow version is removed because we test pipelines on multiple Nextflow versions
+                { assert snapshot(
+                    removeNextflowVersion("$outputDir/pipeline_info/nf_core_atacseq_software_mqc_versions.yml")
+                ).match() }
+            )
+        }
+    }
+}

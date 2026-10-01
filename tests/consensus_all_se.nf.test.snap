@@ -1,0 +1,142 @@
+{
+    "all single-end cohort - single featureCounts batch, pass-through merge": {
+        "content": [
+            {
+                "BAMTOOLS_FILTER": {
+                    "bamtools": "2.5.2",
+                    "samtools": "1.15.1"
+                },
+                "BEDTOOLS_GENOMECOV": {
+                    "bedtools": "2.31.1",
+                    "sort": "sort (GNU coreutils) 9.5"
+                },
+                "BWA_INDEX": {
+                    "bwa": "0.7.19-r1273"
+                },
+                "BWA_MEM": {
+                    "bwa": "0.7.19-r1273",
+                    "samtools": "1.22.1"
+                },
+                "DEEPTOOLS_COMPUTEMATRIX_REFERENCE_POINT": {
+                    "deeptools": "3.5.6"
+                },
+                "DEEPTOOLS_COMPUTEMATRIX_SCALE_REGIONS": {
+                    "deeptools": "3.5.6"
+                },
+                "DEEPTOOLS_PLOTHEATMAP": {
+                    "deeptools": "3.5.6"
+                },
+                "DEEPTOOLS_PLOTPROFILE": {
+                    "deeptools": "3.5.6"
+                },
+                "DESEQ2_QC": {
+                    "bioconductor-deseq2": "1.28.0",
+                    "r-base": "4.0.3"
+                },
+                "FASTQC": {
+                    "fastqc": "0.12.1"
+                },
+                "FEATURECOUNTS_MERGE": {
+                    "sed": 4.7
+                },
+                "FRIP_SCORE": {
+                    "bedtools": "2.30.0",
+                    "samtools": "1.15.1"
+                },
+                "GENOME_BLACKLIST_REGIONS": {
+                    "bedtools": "2.30.0"
+                },
+                "GET_AUTOSOMES": {
+                    "python": "3.8.3"
+                },
+                "GTF2BED": {
+                    "perl": "5.26.2"
+                },
+                "HOMER_ANNOTATEPEAKS": {
+                    "homer": 4.11
+                },
+                "IGV": {
+                    "python": "3.8.3"
+                },
+                "KHMER_UNIQUEKMERS": {
+                    "khmer": "3.0.0a3"
+                },
+                "MACS3_CALLPEAK": {
+                    "macs3": "3.0.4"
+                },
+                "MACS3_CONSENSUS": {
+                    "python": "3.10.0",
+                    "r-base": "4.1.1"
+                },
+                "MERGED_LIBRARY_ATAQV_ATAQV": {
+                    "ataqv": "1.3.1"
+                },
+                "MERGED_LIBRARY_ATAQV_MKARV": {
+                    "ataqv": "1.3.1"
+                },
+                "MERGED_LIBRARY_DEEPTOOLS_PLOTFINGERPRINT": {
+                    "deeptools": "3.5.6"
+                },
+                "MERGED_LIBRARY_PICARD_COLLECTMULTIPLEMETRICS": {
+                    "picard": "3.4.0"
+                },
+                "MULTIQC_CUSTOM_PEAKS": {
+                    "sed": 4.7
+                },
+                "PICARD_MARKDUPLICATES": {
+                    "picard": "3.4.0"
+                },
+                "PICARD_MERGESAMFILES_LIBRARY": {
+                    "picard": "3.4.0"
+                },
+                "PICARD_MERGESAMFILES_REPLICATE": {
+                    "picard": "3.4.0"
+                },
+                "PLOT_HOMER_ANNOTATEPEAKS": {
+                    "r-base": "4.0.3"
+                },
+                "PLOT_MACS3_QC": {
+                    "r-base": "4.0.3"
+                },
+                "SAMPLESHEET_CHECK": {
+                    "python": "3.8.3"
+                },
+                "SAMTOOLS_FAIDX": {
+                    "samtools": "1.23.1"
+                },
+                "SAMTOOLS_FLAGSTAT": {
+                    "samtools": 1.24
+                },
+                "SAMTOOLS_IDXSTATS": {
+                    "samtools": 1.24
+                },
+                "SAMTOOLS_INDEX": {
+                    "samtools": 1.24
+                },
+                "SAMTOOLS_SORT": {
+                    "samtools": 1.24
+                },
+                "SAMTOOLS_STATS": {
+                    "samtools": 1.24
+                },
+                "SUBREAD_FEATURECOUNTS": {
+                    "subread": "2.1.1"
+                },
+                "TRIMGALORE": {
+                    "trimgalore": "2.1.0"
+                },
+                "TSS_EXTRACT": {
+                    "sed": 4.7
+                },
+                "UCSC_BEDGRAPHTOBIGWIG": {
+                    "ucsc": 482
+                }
+            }
+        ],
+        "timestamp": "2026-07-26T19:23:50.832348941",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    }
+}
