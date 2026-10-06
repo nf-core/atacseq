@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements & fixes
 
+- Run the `test_controls` profile in `tests/controls.nf.test` and set `with_control = true` in it, so CI exercises `--with_control`.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Update nf-core modules and subworkflows to their latest versions and reconcile the resulting call-signature changes.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Add read groups to Chromap alignments, which Picard 3.4.0 `MarkDuplicates` now requires.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Quote `--seq_center` when building read-group arguments, so a sequencing-centre name containing whitespace no longer breaks Chromap (Picard) or Bowtie2 alignment.
