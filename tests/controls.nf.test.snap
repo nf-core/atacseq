@@ -1006,7 +1006,7 @@
                 "consensus_peaks.mRp.clN.bed:md5,ab501cefb0b282ccd14f01e53f6d6e51",
                 "consensus_peaks.mRp.clN.boolean.intersect.txt:md5,3fa1ed94fdc4305e082d9e089639b978",
                 "consensus_peaks.mRp.clN.boolean.txt:md5,d6863f401400aabecb5760a81513cfd9",
-                "consensus_peaks.mRp.clN.featureCounts.tsv:md5,<mRp-CI-md5>",
+                "consensus_peaks.mRp.clN.featureCounts.tsv:md5,a79e6c4e86c4bdf345324bda381d9b75",
                 "consensus_peaks.mRp.clN.featureCounts.tsv.summary:md5,31c819e86e50c1dba4ab6df44f7ba466",
                 "consensus_peaks.mRp.clN.saf:md5,7e6ee19c7d44eecaf7d6c0fceb04a10e",
                 "R_sessionInfo.log:md5,fb0da0d7ad6994ed66a8e68348b19676",
