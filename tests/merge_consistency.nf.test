@@ -1,0 +1,38 @@
+nextflow_pipeline {
+
+    name "Test merge_library and merge_replicate consistency"
+    script "../main.nf"
+    tag "merge_consistency"
+
+    // T15_PE_MERGED_LIB and T15_PE_MERGED_REP contain the same FASTQs, merged once
+    // at the library level (same replicate) and once at the replicate level
+    // (different replicates), so their merged results should agree.
+    test("merge_consistency shift_reads") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+                input = "${projectDir}/tests/samplesheet_merge_consistency.csv"
+                shift_reads = true
+            }
+        }
+
+        then {
+            def lib = "$outputDir/bwa/merged_library"
+            def rep = "$outputDir/bwa/merged_replicate"
+            def peaks = { String f -> path(f).readLines().collect { it.split('\t')[0..2].join('\t') } }
+            assertAll(
+                { assert workflow.success },
+                // same number of reads after merging
+                { assert path("$lib/samtools_stats/OSMOTIC_STRESS_T15_PE_MERGED_LIB_REP1.mLb.clN.sorted.bam.flagstat").text ==
+                         path("$rep/samtools_stats/OSMOTIC_STRESS_T15_PE_MERGED_REP.mRp.clN.sorted.bam.flagstat").text },
+                // coverage is built from the shifted BAMs, so this also covers the fragment length filtering
+                { assert path("$lib/bigwig/OSMOTIC_STRESS_T15_PE_MERGED_LIB_REP1.mLb.clN.bigWig").md5 ==
+                         path("$rep/bigwig/OSMOTIC_STRESS_T15_PE_MERGED_REP.mRp.clN.bigWig").md5 },
+                // same peak coordinates
+                { assert peaks("$lib/macs3/broad_peak/OSMOTIC_STRESS_T15_PE_MERGED_LIB_REP1.mLb.clN_peaks.broadPeak") ==
+                         peaks("$rep/macs3/broad_peak/OSMOTIC_STRESS_T15_PE_MERGED_REP.mRp.clN_peaks.broadPeak") }
+            )
+        }
+    }
+}
