@@ -1,11 +1,13 @@
 lint:
   files_unchanged:
     - .gitignore
+  merge_markers:
+    - modules/nf-core/bowtie2/align/tests/main.nf.test.snap
   nextflow_config:
     - config_defaults:
         - params.bamtools_filter_se_config
         - params.bamtools_filter_pe_config
-nf_core_version: 4.1.0
+nf_core_version: 4.2.1
 repository_type: pipeline
 template:
   author: Patel H, Langer B, Espinosa-Carrasco J, Syme R
