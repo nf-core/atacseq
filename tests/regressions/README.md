@@ -7,3 +7,5 @@ The check executes the actual PRESEQ module on the local executor without contai
 The real-data comparisons and wider review are recorded in `PR-DRAFT.md` and `docs/module-update-audit.md`.
 
 Run `python3 tests/regressions/gffread_conversion.py` for the actual packaged GFFREAD conversion check. It requires Docker and tests feature coordinates, identifiers and the observed fixed runtime on a benign annotation. Use `--docker-context colima` on the local Mac. It does not reproduce historical failures or prove all annotation inputs equivalent.
+
+Run `python3 tests/regressions/module_patch_roundtrip.py` in a Python environment containing nf-core/tools (validated with the repository's 4.0.3 version and with 4.1.0). It fetches the exact upstream revisions in `modules.json`, applies the registered GFFREAD and PRESEQ patches using nf-core's component helper, and checks the installed files byte for byte; Trim Galore is an unpatched control. `--cache /path/to/cache` reuses fetched files and `--output /empty/directory` retains results. This is a manual regression check, separate from the pipeline's nf-test selection.
