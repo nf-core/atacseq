@@ -1,4 +1,15 @@
 Changes in component 'nf-core/gffread'
+Changes in 'gffread/environment.yml':
+--- modules/nf-core/gffread/environment.yml
++++ modules/nf-core/gffread/environment.yml
+@@ -4,4 +4,4 @@
+   - conda-forge
+   - bioconda
+ dependencies:
+-  - bioconda::gffread=0.12.7
++  - bioconda::gffread=0.12.9
+
+Changes in 'gffread/main.nf':
 --- modules/nf-core/gffread/main.nf
 +++ modules/nf-core/gffread/main.nf
 @@ -4,8 +4,8 @@
@@ -12,65 +23,62 @@ Changes in component 'nf-core/gffread'
  
      input:
      tuple val(meta), path(gff)
---- modules/nf-core/gffread/environment.yml
-+++ modules/nf-core/gffread/environment.yml
-@@ -4,4 +4,4 @@
-   - conda-forge
-   - bioconda
- dependencies:
--  - bioconda::gffread=0.12.7
-+  - bioconda::gffread=0.12.9
+
+Changes in 'gffread/tests/main.nf.test.snap':
 --- modules/nf-core/gffread/tests/main.nf.test.snap
 +++ modules/nf-core/gffread/tests/main.nf.test.snap
-@@ -1,426 +1,426 @@
- {
-     "sarscov2-gff3-gtf": {
-         "content": [
-             {
-                 "0": [
-                     [
-                         {
-                             "id": "test"
-                         },
-                         "test.gtf:md5,1ea0ae98d3388e0576407dc4a24ef428"
-                     ]
+@@ -12,27 +12,27 @@
                  ],
                  "1": [
- 
-                 ],
-                 "2": [
- 
-                 ],
-                 "3": [
- 
-                 ],
-                 "4": [
-                     [
-                         "GFFREAD",
-                         "gffread",
+-                    
+-                ],
+-                "2": [
+-                    
+-                ],
+-                "3": [
+-                    
+-                ],
+-                "4": [
+-                    [
+-                        "GFFREAD",
+-                        "gffread",
 -                        "0.12.7"
+-                    ]
+-                ],
+-                "bed": [
+-                    
+-                ],
+-                "gffread_fasta": [
+-                    
+-                ],
+-                "gffread_gff": [
+-                    
++
++                ],
++                "2": [
++
++                ],
++                "3": [
++
++                ],
++                "4": [
++                    [
++                        "GFFREAD",
++                        "gffread",
 +                        "0.12.9"
-                     ]
-                 ],
-                 "bed": [
- 
-                 ],
-                 "gffread_fasta": [
- 
-                 ],
-                 "gffread_gff": [
- 
++                    ]
++                ],
++                "bed": [
++
++                ],
++                "gffread_fasta": [
++
++                ],
++                "gffread_gff": [
++
                  ],
                  "gtf": [
-                     [
-                         {
-                             "id": "test"
-                         },
-                         "test.gtf:md5,1ea0ae98d3388e0576407dc4a24ef428"
-                     ]
-                 ],
-                 "versions_gffread": [
-                     [
+@@ -48,13 +48,13 @@
                          "GFFREAD",
                          "gffread",
 -                        "0.12.7"
@@ -93,25 +101,24 @@ Changes in component 'nf-core/gffread'
 +            "nextflow": "26.04.6"
          }
      },
-     "sarscov2-gff3-gff3": {
-         "content": [
+@@ -63,57 +63,57 @@
              {
                  "0": [
- 
-                 ],
-                 "1": [
-                     [
-                         {
-                             "id": "test"
-                         },
+-                    
+-                ],
+-                "1": [
+-                    [
+-                        {
+-                            "id": "test"
+-                        },
 -                        "test.gff3:md5,c4e5da6267c6bee5899a2c204ae1ad91"
 -                    ]
 -                ],
 -                "2": [
--
+-                    
 -                ],
 -                "3": [
--
+-                    
 -                ],
 -                "4": [
 -                    [
@@ -121,10 +128,10 @@ Changes in component 'nf-core/gffread'
 -                    ]
 -                ],
 -                "bed": [
--
+-                    
 -                ],
 -                "gffread_fasta": [
--
+-                    
 -                ],
 -                "gffread_gff": [
 -                    [
@@ -135,7 +142,7 @@ Changes in component 'nf-core/gffread'
 -                    ]
 -                ],
 -                "gtf": [
--
+-                    
 -                ],
 -                "versions_gffread": [
 -                    [
@@ -150,6 +157,13 @@ Changes in component 'nf-core/gffread'
 -        "meta": {
 -            "nf-test": "0.9.5",
 -            "nextflow": "25.10.4"
++
++                ],
++                "1": [
++                    [
++                        {
++                            "id": "test"
++                        },
 +                        "test.gff3:md5,f964eb24e3beef677faf9bf209d28dd0"
 +                    ]
 +                ],
@@ -198,53 +212,58 @@ Changes in component 'nf-core/gffread'
 +            "nextflow": "26.04.6"
          }
      },
-     "sarscov2-gff3-gtf-stub": {
-         "content": [
-             {
-                 "0": [
-                     [
-                         {
-                             "id": "test"
-                         },
-                         "test.gtf:md5,d41d8cd98f00b204e9800998ecf8427e"
-                     ]
+@@ -130,27 +130,27 @@
                  ],
                  "1": [
- 
-                 ],
-                 "2": [
- 
-                 ],
-                 "3": [
- 
-                 ],
-                 "4": [
-                     [
-                         "GFFREAD",
-                         "gffread",
+-                    
+-                ],
+-                "2": [
+-                    
+-                ],
+-                "3": [
+-                    
+-                ],
+-                "4": [
+-                    [
+-                        "GFFREAD",
+-                        "gffread",
 -                        "0.12.7"
+-                    ]
+-                ],
+-                "bed": [
+-                    
+-                ],
+-                "gffread_fasta": [
+-                    
+-                ],
+-                "gffread_gff": [
+-                    
++
++                ],
++                "2": [
++
++                ],
++                "3": [
++
++                ],
++                "4": [
++                    [
++                        "GFFREAD",
++                        "gffread",
 +                        "0.12.9"
-                     ]
-                 ],
-                 "bed": [
- 
-                 ],
-                 "gffread_fasta": [
- 
-                 ],
-                 "gffread_gff": [
- 
++                    ]
++                ],
++                "bed": [
++
++                ],
++                "gffread_fasta": [
++
++                ],
++                "gffread_gff": [
++
                  ],
                  "gtf": [
-                     [
-                         {
-                             "id": "test"
-                         },
-                         "test.gtf:md5,d41d8cd98f00b204e9800998ecf8427e"
-                     ]
-                 ],
-                 "versions_gffread": [
-                     [
+@@ -166,13 +166,13 @@
                          "GFFREAD",
                          "gffread",
 -                        "0.12.7"
@@ -267,30 +286,21 @@ Changes in component 'nf-core/gffread'
 +            "nextflow": "26.04.6"
          }
      },
-     "sarscov2-gff3-bed": {
-         "content": [
-             {
-                 "bed": [
-                     [
-                         {
-                             "id": "test"
-                         },
-                         "test.bed:md5,96fd7117a706e7c2ccbe062beb635172"
-                     ]
+@@ -189,25 +189,25 @@
                  ],
                  "gffread_fasta": [
- 
-                 ],
-                 "gffread_gff": [
- 
-                 ],
-                 "gtf": [
- 
-                 ],
-                 "versions_gffread": [
-                     [
-                         "GFFREAD",
-                         "gffread",
+-                    
+-                ],
+-                "gffread_gff": [
+-                    
+-                ],
+-                "gtf": [
+-                    
+-                ],
+-                "versions_gffread": [
+-                    [
+-                        "GFFREAD",
+-                        "gffread",
 -                        "0.12.7"
 -                    ]
 -                ]
@@ -300,6 +310,18 @@ Changes in component 'nf-core/gffread'
 -        "meta": {
 -            "nf-test": "0.9.5",
 -            "nextflow": "25.10.4"
++
++                ],
++                "gffread_gff": [
++
++                ],
++                "gtf": [
++
++                ],
++                "versions_gffread": [
++                    [
++                        "GFFREAD",
++                        "gffread",
 +                        "0.12.9"
 +                    ]
 +                ]
@@ -311,30 +333,21 @@ Changes in component 'nf-core/gffread'
 +            "nextflow": "26.04.6"
          }
      },
-     "sarscov2-gff3-bed-stub": {
-         "content": [
-             {
-                 "bed": [
-                     [
-                         {
-                             "id": "test"
-                         },
-                         "test.bed:md5,d41d8cd98f00b204e9800998ecf8427e"
-                     ]
+@@ -224,25 +224,25 @@
                  ],
                  "gffread_fasta": [
- 
-                 ],
-                 "gffread_gff": [
- 
-                 ],
-                 "gtf": [
- 
-                 ],
-                 "versions_gffread": [
-                     [
-                         "GFFREAD",
-                         "gffread",
+-                    
+-                ],
+-                "gffread_gff": [
+-                    
+-                ],
+-                "gtf": [
+-                    
+-                ],
+-                "versions_gffread": [
+-                    [
+-                        "GFFREAD",
+-                        "gffread",
 -                        "0.12.7"
 -                    ]
 -                ]
@@ -344,6 +357,18 @@ Changes in component 'nf-core/gffread'
 -        "meta": {
 -            "nf-test": "0.9.5",
 -            "nextflow": "25.10.4"
++
++                ],
++                "gffread_gff": [
++
++                ],
++                "gtf": [
++
++                ],
++                "versions_gffread": [
++                    [
++                        "GFFREAD",
++                        "gffread",
 +                        "0.12.9"
 +                    ]
 +                ]
@@ -355,55 +380,58 @@ Changes in component 'nf-core/gffread'
 +            "nextflow": "26.04.6"
          }
      },
-     "sarscov2-gff3-fasta-stub": {
-         "content": [
+@@ -251,8 +251,8 @@
              {
                  "0": [
- 
-                 ],
-                 "1": [
- 
+-                    
+-                ],
+-                "1": [
+-                    
++
++                ],
++                "1": [
++
                  ],
                  "2": [
-                     [
-                         {
-                             "id": "test"
-                         },
-                         "test.fasta:md5,d41d8cd98f00b204e9800998ecf8427e"
-                     ]
+@@ -265,15 +265,15 @@
                  ],
                  "3": [
- 
-                 ],
-                 "4": [
-                     [
-                         "GFFREAD",
-                         "gffread",
+-                    
+-                ],
+-                "4": [
+-                    [
+-                        "GFFREAD",
+-                        "gffread",
 -                        "0.12.7"
+-                    ]
+-                ],
+-                "bed": [
+-                    
++
++                ],
++                "4": [
++                    [
++                        "GFFREAD",
++                        "gffread",
 +                        "0.12.9"
-                     ]
-                 ],
-                 "bed": [
- 
++                    ]
++                ],
++                "bed": [
++
                  ],
                  "gffread_fasta": [
-                     [
-                         {
-                             "id": "test"
-                         },
-                         "test.fasta:md5,d41d8cd98f00b204e9800998ecf8427e"
-                     ]
+@@ -286,22 +286,22 @@
                  ],
                  "gffread_gff": [
- 
-                 ],
-                 "gtf": [
- 
-                 ],
-                 "versions_gffread": [
-                     [
-                         "GFFREAD",
-                         "gffread",
+-                    
+-                ],
+-                "gtf": [
+-                    
+-                ],
+-                "versions_gffread": [
+-                    [
+-                        "GFFREAD",
+-                        "gffread",
 -                        "0.12.7"
 -                    ]
 -                ]
@@ -413,6 +441,15 @@ Changes in component 'nf-core/gffread'
 -        "meta": {
 -            "nf-test": "0.9.5",
 -            "nextflow": "25.10.4"
++
++                ],
++                "gtf": [
++
++                ],
++                "versions_gffread": [
++                    [
++                        "GFFREAD",
++                        "gffread",
 +                        "0.12.9"
 +                    ]
 +                ]
@@ -424,55 +461,61 @@ Changes in component 'nf-core/gffread'
 +            "nextflow": "26.04.6"
          }
      },
-     "sarscov2-gff3-gff3-stub": {
-         "content": [
+@@ -310,5 +310,5 @@
              {
                  "0": [
- 
+-                    
++
                  ],
                  "1": [
-                     [
-                         {
-                             "id": "test"
-                         },
-                         "test.gff3:md5,d41d8cd98f00b204e9800998ecf8427e"
-                     ]
+@@ -321,21 +321,21 @@
                  ],
                  "2": [
- 
-                 ],
-                 "3": [
- 
-                 ],
-                 "4": [
-                     [
-                         "GFFREAD",
-                         "gffread",
+-                    
+-                ],
+-                "3": [
+-                    
+-                ],
+-                "4": [
+-                    [
+-                        "GFFREAD",
+-                        "gffread",
 -                        "0.12.7"
+-                    ]
+-                ],
+-                "bed": [
+-                    
+-                ],
+-                "gffread_fasta": [
+-                    
++
++                ],
++                "3": [
++
++                ],
++                "4": [
++                    [
++                        "GFFREAD",
++                        "gffread",
 +                        "0.12.9"
-                     ]
-                 ],
-                 "bed": [
- 
-                 ],
-                 "gffread_fasta": [
- 
++                    ]
++                ],
++                "bed": [
++
++                ],
++                "gffread_fasta": [
++
                  ],
                  "gffread_gff": [
-                     [
-                         {
-                             "id": "test"
-                         },
-                         "test.gff3:md5,d41d8cd98f00b204e9800998ecf8427e"
-                     ]
+@@ -348,19 +348,19 @@
                  ],
                  "gtf": [
- 
-                 ],
-                 "versions_gffread": [
-                     [
-                         "GFFREAD",
-                         "gffread",
+-                    
+-                ],
+-                "versions_gffread": [
+-                    [
+-                        "GFFREAD",
+-                        "gffread",
 -                        "0.12.7"
 -                    ]
 -                ]
@@ -482,6 +525,12 @@ Changes in component 'nf-core/gffread'
 -        "meta": {
 -            "nf-test": "0.9.5",
 -            "nextflow": "25.10.4"
++
++                ],
++                "versions_gffread": [
++                    [
++                        "GFFREAD",
++                        "gffread",
 +                        "0.12.9"
 +                    ]
 +                ]
@@ -493,55 +542,58 @@ Changes in component 'nf-core/gffread'
 +            "nextflow": "26.04.6"
          }
      },
-     "sarscov2-gff3-fasta": {
-         "content": [
+@@ -369,8 +369,8 @@
              {
                  "0": [
- 
-                 ],
-                 "1": [
- 
+-                    
+-                ],
+-                "1": [
+-                    
++
++                ],
++                "1": [
++
                  ],
                  "2": [
-                     [
-                         {
-                             "id": "test"
-                         },
-                         "test.fasta:md5,5f8108fb51739a0588ccf0a251de919a"
-                     ]
+@@ -383,15 +383,15 @@
                  ],
                  "3": [
- 
-                 ],
-                 "4": [
-                     [
-                         "GFFREAD",
-                         "gffread",
+-                    
+-                ],
+-                "4": [
+-                    [
+-                        "GFFREAD",
+-                        "gffread",
 -                        "0.12.7"
+-                    ]
+-                ],
+-                "bed": [
+-                    
++
++                ],
++                "4": [
++                    [
++                        "GFFREAD",
++                        "gffread",
 +                        "0.12.9"
-                     ]
-                 ],
-                 "bed": [
- 
++                    ]
++                ],
++                "bed": [
++
                  ],
                  "gffread_fasta": [
-                     [
-                         {
-                             "id": "test"
-                         },
-                         "test.fasta:md5,5f8108fb51739a0588ccf0a251de919a"
-                     ]
+@@ -404,22 +404,22 @@
                  ],
                  "gffread_gff": [
- 
-                 ],
-                 "gtf": [
- 
-                 ],
-                 "versions_gffread": [
-                     [
-                         "GFFREAD",
-                         "gffread",
+-                    
+-                ],
+-                "gtf": [
+-                    
+-                ],
+-                "versions_gffread": [
+-                    [
+-                        "GFFREAD",
+-                        "gffread",
 -                        "0.12.7"
 -                    ]
 -                ]
@@ -551,6 +603,15 @@ Changes in component 'nf-core/gffread'
 -        "meta": {
 -            "nf-test": "0.9.5",
 -            "nextflow": "25.10.4"
++
++                ],
++                "gtf": [
++
++                ],
++                "versions_gffread": [
++                    [
++                        "GFFREAD",
++                        "gffread",
 +                        "0.12.9"
 +                    ]
 +                ]
@@ -562,7 +623,5 @@ Changes in component 'nf-core/gffread'
 +            "nextflow": "26.04.6"
          }
      }
--}
-\ No newline at end of file
-+}
+
 ************************************************************
