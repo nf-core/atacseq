@@ -2,7 +2,7 @@
 
 Target: `nf-core/atacseq:dev`  
 Related issue: [#473](https://github.com/nf-core/atacseq/issues/473)  
-Status: versioned proposal on the fork; module review, patch-lifecycle repair and archive preservation complete. Final targeted pipeline checks remain pending. See the [qualification plan](docs/pr473-qualification.md).
+Status: ready for upstream review within the documented scope. Targeted module and matched yeast workflow qualification pass; the public archive received full anonymous readback. See the [measured results](docs/pr473-yeast-results.md).
 
 ## Problem and changes
 
@@ -25,12 +25,13 @@ The PRESEQ correction preserves the module's new retry policy. The old ignore-to
 - On one full cleaned human HIV library BAM (285,036,036 bytes), MACS3 3.0.1 and 3.0.4 produce exactly the same **30,438 broad peaks**, every broadPeak field and every non-comment XLS row, using the archived default broad/BAMPE/no-control arguments. The 3.0.4 replay also matches archived cloud outputs. Only gappedPeak display fields 7–8 differ between versions. Four offline comparison tests pass; this covers the emitted precision and one library/configuration, not every mode or biological equivalence.
 - `python3 tests/regressions/preseq_retry.py` exercises the actual PRESEQ wrapper: normal success, retry recovery and an intentionally broken mutation. Its executable is an argument-checking stand-in, so it does not validate numerical estimates.
 - A separate local execution uses the actual PRESEQ 3.2.0 package, current module, production configuration selectors and two existing fixed-arm yeast merged, duplicate-marked BAMs. Both tasks succeed on attempt one with `-verbose -bam -seed 1 -pe`, producing 10,000 finite curve rows each. Input hashes remain unchanged and match the archive. No real retry occurs; this establishes execution on these inputs, not estimation accuracy or reliability of extreme extrapolation.
+- Two fresh native Ensembl yeast workflows at `4def83` pass the matched GTF/GFF3 checks on Nextflow 26.04.6: 92/93 completed tasks, exact marked/cleaned reads and retained fragments, 1,635/1,431 peaks, 1,934 consensus intervals and all 3,868 count cells equal. All four real PRESEQ tasks succeed on attempt one; curves match exactly. Actual image digests and command/version evidence are verified. The 91 non-RNA annotation omissions and initial filename-validation rejection are explicit in the measured results.
 - `python3 tests/regressions/module_patch_roundtrip.py`, in an nf-core/tools environment, checks registered application, canonical regeneration, and forward/reverse replay against the exact `modules.json` revisions. The earlier forward-only repair did not survive regeneration. The extended check fails before the new correction and passes with nf-core/tools 4.0.3 and 4.1.0, alongside PRESEQ and Trim Galore controls. Fresh Nextflow 25.10.4 snapshots preserve all eight scientific content values and the upstream EOF format.
 - Nextflow 26.04.6 lint reports zero errors and three existing warnings across 131 files. Full nf-core/tools 4.0.3 lint passes in the official Linux/amd64 container on both repair `81bea6` and upstream dev `73155d`: 515 passes, four ignored, 127 warnings and zero failures each. The corrected GFFREAD module separately has 47 passing lint checks, one newer-module warning and no failures. The four earlier macOS template mismatches were reproduced on both source trees and resolved by normal Linux formatting/rendering without source changes or weakened checks. The container used Python 3.14.4 and Nextflow 25.10.4; its unmodified hook resolver selected Node 27 alpha/npm 12.1, so this is local qualification rather than exact historical CI dependency parity.
 
 All nine existing GFFREAD module tests pass locally in `--ci` mode without snapshot updates on Nextflow 25.10.4 and, in the earlier run, 26.04.6, using nf-test 0.9.5 and upstream helper nft-utils 0.0.9. The new snapshot metadata comes from the actual 25.10.4 run. Reviewed scientific contents are unchanged. The pipeline's separate test configuration still pins nft-utils 0.0.3 and ignores vendored module tests. Docker amd64 was exercised; matching Conda declarations and SIF availability were checked, while Conda resolution and SIF execution were not.
 
-The historical full-data runs remain pinned to `a9b588`; they have not been rerun or relabeled as testing the later PRESEQ or GFFREAD corrections. [Public reproducibility fixtures](https://github.com/NicoDeVeaux/atacseq-modules-update-verification) remain available. Validation data are preserved in verified private Seqera S3 archives. Local copies are retained until #473 is resolved.
+The historical full-data runs remain pinned to `a9b588`; they have not been rerun or relabeled as testing the later PRESEQ or GFFREAD corrections. [Public reproducibility fixtures](https://github.com/NicoDeVeaux/atacseq-modules-update-verification) remain available. Historical validation data are preserved in verified private Seqera S3 archives. The new matched yeast outputs/report use the public data repository linked in the measured results. Local copies are retained until #473 is resolved.
 
 ## Broader review and opening gates
 
@@ -45,8 +46,8 @@ The [module audit](docs/module-update-audit.md) accounts for all **267 changed m
 - [x] Validate the packaged GFFREAD conversion, all nine existing module tests and the reviewed snapshots.
 - [x] Finish the bounded alignment/peak review: real mappings, QC partitions, SAM metadata and display fields are compared separately. The human control below covers one broad/no-control library; SE/ALT/repetitive-data equivalence remains unestablished.
 - [x] Finish verified S3 archive closeout and retain the public reproducibility links.
-- [ ] Run the two small final-SHA GTF/GFF3 pipeline checks with real PRESEQ described in the qualification plan.
-- [ ] Record final branch validation and update this description before opening the nf-core PR.
+- [x] Run the two small final-SHA GTF/GFF3 pipeline checks with real PRESEQ described in the qualification plan.
+- [x] Record final branch validation and update this description before opening the nf-core PR.
 
 Chromap 0.3.2 includes a mapping-pair correction. Local tests on the real residual pair reproduce an alignment difference independently of trimming and read-group assignment. Complete alignment identity with 0.2.4 is therefore not promised. Later upstream fixes are leads to investigate, not proof that every affected version causes a new pipeline regression. This branch does not blanket-upgrade other tools or resolve the separate mixed SE/PE and MultiQC issues.
 

@@ -8,9 +8,9 @@ Full nf-core/tools 4.0.3 lint passes in the official Linux/amd64 container on re
 
 A separate local check executes the actual PRESEQ 3.2.0 module with production configuration selectors on both fixed-arm marked yeast BAMs. Both tasks succeed on attempt one, retain the production arguments, and emit 10,000 finite curve rows each. Their input hashes remain unchanged. No real retry occurs; this adds packaged-tool execution evidence without validating estimation accuracy or replacing a full pipeline check.
 
-## Small final-branch workflow checks
+## Executed workflow checks and reproduction contract
 
-Run two matched workflows at one immutable final fork SHA, with Chromap and real PRESEQ enabled. Use the genuine D28/D28P technical resequencing inputs from PRJNA844120:
+The two matched workflows completed at immutable source `4def83`, with Chromap and real PRESEQ enabled. Reproduce them using the following contract. Use the genuine D28/D28P technical resequencing inputs from PRJNA844120:
 
 - D28: SRR19479022 and SRR19479023, two runs from the same physical library.
 - D28P: SRR19479020 and SRR19479021, two runs from a different physical library.
@@ -21,7 +21,7 @@ Run two matched workflows at one immutable final fork SHA, with Chromap and real
 | GTF  | Ensembl R64-1-1 release-115 GTF  | No GFFREAD task; real PRESEQ results for both libraries                       |
 | GFF3 | Matching release-115 native GFF3 | GUNZIP_GFF and GFFREAD 0.12.9 execute; real PRESEQ results for both libraries |
 
-Use the matching Ensembl FASTA in both arms. Explicitly ignore iGenomes, leave `genome` unset, set `mito_name=Mito`, and ensure the GFF arm has effective `gtf=null`. Freeze all other scientific settings and container identities before launch. Validate annotation contigs and interval bounds against the complete FASTA first.
+Use the matching Ensembl FASTA in both arms. Stage the official GFF3 bytes under a `.gff.gz` alias because the current schema rejects the `.gff3.gz` filename suffix. Explicitly ignore iGenomes, leave `genome` unset, set `mito_name=Mito`, and ensure the GFF arm has effective `gtf=null`. Freeze all other scientific settings and container identities before launch. Validate annotation contigs and interval bounds against the complete FASTA first.
 
 Require four distinct technical read groups, one shared library ID per physical library, two separate biological-library groups, and both samples in downstream results. Compare retained fragments, peak coordinates, consensus intervals and coordinate/sample-keyed count cells exactly between the two arms. Validate converted annotation identifiers and coordinates separately; native GTF/GFF3 representation differences are not automatically regressions. These references do not inherit the old UCSC 1,934-region oracle.
 
@@ -35,7 +35,7 @@ Reuse successful nf-core/nf-test CI when it tested the same SHA, or when every r
 
 Keep upstream PRESEQ/GFFREAD module work visible. Registered local patches are deliberate temporary integration points; document their pins and lifecycle checks rather than implying they are unmodified upstream modules. Do not broaden this PR to unrelated template, MultiQC, mixed SE/PE or inherited aligner behavior.
 
-The real-sample arms above have not yet been launched. Preserve all local validation data until [nf-core/atacseq#473](https://github.com/nf-core/atacseq/issues/473) is resolved. Archive storage is private Seqera S3; existing public reproducibility fixtures remain linked from the PR draft. The upstream PR has intentionally not been opened.
+The two real-sample arms have completed and passed the targeted gates; see the [measured results and limits](pr473-yeast-results.md). Preserve all local validation data until [nf-core/atacseq#473](https://github.com/nf-core/atacseq/issues/473) is resolved. Historical full-data storage is private Seqera S3. The new yeast campaign publishes scientific outputs and its report to the public data repository linked in the measured results. The upstream PR has intentionally not been opened.
 
 References: [Evangelos's release-planning guidance](https://github.com/vagkaratzas/skills/blob/4f3aebbc0dc776c93b266cef51f74f92aaeac5fa/skills/plan-nf-core-releases/SKILL.md), [PRJNA844120](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA844120), [Ensembl FASTA](https://ftp.ensembl.org/pub/release-115/fasta/saccharomyces_cerevisiae/dna/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa.gz), [GTF](https://ftp.ensembl.org/pub/release-115/gtf/saccharomyces_cerevisiae/Saccharomyces_cerevisiae.R64-1-1.115.gtf.gz), [GFF3](https://ftp.ensembl.org/pub/release-115/gff3/saccharomyces_cerevisiae/Saccharomyces_cerevisiae.R64-1-1.115.gff3.gz).
 

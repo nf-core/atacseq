@@ -1,6 +1,6 @@
 # PR448 module behavior audit
 
-Related issue: [nf-core/atacseq#473](https://github.com/nf-core/atacseq/issues/473). The bounded version and wrapper review is complete. Archive preservation is verified; the upstream PR remains gated on the [targeted final-branch workflow checks](pr473-qualification.md); optional-mode and transitive-dependency limits remain explicit.
+Related issue: [nf-core/atacseq#473](https://github.com/nf-core/atacseq/issues/473). The bounded version and wrapper review is complete. Archive preservation and the [targeted final-branch workflow checks](pr473-qualification.md) are verified; optional-mode and transitive-dependency limits remain explicit.
 
 The inventory compares the actual merge `a51bee` to its first parent `4177ea`: **267 changed module/subworkflow files**, **70 components**, **16 changed declared dependency versions**, with no unassigned component files. Later history was checked for **36 shared module paths and seven shared subworkflows**. Reviewed current dev is `73155d`. Declared pins and container references are separate; opaque image contents and full transitive dependency sets are not inferred.
 
@@ -32,5 +32,7 @@ A separate actual-module PRESEQ check uses its packaged 3.2.0 runtime, productio
 Selected inventories, primary-source references and experiments are available in the [public reproducibility repository](https://github.com/NicoDeVeaux/atacseq-modules-update-verification). Full validation-data preservation now uses private Seqera S3. The full-data BWA count match and controlled duplicate-marking recovery meet the two numerical acceptance checks in #473; they do not establish identity across all optional modes.
 
 Source-only scope clarification: BWA and Bowtie2 already assigned technical-run library IDs before #448. This branch restores Chromap's pre-448 behavior; harmonizing the inherited aligner semantics needs separate validation and is not a new finding here.
+
+The final matched native Ensembl GTF/GFF3 campaign at `4def83` passes 185 actual tasks on Nextflow 26.04.6, with exact marked/cleaned reads, retained fragments, peaks, consensus and count agreement. Actual image digests, task commands/versions and both real PRESEQ results per arm are verified. [Measured results and scope](pr473-yeast-results.md) retain the 91-feature annotation distinction, initial filename rejection and byte-identical accepted alias.
 
 Earlier validation narrative attribution: GPT-6 (Codex). This review update is written by an AI agent (model name unavailable) on Nico DeVeaux's behalf.
