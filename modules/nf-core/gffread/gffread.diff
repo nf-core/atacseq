@@ -27,7 +27,8 @@ Changes in 'gffread/main.nf':
 Changes in 'gffread/tests/main.nf.test.snap':
 --- modules/nf-core/gffread/tests/main.nf.test.snap
 +++ modules/nf-core/gffread/tests/main.nf.test.snap
-@@ -12,27 +12,27 @@
+@@ -11,29 +11,29 @@
+                     ]
                  ],
                  "1": [
 -                    
@@ -78,7 +79,9 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +
                  ],
                  "gtf": [
-@@ -48,13 +48,13 @@
+                     [
+@@ -47,12 +47,12 @@
+                     [
                          "GFFREAD",
                          "gffread",
 -                        "0.12.7"
@@ -87,21 +90,17 @@ Changes in 'gffread/tests/main.nf.test.snap':
 -            }
 -        ],
 -        "timestamp": "2026-04-24T10:22:41.259965105",
--        "meta": {
--            "nf-test": "0.9.5",
--            "nextflow": "25.10.4"
 +                        "0.12.9"
 +                    ]
 +                ]
 +            }
 +        ],
-+        "timestamp": "2026-10-29T11:11:54.030628",
-+        "meta": {
-+            "nf-test": "0.9.5",
-+            "nextflow": "26.04.6"
-         }
-     },
-@@ -63,57 +63,57 @@
++        "timestamp": "2026-11-02T11:46:06.295191",
+         "meta": {
+             "nf-test": "0.9.5",
+             "nextflow": "25.10.4"
+@@ -62,56 +62,56 @@
+         "content": [
              {
                  "0": [
 -                    
@@ -154,9 +153,6 @@ Changes in 'gffread/tests/main.nf.test.snap':
 -            }
 -        ],
 -        "timestamp": "2026-04-24T10:22:51.897172513",
--        "meta": {
--            "nf-test": "0.9.5",
--            "nextflow": "25.10.4"
 +
 +                ],
 +                "1": [
@@ -206,13 +202,12 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +                ]
 +            }
 +        ],
-+        "timestamp": "2026-10-29T11:12:00.486197",
-+        "meta": {
-+            "nf-test": "0.9.5",
-+            "nextflow": "26.04.6"
-         }
-     },
-@@ -130,27 +130,27 @@
++        "timestamp": "2026-11-02T11:46:36.48524",
+         "meta": {
+             "nf-test": "0.9.5",
+             "nextflow": "25.10.4"
+@@ -129,29 +129,29 @@
+                     ]
                  ],
                  "1": [
 -                    
@@ -263,7 +258,9 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +
                  ],
                  "gtf": [
-@@ -166,13 +166,13 @@
+                     [
+@@ -165,12 +165,12 @@
+                     [
                          "GFFREAD",
                          "gffread",
 -                        "0.12.7"
@@ -272,21 +269,17 @@ Changes in 'gffread/tests/main.nf.test.snap':
 -            }
 -        ],
 -        "timestamp": "2026-04-24T10:22:46.582356403",
--        "meta": {
--            "nf-test": "0.9.5",
--            "nextflow": "25.10.4"
 +                        "0.12.9"
 +                    ]
 +                ]
 +            }
 +        ],
-+        "timestamp": "2026-10-29T11:11:57.031501",
-+        "meta": {
-+            "nf-test": "0.9.5",
-+            "nextflow": "26.04.6"
-         }
-     },
-@@ -189,25 +189,25 @@
++        "timestamp": "2026-11-02T11:46:20.240287",
+         "meta": {
+             "nf-test": "0.9.5",
+             "nextflow": "25.10.4"
+@@ -188,24 +188,24 @@
+                     ]
                  ],
                  "gffread_fasta": [
 -                    
@@ -307,9 +300,6 @@ Changes in 'gffread/tests/main.nf.test.snap':
 -            }
 -        ],
 -        "timestamp": "2026-04-24T10:23:13.476804733",
--        "meta": {
--            "nf-test": "0.9.5",
--            "nextflow": "25.10.4"
 +
 +                ],
 +                "gffread_gff": [
@@ -327,13 +317,12 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +                ]
 +            }
 +        ],
-+        "timestamp": "2026-10-29T11:12:13.460494",
-+        "meta": {
-+            "nf-test": "0.9.5",
-+            "nextflow": "26.04.6"
-         }
-     },
-@@ -224,25 +224,25 @@
++        "timestamp": "2026-11-02T11:47:22.601966",
+         "meta": {
+             "nf-test": "0.9.5",
+             "nextflow": "25.10.4"
+@@ -223,24 +223,24 @@
+                     ]
                  ],
                  "gffread_fasta": [
 -                    
@@ -354,9 +343,6 @@ Changes in 'gffread/tests/main.nf.test.snap':
 -            }
 -        ],
 -        "timestamp": "2026-04-24T10:23:18.831655873",
--        "meta": {
--            "nf-test": "0.9.5",
--            "nextflow": "25.10.4"
 +
 +                ],
 +                "gffread_gff": [
@@ -374,13 +360,12 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +                ]
 +            }
 +        ],
-+        "timestamp": "2026-10-29T11:12:16.87129",
-+        "meta": {
-+            "nf-test": "0.9.5",
-+            "nextflow": "26.04.6"
-         }
-     },
-@@ -251,8 +251,8 @@
++        "timestamp": "2026-11-02T11:47:31.333728",
+         "meta": {
+             "nf-test": "0.9.5",
+             "nextflow": "25.10.4"
+@@ -250,10 +250,10 @@
+         "content": [
              {
                  "0": [
 -                    
@@ -393,7 +378,9 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +
                  ],
                  "2": [
-@@ -265,15 +265,15 @@
+                     [
+@@ -264,17 +264,17 @@
+                     ]
                  ],
                  "3": [
 -                    
@@ -420,7 +407,9 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +
                  ],
                  "gffread_fasta": [
-@@ -286,22 +286,22 @@
+                     [
+@@ -285,21 +285,21 @@
+                     ]
                  ],
                  "gffread_gff": [
 -                    
@@ -438,9 +427,6 @@ Changes in 'gffread/tests/main.nf.test.snap':
 -            }
 -        ],
 -        "timestamp": "2026-04-24T10:23:08.064865029",
--        "meta": {
--            "nf-test": "0.9.5",
--            "nextflow": "25.10.4"
 +
 +                ],
 +                "gtf": [
@@ -455,20 +441,21 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +                ]
 +            }
 +        ],
-+        "timestamp": "2026-10-29T11:12:10.341693",
-+        "meta": {
-+            "nf-test": "0.9.5",
-+            "nextflow": "26.04.6"
-         }
-     },
-@@ -310,5 +310,5 @@
++        "timestamp": "2026-11-02T11:47:14.307287",
+         "meta": {
+             "nf-test": "0.9.5",
+             "nextflow": "25.10.4"
+@@ -309,7 +309,7 @@
+         "content": [
              {
                  "0": [
 -                    
 +
                  ],
                  "1": [
-@@ -321,21 +321,21 @@
+                     [
+@@ -320,23 +320,23 @@
+                     ]
                  ],
                  "2": [
 -                    
@@ -507,7 +494,9 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +
                  ],
                  "gffread_gff": [
-@@ -348,19 +348,19 @@
+                     [
+@@ -347,18 +347,18 @@
+                     ]
                  ],
                  "gtf": [
 -                    
@@ -522,9 +511,6 @@ Changes in 'gffread/tests/main.nf.test.snap':
 -            }
 -        ],
 -        "timestamp": "2026-04-24T10:22:57.33529754",
--        "meta": {
--            "nf-test": "0.9.5",
--            "nextflow": "25.10.4"
 +
 +                ],
 +                "versions_gffread": [
@@ -536,13 +522,12 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +                ]
 +            }
 +        ],
-+        "timestamp": "2026-10-29T11:12:03.736135",
-+        "meta": {
-+            "nf-test": "0.9.5",
-+            "nextflow": "26.04.6"
-         }
-     },
-@@ -369,8 +369,8 @@
++        "timestamp": "2026-11-02T11:46:50.454393",
+         "meta": {
+             "nf-test": "0.9.5",
+             "nextflow": "25.10.4"
+@@ -368,10 +368,10 @@
+         "content": [
              {
                  "0": [
 -                    
@@ -555,7 +540,9 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +
                  ],
                  "2": [
-@@ -383,15 +383,15 @@
+                     [
+@@ -382,17 +382,17 @@
+                     ]
                  ],
                  "3": [
 -                    
@@ -582,7 +569,9 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +
                  ],
                  "gffread_fasta": [
-@@ -404,22 +404,22 @@
+                     [
+@@ -403,21 +403,21 @@
+                     ]
                  ],
                  "gffread_gff": [
 -                    
@@ -600,9 +589,6 @@ Changes in 'gffread/tests/main.nf.test.snap':
 -            }
 -        ],
 -        "timestamp": "2026-04-24T10:23:02.723479313",
--        "meta": {
--            "nf-test": "0.9.5",
--            "nextflow": "25.10.4"
 +
 +                ],
 +                "gtf": [
@@ -617,11 +603,9 @@ Changes in 'gffread/tests/main.nf.test.snap':
 +                ]
 +            }
 +        ],
-+        "timestamp": "2026-10-29T11:12:07.323388",
-+        "meta": {
-+            "nf-test": "0.9.5",
-+            "nextflow": "26.04.6"
-         }
-     }
++        "timestamp": "2026-11-02T11:47:05.501858",
+         "meta": {
+             "nf-test": "0.9.5",
+             "nextflow": "25.10.4"
 
 ************************************************************
