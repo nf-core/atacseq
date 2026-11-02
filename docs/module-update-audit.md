@@ -1,6 +1,6 @@
 # PR448 module behavior audit
 
-Related issue: [nf-core/atacseq#473](https://github.com/nf-core/atacseq/issues/473). The bounded version and wrapper review is complete. The upstream PR remains gated on the downloadable archive and final review; optional-mode and transitive-dependency limits remain explicit.
+Related issue: [nf-core/atacseq#473](https://github.com/nf-core/atacseq/issues/473). The bounded version and wrapper review is complete. Archive preservation is verified; the upstream PR remains gated on the [targeted final-branch workflow checks](pr473-qualification.md); optional-mode and transitive-dependency limits remain explicit.
 
 The inventory compares the actual merge `a51bee` to its first parent `4177ea`: **267 changed module/subworkflow files**, **70 components**, **16 changed declared dependency versions**, with no unassigned component files. Later history was checked for **36 shared module paths and seven shared subworkflows**. Reviewed current dev is `73155d`. Declared pins and container references are separate; opaque image contents and full transitive dependency sets are not inferred.
 
@@ -25,8 +25,12 @@ The full-human MACS control independently verifies the frozen 285,036,036-byte i
 
 The GFFREAD mitigation passes the actual-module benign conversion oracle and all nine existing module tests in local `--ci` mode. The isolated suite uses the upstream nft-utils 0.0.9 helper because the pipeline's older 0.0.3 helper lacks the module test's `sanitizeOutput` function. Only version/comment metadata changes in the reviewed snapshots; Conda and SIF execution remain untested.
 
-Detailed inventories, primary-source references and experiments are being assembled in the [reproducibility repository](https://github.com/NicoDeVeaux/atacseq-modules-update-verification). The full-data BWA count match and controlled duplicate-marking recovery meet the two numerical acceptance checks in #473; they do not establish identity across all optional modes.
+The 2026-11-02 re-review also exercises nf-core's canonical patch regeneration. The earlier forward-only check passed while regeneration broke replay. The extended check detects that failure under nf-core/tools 4.0.3 and 4.1.0; the correction passes registered application, canonical regeneration and forward/reverse replay. Fresh benign snapshots from Nextflow 25.10.4 retain all eight scientific contents, and all nine tests pass again in strict `--ci` mode. Runtime module code is unchanged by this maintenance correction.
+
+A separate actual-module PRESEQ check uses its packaged 3.2.0 runtime, production configuration selectors and both fixed-arm yeast merged, duplicate-marked BAMs. Both succeed on attempt one with the expected arguments and 10,000 finite curve rows each. Input hashes remain unchanged. This adds real-binary execution evidence; the stand-in remains the retry witness, and neither check proves estimation accuracy.
+
+Selected inventories, primary-source references and experiments are available in the [public reproducibility repository](https://github.com/NicoDeVeaux/atacseq-modules-update-verification). Full validation-data preservation now uses private Seqera S3. The full-data BWA count match and controlled duplicate-marking recovery meet the two numerical acceptance checks in #473; they do not establish identity across all optional modes.
 
 Source-only scope clarification: BWA and Bowtie2 already assigned technical-run library IDs before #448. This branch restores Chromap's pre-448 behavior; harmonizing the inherited aligner semantics needs separate validation and is not a new finding here.
 
-This is written by GPT-6 (Codex) on Nico DeVeaux's behalf.
+Earlier validation narrative attribution: GPT-6 (Codex). This review update is written by an AI agent (model name unavailable) on Nico DeVeaux's behalf.
