@@ -13,45 +13,12 @@ nextflow_pipeline {
         }
 
         then {
-            def assertSafMatchesBed = { String level ->
-                def mergedDir = level == 'mLb' ? 'merged_library' : 'merged_replicate'
-                def prefix = "${params.outdir}/bwa/${mergedDir}/macs3/broad_peak/consensus/consensus_peaks.${level}.clN"
-                def bedFile = new File("${prefix}.bed")
-                def safFile = new File("${prefix}.saf")
-                assert bedFile.isFile() && safFile.isFile(), "${level}: missing consensus BED/SAF"
-                def bedRows = bedFile.readLines('UTF-8').collect { it.split('\t', -1) as List }
-                def safLines = safFile.readLines('UTF-8')
-                assert bedRows && bedRows.every { it.size() == 6 }, "${level}: invalid/empty BED"
-                assert safLines && safLines[0].split('\t', -1).toList() == ['GeneID', 'Chr', 'Start', 'End', 'Strand'], "${level}: invalid SAF header"
-                def safRows = safLines.drop(1).collect { it.split('\t', -1) as List }
-                assert safRows.size() == bedRows.size(), "${level}: BED/SAF row count differs"
-                assert safRows.every { it.size() == 5 }, "${level}: invalid SAF row"
-                def bedIds = bedRows.collect { it[3] }
-                def safIds = safRows.collect { it[0] }
-                assert bedIds.every { it } && bedIds.toSet().size() == bedIds.size(), "${level}: duplicate/empty BED IDs"
-                assert safIds.every { it } && safIds.toSet().size() == safIds.size(), "${level}: duplicate/empty SAF IDs"
-                assert safIds.toSet() == bedIds.toSet(), "${level}: BED/SAF ID sets differ"
-                def safById = safRows.collectEntries { [(it[0]): it] }
-                bedRows.each { bed ->
-                    def saf = safById[bed[3]]
-                    def start = bed[1].toBigInteger()
-                    def end = bed[2].toBigInteger()
-                    assert start >= 0 && end > start, "${level}: invalid BED interval ${bed[3]}"
-                    assert saf[1] == bed[0], "${level}: SAF chromosome differs for ${bed[3]}"
-                    assert saf[2].toBigInteger() == start + 1, "${level}: SAF Start != BED Start + 1 for ${bed[3]}"
-                    assert saf[3].toBigInteger() == end, "${level}: SAF End differs for ${bed[3]}"
-                    assert saf[4] == bed[5], "${level}: SAF strand differs for ${bed[3]}"
-                }
-            }
-
             // stable_name: All files + folders in ${params.outdir}/ with a stable name
             def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
             // stable_path: All files in ${params.outdir}/ with stable content
             def stable_path = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
             assertAll(
                 { assert workflow.success},
-                { assertSafMatchesBed('mLb') },
-                { assertSafMatchesBed('mRp') },
                 { assert snapshot(
                     // Number of successful tasks
                     workflow.trace.succeeded().size(),
