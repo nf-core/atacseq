@@ -133,8 +133,38 @@ jobs:
           name: pr-comment-fragment-${{ strategy.job-index }}
           path: pr-comment-fragment/
 
+  preseq-retry:
+    name: PRESEQ retry regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NXF_VER: "25.10.4"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: "3.14"
+
+      - uses: nf-core/setup-nextflow@b4ec1bc7c16a94435159de94a05253542fddf6ef # v3
+        with:
+          version: "25.10.4"
+
+      - name: Run PRESEQ retry regression
+        run: |
+          nextflow -version
+          python3 tests/regressions/preseq_retry.py --output "${{ runner.temp }}/preseq-retry"
+
+      - name: Upload PRESEQ retry evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: preseq-retry
+          path: ${{ runner.temp }}/preseq-retry/
+          include-hidden-files: true
+
   confirm-pass:
-    needs: [nf-test]
+    needs: [nf-test, preseq-retry]
     if: always()
     runs-on: # use self-hosted runners
       - runs-on=${{ github.run_id }}-confirm-pass

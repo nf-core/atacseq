@@ -44,25 +44,22 @@ if os.environ['PRESEQ_FAIL_FIRST'] == '1' and '-defects' not in argv:
 Path(argv[argv.index('-output')+1]).write_text('Fixture estimate; no scientific computation\\n')
 ''')
     executable.chmod(0o755)
-    env = {key: os.environ[key] for key in ('HOME', 'PATH', 'JAVA_HOME', 'LANG') if key in os.environ}
+    env = {key: os.environ[key] for key in ('HOME', 'PATH', 'JAVA_HOME', 'LANG', 'NXF_VER', 'NXF_HOME') if key in os.environ}
     env.update(PATH=str(bins)+':'+env.get('PATH', '/usr/bin:/bin'), NXF_OFFLINE='true',
                NXF_ANSI_LOG='false', NXF_DISABLE_CHECK_LATEST='true')
     results = {}
-    replacement = '"${args} -defects"'
-    if replacement not in source:
-        raise ValueError('Mutation control needs the reviewed append expression')
-    cases = [('normal', source, '0'), ('retry', source, '1'),
-             ('lost_options_control', source.replace(replacement, "args.join(' -defects')"), '1')]
-    for name, body, fail_first in cases:
+    cases = [('normal', '0', '0'), ('retry', '1', '0'),
+             ('lost_options_control', '1', '1')]
+    for name, fail_first, drop_options in cases:
         case = root/name
         case.mkdir()
-        (case/'module.nf').write_text(body)
+        (case/'module.nf').write_text(source)
         (case/'input.bam').write_text('Fixture: only the wrapper argv contract is tested\n')
         (case/'main.nf').write_text("include { PRESEQ_LCEXTRAP } from './module'\nworkflow { PRESEQ_LCEXTRAP(Channel.of([[id:'library', single_end:false],file('input.bam')])) }\n")
-        (case/'nextflow.config').write_text("process { executor='local'; cpus=1; memory='1 GB'; maxRetries=1; maxErrors=-1; errorStrategy='finish'; ext.args='-verbose -bam -seed 1'; withLabel:error_ignore { errorStrategy='ignore' }; withLabel:error_retry { errorStrategy='retry'; maxRetries=2 } }\nconda.enabled=false\ndocker.enabled=false\nnextflow.enable.telemetry=false\n")
+        (case/'nextflow.config').write_text("process { executor='local'; cpus=1; memory='1 GB'; maxRetries=1; maxErrors=-1; errorStrategy='finish'; ext.args={ System.getenv('PRESEQ_DROP_RETRY_OPTIONS') == '1' && task.attempt > 1 ? '' : '-verbose -bam -seed 1' }; withLabel:error_ignore { errorStrategy='ignore' }; withLabel:error_retry { errorStrategy='retry'; maxRetries=2 } }\nconda.enabled=false\ndocker.enabled=false\nnextflow.enable.telemetry=false\n")
         record = case/'argv.jsonl'
         proc = subprocess.run(command+['run', 'main.nf', '-ansi-log', 'false', '-with-trace', 'trace.tsv', '-work-dir', 'work'],
-                              cwd=case, env={**env, 'PRESEQ_ARGV_RECORD': str(record), 'PRESEQ_FAIL_FIRST': fail_first},
+                              cwd=case, env={**env, 'PRESEQ_ARGV_RECORD': str(record), 'PRESEQ_FAIL_FIRST': fail_first, 'PRESEQ_DROP_RETRY_OPTIONS': drop_options},
                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120)
         (case/'run.out').write_bytes(proc.stdout)
         invocations = [json.loads(line) for line in record.read_text().splitlines()] if record.exists() else []
