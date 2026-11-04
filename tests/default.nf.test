@@ -13,6 +13,21 @@ nextflow_pipeline {
         }
 
         then {
+            // Check raw provenance before removeNextflowVersion prepares the snapshot.
+            def assertWorkflowVersions = { String text ->
+                def options = new org.yaml.snakeyaml.LoaderOptions()
+                options.setAllowDuplicateKeys(false)
+                def versions = new org.yaml.snakeyaml.Yaml(new org.yaml.snakeyaml.constructor.SafeConstructor(options)).load(text)
+                assert versions instanceof Map && versions.Workflow instanceof Map, 'Missing Workflow versions mapping'
+                def pipelineVersion = versions.Workflow['nf-core/atacseq']
+                def nextflowVersion = versions.Workflow.Nextflow
+                assert pipelineVersion instanceof String && pipelineVersion ==~ /v?[0-9]+\.[0-9]+\.[0-9]+[A-Za-z0-9.+-]*/, 'Missing or invalid pipeline version'
+                assert nextflowVersion instanceof String && nextflowVersion ==~ /[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?/, 'Missing or invalid Nextflow version'
+            }
+            def rawVersionsFile = new File("$outputDir/pipeline_info/nf_core_atacseq_software_mqc_versions.yml")
+            assert rawVersionsFile.isFile(), 'Missing raw workflow versions YAML'
+            assertWorkflowVersions(rawVersionsFile.getText('UTF-8'))
+
             // stable_name: All files + folders in ${params.outdir}/ with a stable name
             def stable_name = getAllFilesFromDir(params.outdir, relative: true, includeDir: true, ignore: ['pipeline_info/*.{html,json,txt}'])
             // stable_path: All files in ${params.outdir}/ with stable content
