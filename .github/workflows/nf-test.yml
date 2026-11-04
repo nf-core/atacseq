@@ -133,8 +133,34 @@ jobs:
           name: pr-comment-fragment-${{ strategy.job-index }}
           path: pr-comment-fragment/
 
+  saf-boundary:
+    name: SAF coordinate boundary regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Test the coordinate checker
+        run: python3 -B -m unittest discover --start-directory tests/regressions --pattern 'test_saf_boundary.py'
+
+      - name: Prepare the fixed boundary-test runtimes
+        run: |
+          docker pull --platform linux/amd64 quay.io/biocontainers/subread@sha256:ccee1f6ebb924fd0b3b6db646a51dabc905697aa25be132386dd490c2318286c
+          docker pull --platform linux/amd64 community.wave.seqera.io/library/htslib_samtools@sha256:a55ddea590e567a91df592300a960aa534cfc1bd16e7623e3938ec21f4f3df15
+
+      - name: Check actual converter and read assignment
+        run: python3 -B tests/regressions/saf_boundary.py --output "${{ runner.temp }}/saf-boundary"
+
+      - name: Retain boundary-test evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: saf-boundary
+          path: ${{ runner.temp }}/saf-boundary/
+          retention-days: 7
+
   confirm-pass:
-    needs: [nf-test]
+    needs: [nf-test, saf-boundary]
     if: always()
     runs-on: # use self-hosted runners
       - runs-on=${{ github.run_id }}-confirm-pass

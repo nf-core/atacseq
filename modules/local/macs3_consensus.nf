@@ -43,7 +43,7 @@ process MACS3_CONSENSUS {
     awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$1, \$2, \$3, \$4, "0", "+" }' ${prefix}.boolean.txt > ${prefix}.bed
 
     echo -e "GeneID\tChr\tStart\tEnd\tStrand" > ${prefix}.saf
-    awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
+    awk -v FS='\t' -v OFS='\t' 'FNR > 1 { print \$4, \$1, \$2 + 1, \$3,  "+" }' ${prefix}.boolean.txt >> ${prefix}.saf
 
     plot_peak_intersect.r -i ${prefix}.boolean.intersect.txt -o ${prefix}.boolean.intersect.plot.pdf
 
