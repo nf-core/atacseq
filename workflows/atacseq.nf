@@ -15,6 +15,7 @@ include { MULTIQC } from '../modules/local/multiqc'
 //
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { workflowVersionToYAML  } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_atacseq_pipeline'
 include { INPUT_CHECK            } from '../subworkflows/local/input_check'
 include { ALIGN_STAR             } from '../subworkflows/local/align_star'
@@ -674,6 +675,7 @@ workflow ATACSEQ {
             def dedup = tool_versions.unique().sort()
             "${process}:\n${dedup.join('\n')}"
         }
+        .mix(channel.of(workflowVersionToYAML()))
         .collectFile(
             name: 'nf_core_atacseq_software_mqc_versions.yml',
             storeDir: "${outdir}/pipeline_info",

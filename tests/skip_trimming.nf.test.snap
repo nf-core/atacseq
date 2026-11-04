@@ -128,6 +128,9 @@
                 },
                 "UCSC_BEDGRAPHTOBIGWIG": {
                     "ucsc": 482
+                },
+                "Workflow": {
+                    "nf-core/atacseq": "v2.2.0dev"
                 }
             },
             [
