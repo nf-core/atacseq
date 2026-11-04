@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 
 SEQUENCES = (
@@ -105,24 +106,37 @@ def main():
         result['source_before'] = source_identity(repo)
         harness = [Path(__file__), Path(__file__).with_name('trim_poly_g.nf')]
         result['harness_before'] = {path.name: sha(path) for path in harness}
-        module = (repo / SOURCES[1]).read_text()
+        source = root / 'source'
+        for relative in SOURCES:
+            destination = source / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(repo / relative, destination)
+        driver = source / 'tests/regressions/trim_poly_g.nf'
+        driver.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(harness[1], driver)
+        result['source_used'] = {name: sha(source / name) for name in SOURCES}
+        if result['source_used'] != result['source_before']['files']:
+            raise ValueError('Copied source differs from the selected checkout')
+        module = (source / SOURCES[1]).read_text()
         images = set(value for value in re.findall(r"'([^']*trim-galore:[^']+)'", module) if not value.startswith('https://'))
         if len(images) != 1:
             raise ValueError('Expected one source-declared Docker image')
         image = images.pop()
         docker = ['docker', '--context', args.docker_context]
-        inspect = docker + ['image', 'inspect', '--format', '{"id":{{json .Id}},"repo_digests":{{json .RepoDigests}},"architecture":{{json .Architecture}}}', image]
-        result['container'] = {'declared_reference': image, **json.loads(run(inspect, 'image-before'))}
+        inspect = docker + ['image', 'inspect', image]
+        inspected = json.loads(run(inspect, 'image-before'))[0]
+        result['container'] = {'declared_reference': image, 'id': inspected['Id'],
+                               'repo_digests': inspected['RepoDigests'], 'architecture': inspected['Architecture']}
         result['tool_identity'] = run(docker + ['run', '--rm', '--platform', 'linux/amd64', '--network', 'none', '--cpus', '1', '--memory', '2g', '--entrypoint', 'sh', image, '-c', 'command -v trim_galore; sha256sum "$(command -v trim_galore)"; trim_galore --version'], 'tool')
         inputs = [root / f'input_{mate}.fastq.gz' for mate in (1, 2)]
         for mate, path in enumerate(inputs, 1):
             write_reads(path, mate)
         result['inputs'] = {path.name: sha(path) for path in inputs}
-        defaults = re.findall(r'(?ms)^params\s*\{.*?^\}', (repo / 'nextflow.config').read_text())
+        defaults = re.findall(r'(?ms)^params\s*\{.*?^\}', (source / 'nextflow.config').read_text())
         if len(defaults) != 1:
             raise ValueError('Cannot isolate production parameter defaults')
         config = root / 'probe.config'
-        config.write_text(defaults[0] + '\nparams.outdir = ' + json.dumps(str(root / 'published')) + '\nincludeConfig ' + json.dumps(str(repo / 'conf/modules.config')) + '''
+        config.write_text(defaults[0] + '\nparams.outdir = ' + json.dumps(str(root / 'published')) + '\nincludeConfig ' + json.dumps(str(source / 'conf/modules.config')) + '''
 process.executor = 'local'
 process.cpus = 1
 process.memory = '2 GB'
@@ -144,7 +158,7 @@ trace.fields = 'task_id,hash,name,status,exit,container,workdir,attempt'
         if f'version {args.nextflow_version}' not in result['nextflow_version']:
             raise ValueError('Actual Nextflow version differs from the requested version')
         receipt = root / 'reads.json'
-        run([args.nextflow, '-C', str(config), 'run', str(harness[1]), '-ansi-log', 'false', '-with-trace', 'trace.tsv', '-work-dir', str(root / 'work'), '--repo', str(repo), '--read1', str(inputs[0]), '--read2', str(inputs[1]), '--receipt', str(receipt)], 'nextflow-run', env)
+        run([args.nextflow, '-C', str(config), 'run', str(driver), '-ansi-log', 'false', '-with-trace', 'trace.tsv', '-work-dir', str(root / 'work'), '--read1', str(inputs[0]), '--read2', str(inputs[1]), '--receipt', str(receipt)], 'nextflow-run', env)
         with (root / 'trace.tsv').open() as stream:
             tasks = list(csv.DictReader(stream, delimiter='\t'))
         if len(tasks) != 1 or tasks[0]['status'] != 'COMPLETED' or tasks[0]['exit'] != '0' or tasks[0]['container'] != image:
@@ -161,8 +175,10 @@ trace.fields = 'task_id,hash,name,status,exit,container,workdir,attempt'
             result['mates'].append({'mate': mate, 'outputs': [output_identity(path) for path in paths], **outcome})
         result['source_after'] = source_identity(repo)
         result['harness_after'] = {path.name: sha(path) for path in harness}
-        after = json.loads(run(inspect, 'image-after'))
-        if result['source_before']['files'] != result['source_after']['files'] or result['harness_before'] != result['harness_after'] or after['id'] != result['container']['id']:
+        after = json.loads(run(inspect, 'image-after'))[0]
+        if result['source_used'] != {name: sha(source / name) for name in SOURCES} or sha(driver) != result['harness_before'][driver.name]:
+            raise ValueError('Copied source or driver changed during execution')
+        if result['source_before']['files'] != result['source_after']['files'] or result['harness_before'] != result['harness_after'] or after['Id'] != result['container']['id']:
             raise ValueError('Source, harness or image changed during execution')
         result['status'] = 'PASS' if all(mate['passed'] for mate in result['mates']) else 'FAIL'
     except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:

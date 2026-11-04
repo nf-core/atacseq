@@ -1,6 +1,6 @@
 nextflow.enable.dsl = 2
 
-include { TRIMGALORE } from "${params.repo}/modules/nf-core/trimgalore/main.nf"
+include { TRIMGALORE } from '../../modules/nf-core/trimgalore/main'
 
 workflow {
     TRIMGALORE(channel.of([

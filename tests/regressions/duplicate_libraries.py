@@ -174,8 +174,9 @@ def run(args):
                 raise InfrastructureError('Unexpected Picard declaration; review the image and fixture explicitly')
         result['containers'] = {}
         for name, image in [('picard', PICARD), ('samtools', SAMTOOLS)]:
-            template = '{"id":{{json .Id}},"digests":{{json .RepoDigests}},"architecture":{{json .Architecture}}}'
-            info = json.loads(command(docker + ['image', 'inspect', '--format', template, image], name + '-image'))
+            inspected = json.loads(command(docker + ['image', 'inspect', image], name + '-image'))[0]
+            info = {key: inspected[field] for key, field in
+                    [('id', 'Id'), ('digests', 'RepoDigests'), ('architecture', 'Architecture')]}
             if not info['digests']:
                 raise InfrastructureError('Cached image lacks an immutable repository digest')
             result['containers'][name] = dict(info, declaration=image)
