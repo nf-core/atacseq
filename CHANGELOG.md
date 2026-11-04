@@ -7,11 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements & fixes
 
-- Make the local GFFREAD patch reapply to its exact upstream revision, preserving the 0.12.9 correction during module refreshes; add a byte-for-byte patch regression check.
-- Update GFFREAD to 0.12.9 to fix annotation conversion failures introduced by the 0.12.7 selection in [[#448]](https://github.com/nf-core/atacseq/pull/448), found during the [[#473]](https://github.com/nf-core/atacseq/issues/473) module sweep.
-- Preserve PRESEQ BAM mode, verbosity and fixed seed on retry, and append `-defects` rather than dropping the original options (follow-up to [[#473]](https://github.com/nf-core/atacseq/issues/473)). Add a blocking CI regression for argument preservation and retry recovery.
-- Update `trimgalore` module to Trim Galore 2.3.0 and pass `--no_poly_g` so the default preprocessing matches Trim Galore 0.6.x (no automatic poly-G trimming); fixes the 2.1.0 regression from [[#448]](https://github.com/nf-core/atacseq/pull/448) where legitimate 5′ poly-C heads on Read 2 could be removed.
-- Set the Chromap `PICARD_ADDORREPLACEREADGROUPS` read-group library (`RGLB`) to the sample/replicate name without the final `_T<n>` suffix, so `MarkDuplicates` marks duplicates across technical runs of the same library again (follow-up to [[#448]](https://github.com/nf-core/atacseq/pull/448)).
+- [[#474]](https://github.com/nf-core/atacseq/pull/474) - Preserve the GFFREAD 0.12.9 correction and its replayable module patch for annotation conversion failures selected in [[#448]](https://github.com/nf-core/atacseq/pull/448).
+- [[#474]](https://github.com/nf-core/atacseq/pull/474) - Preserve PRESEQ BAM mode, verbosity and fixed seed on retry, appending `-defects`; add a blocking retry regression ([[#473]](https://github.com/nf-core/atacseq/issues/473)).
+- [[#474]](https://github.com/nf-core/atacseq/pull/474) - Use Trim Galore 2.3.0 with `--no_poly_g` to retain the earlier preprocessing policy and legitimate Read 2 5′ poly-C; add a blocking paired-read regression.
+- [[#474]](https://github.com/nf-core/atacseq/pull/474) - Share Chromap `RGLB` across technical runs of each biological library while retaining distinct `RGID`; add a blocking duplicate-marking regression.
 - [[#466]](https://github.com/nf-core/atacseq/pull/466) - Run the `test_controls` profile in `tests/controls.nf.test` and set `with_control = true` in it, so CI exercises `--with_control`.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Update nf-core modules and subworkflows to their latest versions and reconcile the resulting call-signature changes.
 - [[#448]](https://github.com/nf-core/atacseq/pull/448) - Add read groups to Chromap alignments, which Picard 3.4.0 `MarkDuplicates` now requires.
