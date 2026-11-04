@@ -79,7 +79,8 @@
                     "gffread": {
                         "branch": "master",
                         "git_sha": "c9ad4d691aa339e478a77847e3ef854ccd21778b",
-                        "installed_by": ["modules"]
+                        "installed_by": ["modules"],
+                        "patch": "modules/nf-core/gffread/gffread.diff"
                     },
                     "gunzip": {
                         "branch": "master",
@@ -129,7 +130,8 @@
                     "preseq/lcextrap": {
                         "branch": "master",
                         "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
-                        "installed_by": ["modules"]
+                        "installed_by": ["modules"],
+                        "patch": "modules/nf-core/preseq/lcextrap/preseq-lcextrap.diff"
                     },
                     "samtools/faidx": {
                         "branch": "master",
@@ -169,7 +171,7 @@
                     },
                     "trimgalore": {
                         "branch": "master",
-                        "git_sha": "0991b1032cccfcd9245ef59c6e56d6092ac0b3e7",
+                        "git_sha": "2a30bfb6a1b4667692d734e33e000a3bd1d74a0d",
                         "installed_by": ["fastq_fastqc_umitools_trimgalore"]
                     },
                     "ucsc/bedgraphtobigwig": {
