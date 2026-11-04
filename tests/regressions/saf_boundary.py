@@ -138,9 +138,10 @@ def run(args):
         result['containers'] = {}
         images = {'subread': args.subread_image, 'samtools': args.samtools_image}
         for name, image in images.items():
-            metadata = command(['docker', '--context', args.docker_context, 'image', 'inspect', '--format',
-                '{"image_id":{{json .Id}},"repo_digests":{{json .RepoDigests}},"architecture":{{json .Architecture}},"os":{{json .Os}}}', image], 'image-' + name)[0]
-            actual = json.loads(metadata)
+            metadata = command(['docker', '--context', args.docker_context, 'image', 'inspect', image], 'image-' + name)[0]
+            inspected = json.loads(metadata)[0]
+            actual = {key: inspected[field] for key, field in
+                      [('image_id', 'Id'), ('repo_digests', 'RepoDigests'), ('architecture', 'Architecture'), ('os', 'Os')]}
             if not actual.get('repo_digests') or actual.get('architecture') != 'amd64' or actual.get('os') != 'linux':
                 raise InfrastructureError('Missing immutable Linux/amd64 image identity')
             if '@sha256:' in image and not any(x.endswith(image.split('@', 1)[1]) for x in actual['repo_digests']):
